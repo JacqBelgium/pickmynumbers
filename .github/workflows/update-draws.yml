@@ -1,1 +1,109 @@
+name: Update EuroMillions Draws
+
+on:
+  schedule:
+    - cron: '0 23 * * 2'  # Elke dinsdag 23:00 UTC
+    - cron: '0 23 * * 5'  # Elke vrijdag 23:00 UTC
+  workflow_dispatch:       # Ook handmatig te starten
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}
+
+      - name: Fetch latest draw
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request
+          import re
+          import json
+          import os
+          from datetime import datetime
+
+          headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0',
+            'Accept': 'text/html,application/xhtml+xml',
+            'Accept-Language': 'en-GB,en;q=0.5',
+          }
+
+          MONTHS_NL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec']
+
+          # Probeer national-lottery.co.uk XML feed
+          urls_to_try = [
+            'https://www.national-lottery.co.uk/results/euromillions/draw-history/xml',
+            'https://www.beatlottery.co.uk/euromillions/results',
+          ]
+
+          draw = None
+
+          # Probeer XML feed
+          try:
+            req = urllib.request.Request(urls_to_try[0], headers=headers)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+              xml = resp.read().decode('utf-8', errors='ignore')
+
+            # Parse XML - zoek meest recente trekking
+            # Formaat: <drawDate>2026-05-09</drawDate>
+            dates = re.findall(r'<drawDate>(\d{4}-\d{2}-\d{2})</drawDate>', xml)
+            balls = re.findall(r'<ball(\d+)>(\d+)</ball\d+>', xml)
+            machines = re.findall(r'<ballMachine>(.*?)</ballMachine>', xml)
+            ballsets = re.findall(r'<ballSet>(\d+)</ballSet>', xml)
+            lucky = re.findall(r'<luckyStars?(\d+)>(\d+)</luckyStars?\d+>', xml)
+
+            if dates and balls:
+              d = datetime.strptime(dates[0], '%Y-%m-%d')
+              date_nl = f"{d.day} {MONTHS_NL[d.month-1]} {d.year}"
+              nums = sorted([int(v) for k,v in balls[:5]])
+              stars = sorted([int(v) for k,v in lucky[:2]])
+              machine_raw = machines[0] if machines else ''
+              m_num = re.search(r'(\d+)', machine_raw)
+              machine = int(m_num.group(1)) if m_num else 13
+              bal = int(ballsets[0]) if ballsets else 21
+
+              draw = {
+                'date': date_nl,
+                'nums': nums,
+                'stars': stars,
+                'machine': machine,
+                'bal': bal
+              }
+              print(f"XML: {date_nl} {nums} + {stars} M{machine}/B{bal}")
+          except Exception as e:
+            print(f"XML fout: {e}")
+
+          if not draw:
+            print("Geen nieuwe data opgehaald")
+            exit(0)
+
+          # Laad bestaande draws.json
+          draws_file = 'draws.json'
+          existing = []
+          if os.path.exists(draws_file):
+            with open(draws_file, 'r') as f:
+              existing = json.load(f)
+
+          # Check duplicaat
+          if any(d['date'] == draw['date'] for d in existing):
+            print(f"Al aanwezig: {draw['date']}")
+            exit(0)
+
+          # Voeg toe en sla op
+          existing.insert(0, draw)
+          with open(draws_file, 'w') as f:
+            json.dump(existing, f, ensure_ascii=False, indent=2)
+
+          print(f"Opgeslagen! Totaal: {len(existing)} trekkingen")
+          PYEOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add draws.json
+          git diff --staged --quiet || git commit -m "Auto-update: EuroMillions trekking $(date +%Y-%m-%d)"
+          git push
 
