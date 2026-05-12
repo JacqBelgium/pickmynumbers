@@ -1236,16 +1236,24 @@ function getWeight(machine, bal) {
 }
 
 function getWeightedDraws(machine, bal) {
-  // Bouw gewogen dataset: M/B trekkingen tellen zwaarder mee
   const weight = getWeight(machine, bal);
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
+  
+  // Bepaal welke algemene data te gebruiken
+  // < 100 M/B trekkingen: alleen 2025+ (recente data, minder dilutie)
+  // >= 100 M/B trekkingen: alle jaren (2023-2026)
+  const useAllYears = mbDraws >= 100;
+  const cutoffDraw = 1761; // draw 1761 = 3 jan 2025
+
   const weighted = [];
   ALL_DRAWS.forEach(d => {
     if (d.machine === machine && d.bal === bal) {
-      // Voeg weight keer toe
       for (let i = 0; i < weight; i++) weighted.push(d);
-    } else {
-      // Alle andere trekkingen: factor 1
-      weighted.push(d);
+    } else if (d.machine === 0 || d.machine !== machine || d.bal !== bal) {
+      // Algemene data: alleen meenemen als useAllYears of trekking is uit 2025+
+      if (useAllYears || (d.draw && d.draw >= cutoffDraw)) {
+        weighted.push(d);
+      }
     }
   });
   return weighted;
