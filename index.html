@@ -287,6 +287,11 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 .profile-card-sub { font-size:11px; color:#aaa; margin-top:2px; }
 .profile-card-badge { font-size:10px; background:#f0f8ec; color:#3B6D11; border:1px solid #c8e0b8; border-radius:10px; padding:1px 7px; font-weight:400; }
 
+/* PROFIEL KNOPPEN HOOFDPAGINA */
+.profile-main-btn { padding:10px 12px; border:1.5px solid #e8e8e4; border-radius:10px; background:#fff; cursor:pointer; text-align:left; transition:all 0.15s; }
+.profile-main-btn:hover { background:#f8f8f6; border-color:#bbb; }
+.profile-main-btn.active { border-color:#1a1a18; background:#f8f8f6; }
+
 /* ===================== DISCLAIMER ===================== */
 .disclaimer-overlay {
   display:none; position:fixed; inset:0; background:rgba(10,10,8,0.82);
@@ -713,6 +718,45 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
     <div class="star-combis" id="starCombis"></div>
   </div>
 
+  <!-- PROFIEL KEUZE OP HOOFDPAGINA -->
+  <div class="selector-label">Speel profiel</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+    <button class="profile-main-btn active" id="pmb-standard" onclick="selectProfileMain('standard')">
+      <div style="font-size:12px;font-weight:500;">Standaard</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">3 tickets · 5+2</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-system" onclick="selectProfileMain('system')">
+      <div style="font-size:12px;font-weight:500;">Systeem</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">6 tickets · 6+3</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-extended" onclick="selectProfileMain('extended')">
+      <div style="font-size:12px;font-weight:500;">Uitgebreid</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">5 tickets · 5+2</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-custom" onclick="selectProfileMain('custom')">
+      <div style="font-size:12px;font-weight:500;">Eigen keuze</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">Stel zelf in</div>
+    </button>
+  </div>
+
+  <!-- EIGEN KEUZE OPTIES -->
+  <div id="mainCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:1rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div class="admin-input-group">
+        <span class="admin-input-label">TICKETS</span>
+        <input type="number" class="admin-input" id="mainCustomTickets" value="3" min="1" max="10" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+      <div class="admin-input-group">
+        <span class="admin-input-label">NUMMERS</span>
+        <input type="number" class="admin-input" id="mainCustomNums" value="5" min="5" max="8" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+      <div class="admin-input-group">
+        <span class="admin-input-label">STERREN</span>
+        <input type="number" class="admin-input" id="mainCustomStars" value="2" min="2" max="3" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+    </div>
+  </div>
+
   <div class="selector-label">Aantal tickets (inzet)</div>
   <div class="selector-btns">
     <button class="sel-btn" onclick="selectTickets(1)">1</button>
@@ -758,20 +802,27 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 
 <!-- GEBRUIKERSPROFIEL MODAL -->
 <div class="disclaimer-overlay" id="profileOverlay" onclick="profileOverlayClick(event)">
-  <div class="disclaimer-modal" style="max-width:440px;">
+  <div class="disclaimer-modal" style="max-width:400px;">
     <div class="disc-header" style="padding-bottom:1.25rem;">
       <div class="disc-logo">
         <div class="disc-logo-icon">📧</div>
         <div>
           <div class="disc-logo-text">Tickets opslaan</div>
-          <div class="disc-logo-sub">Ontvang persoonlijke analyse na elke trekking</div>
+          <div class="disc-logo-sub" id="profileModalSub">Ontvang analyse na elke trekking</div>
         </div>
       </div>
     </div>
     <div class="disc-body" style="padding-top:0;">
       <div id="profileFormArea">
+        <!-- PROFIEL SAMENVATTING -->
+        <div style="background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:12px;font-weight:500;" id="profileSummaryLabel">Standaard profiel</div>
+            <div style="font-size:11px;color:#aaa;" id="profileSummaryDetail">3 tickets · 5 nummers + 2 sterren</div>
+          </div>
+          <span style="font-size:18px;">✓</span>
+        </div>
 
-        <!-- NAAM & EMAIL -->
         <div class="admin-input-group" style="margin-bottom:12px;">
           <span class="admin-input-label">JOUW NAAM</span>
           <input type="text" class="admin-input" id="profileName" placeholder="Bijv. Jacq" style="width:100%;">
@@ -780,70 +831,6 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
           <span class="admin-input-label">EMAIL ADRES</span>
           <input type="email" class="admin-input" id="profileEmail" placeholder="jouw@email.com" style="width:100%;">
         </div>
-
-        <!-- PROFIEL KEUZE -->
-        <div class="admin-input-group" style="margin-bottom:8px;">
-          <span class="admin-input-label">SPEEL PROFIEL</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;" id="profileCards">
-
-          <!-- Standaard -->
-          <label class="profile-card active" id="pc-standard" onclick="selectProfile('standard')">
-            <div class="profile-card-check" id="pck-standard">✓</div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Standaard <span class="profile-card-badge">Aanbevolen</span></div>
-              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-
-          <!-- Systeem -->
-          <label class="profile-card" id="pc-system" onclick="selectProfile('system')">
-            <div class="profile-card-check" id="pck-system"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Systeem</div>
-              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren</div>
-            </div>
-          </label>
-
-          <!-- Uitgebreid -->
-          <label class="profile-card" id="pc-extended" onclick="selectProfile('extended')">
-            <div class="profile-card-check" id="pck-extended"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Uitgebreid</div>
-              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-
-          <!-- Eigen keuze -->
-          <label class="profile-card" id="pc-custom" onclick="selectProfile('custom')">
-            <div class="profile-card-check" id="pck-custom"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Eigen keuze</div>
-              <div class="profile-card-sub">Stel zelf in</div>
-            </div>
-          </label>
-
-        </div>
-
-        <!-- EIGEN KEUZE OPTIES -->
-        <div id="customProfileOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:16px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <div class="admin-input-group">
-              <span class="admin-input-label">TICKETS</span>
-              <input type="number" class="admin-input" id="customTickets" value="3" min="1" max="10" style="width:100%;">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">NUMMERS</span>
-              <input type="number" class="admin-input" id="customNums" value="5" min="5" max="8" style="width:100%;">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">STERREN</span>
-              <input type="number" class="admin-input" id="customStars" value="2" min="2" max="3" style="width:100%;">
-            </div>
-          </div>
-          <div style="font-size:10px;color:#aaa;margin-top:6px;">Nummers: 5-8 · Sterren: 2-3</div>
-        </div>
-
         <div style="font-size:11px;color:#aaa;margin-bottom:16px;line-height:1.6;">
           Je email wordt alleen gebruikt voor de trekking analyse. Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;text-decoration:underline;cursor:pointer;">privacyverklaring</a>.
         </div>
@@ -853,7 +840,6 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
         <div class="admin-msg" id="profileMsg" style="margin-top:10px;"></div>
       </div>
 
-      <!-- SUCCES -->
       <div id="profileSuccessArea" style="display:none;text-align:center;padding:1rem 0;">
         <div style="font-size:32px;margin-bottom:12px;">✅</div>
         <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Tickets opgeslagen!</div>
@@ -2761,9 +2747,16 @@ async function sbFetch(path, method='GET', body=null) {
     }
   };
   if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
-  if (!r.ok) throw new Error(`Supabase fout: ${r.status}`);
-  return r.status === 204 ? null : r.json();
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
+    if (!r.ok) throw new Error(`Database fout (${r.status})`);
+    return r.status === 204 ? null : r.json();
+  } catch(e) {
+    if (e.message.includes('NetworkError') || e.message.includes('fetch')) {
+      throw new Error('Geen verbinding met database. De app moet online zijn via pickmynumbers.eu — lokaal testen werkt niet met opslaan.');
+    }
+    throw e;
+  }
 }
 
 async function getOrCreateUser(name, email, profile) {
@@ -2808,13 +2801,13 @@ async function saveTicketsToDb(userId, tickets, drawDate, drawNumber, machine, b
 // =====================
 function openSaveProfile() {
   const grid = document.getElementById('ticketsGrid');
-  const cards = grid.querySelectorAll('.ticket-card');
+  const cards = grid ? grid.querySelectorAll('.ticket-card, .ticket') : [];
   if (cards.length === 0) { alert('Genereer eerst tickets!'); return; }
 
   pendingTickets = [];
   cards.forEach(card => {
-    const numBalls = [...card.querySelectorAll('.ball-num')].map(b => parseInt(b.textContent));
-    const starBalls = [...card.querySelectorAll('.ball-star')].map(b => parseInt(b.textContent));
+    const numBalls = [...card.querySelectorAll('.ball-num, .ball-hot, .ball-avg')].map(b => parseInt(b.textContent)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
+    const starBalls = [...card.querySelectorAll('.ball-star')].map(b => parseInt(b.textContent)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
     if (numBalls.length >= 5 && starBalls.length >= 2) {
       pendingTickets.push({ nums: numBalls, stars: starBalls });
     }
@@ -2822,13 +2815,17 @@ function openSaveProfile() {
 
   if (pendingTickets.length === 0) { alert('Kon tickets niet lezen — genereer opnieuw.'); return; }
 
-  // Vul opgeslagen profiel in
+  // Haal actief profiel op van hoofdpagina
+  const profile = getActiveProfile();
+  const profileLabels = {standard:'Standaard',system:'Systeem',extended:'Uitgebreid',custom:'Eigen keuze'};
+  const lbl = profileLabels[selectedProfile] || 'Standaard';
+  document.getElementById('profileSummaryLabel').textContent = lbl + ' profiel';
+  document.getElementById('profileSummaryDetail').textContent =
+    `${pendingTickets.length} tickets · ${profile.nums} nummers + ${profile.stars} sterren`;
+
   if (currentUser) {
     document.getElementById('profileName').value = currentUser.name || '';
     document.getElementById('profileEmail').value = currentUser.email || '';
-    selectProfile(currentUser.profile || 'standard');
-  } else {
-    selectProfile('standard');
   }
 
   document.getElementById('profileFormArea').style.display = 'block';
