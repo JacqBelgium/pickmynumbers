@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EuroMillions Picker — M13/B21</title>
+<title>PickMyNumbers — EuroMillions Picker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: system-ui, sans-serif; background: #f8f8f6; color: #1a1a18; padding: 1.5rem; max-width: 720px; margin: auto; font-size: 14px; }
@@ -292,6 +293,32 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 .profile-main-btn:hover { background:#f8f8f6; border-color:#bbb; }
 .profile-main-btn.active { border-color:#1a1a18; background:#f8f8f6; }
 
+/* ===================== LOGIN MODAL ===================== */
+.login-overlay { display:none; position:fixed; inset:0; background:rgba(10,10,8,0.85); z-index:998; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(4px); }
+.login-overlay.open { display:flex; }
+.login-modal { background:#fff; border-radius:16px; width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; }
+.login-header { background:#1a1a18; padding:1.5rem; color:#fff; text-align:center; }
+.login-header-icon { font-size:32px; margin-bottom:8px; }
+.login-header-title { font-size:18px; font-weight:500; }
+.login-header-sub { font-size:12px; color:#aaa; margin-top:4px; }
+.login-body { padding:1.5rem; }
+.login-step { display:none; }
+.login-step.active { display:block; }
+.login-input { width:100%; background:#f8f8f6; border:1.5px solid #e0e0dc; color:#111; padding:12px 14px; border-radius:10px; font-size:14px; margin-bottom:12px; }
+.login-input:focus { outline:none; border-color:#1a1a18; background:#fff; }
+.login-btn { width:100%; padding:13px; background:#1a1a18; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:500; cursor:pointer; transition:background 0.2s; }
+.login-btn:hover { background:#333; }
+.login-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.login-msg { font-size:12px; text-align:center; margin-top:10px; min-height:18px; }
+.login-divider { text-align:center; font-size:11px; color:#bbb; margin:12px 0; }
+.login-note { font-size:11px; color:#aaa; text-align:center; line-height:1.6; margin-top:12px; }
+.user-bar { display:flex; align-items:center; justify-content:space-between; background:#f0efea; border-radius:10px; padding:8px 14px; margin-bottom:1rem; font-size:12px; }
+.user-bar-name { font-weight:500; color:#111; }
+.user-bar-email { color:#888; font-size:11px; }
+.user-bar-logout { font-size:11px; color:#A32D2D; cursor:pointer; padding:4px 8px; border-radius:6px; border:1px solid #f0c8c8; background:#fff; }
+.user-bar-logout:hover { background:#fdf0f0; }
+.login-link { font-size:12px; color:#1a1a18; text-decoration:underline; cursor:pointer; text-align:center; display:block; margin-top:10px; }
+
 /* ===================== DISCLAIMER ===================== */
 .disclaimer-overlay {
   display:none; position:fixed; inset:0; background:rgba(10,10,8,0.82);
@@ -423,7 +450,119 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 </head>
 <body>
 
-<!-- ===================== DISCLAIMER MODAL ===================== -->
+<!-- ===================== LOGIN MODAL ===================== -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-modal">
+    <div class="login-header">
+      <div class="login-header-icon">🎰</div>
+      <div class="login-header-title">PickMyNumbers</div>
+      <div class="login-header-sub">Inloggen om tickets op te slaan & analyses te ontvangen</div>
+    </div>
+    <div class="login-body">
+
+      <!-- STAP 1: EMAIL INVOEREN -->
+      <div class="login-step active" id="loginStep1">
+        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
+          Voer je emailadres in — je ontvangt een <strong>magic link</strong> waarmee je direct inlogt. Geen wachtwoord nodig!
+        </div>
+        <div class="admin-input-group" style="margin-bottom:12px;">
+          <span class="admin-input-label">JOUW NAAM</span>
+          <input type="text" class="login-input" id="loginName" placeholder="Bijv. Jacq">
+        </div>
+        <div class="admin-input-group" style="margin-bottom:12px;">
+          <span class="admin-input-label">EMAIL ADRES</span>
+          <input type="email" class="login-input" id="loginEmail" placeholder="jouw@email.com">
+        </div>
+
+        <!-- PROFIEL KEUZE -->
+        <div class="admin-input-group" style="margin-bottom:8px;">
+          <span class="admin-input-label">SPEEL PROFIEL</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+          <label class="profile-card active" id="lpc-standard" onclick="selectLoginProfile('standard')">
+            <div class="profile-card-check" id="lpck-standard">✓</div>
+            <div class="profile-card-content">
+              <div class="profile-card-title">Standaard <span class="profile-card-badge">Aanbevolen</span></div>
+              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren · €7,50/trekking</div>
+            </div>
+          </label>
+          <label class="profile-card" id="lpc-system" onclick="selectLoginProfile('system')">
+            <div class="profile-card-check" id="lpck-system"></div>
+            <div class="profile-card-content">
+              <div class="profile-card-title">Systeem</div>
+              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren · €30/trekking</div>
+            </div>
+          </label>
+          <label class="profile-card" id="lpc-extended" onclick="selectLoginProfile('extended')">
+            <div class="profile-card-check" id="lpck-extended"></div>
+            <div class="profile-card-content">
+              <div class="profile-card-title">Uitgebreid</div>
+              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren · €12,50/trekking</div>
+            </div>
+          </label>
+          <label class="profile-card" id="lpc-custom" onclick="selectLoginProfile('custom')">
+            <div class="profile-card-check" id="lpck-custom"></div>
+            <div class="profile-card-content">
+              <div class="profile-card-title">Eigen keuze</div>
+              <div class="profile-card-sub">Stel zelf in</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- EIGEN KEUZE -->
+        <div id="loginCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div class="admin-input-group">
+              <span class="admin-input-label">TICKETS</span>
+              <input type="number" class="admin-input" id="loginCustomTickets" value="3" min="1" max="10">
+            </div>
+            <div class="admin-input-group">
+              <span class="admin-input-label">NUMMERS</span>
+              <input type="number" class="admin-input" id="loginCustomNums" value="5" min="5" max="8">
+            </div>
+            <div class="admin-input-group">
+              <span class="admin-input-label">STERREN</span>
+              <input type="number" class="admin-input" id="loginCustomStars" value="2" min="2" max="3">
+            </div>
+          </div>
+        </div>
+
+        <button class="login-btn" onclick="sendMagicLink()" id="magicLinkBtn">✉ Stuur magic link</button>
+        <div class="login-msg" id="loginMsg"></div>
+        <div class="login-note">
+          Je email wordt alleen gebruikt voor inloggen en trekking analyses.<br>
+          Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacyverklaring</a>.
+        </div>
+      </div>
+
+      <!-- STAP 2: EMAIL VERSTUURD -->
+      <div class="login-step" id="loginStep2">
+        <div style="text-align:center;padding:1rem 0;">
+          <div style="font-size:40px;margin-bottom:12px;">📬</div>
+          <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check je email!</div>
+          <div style="font-size:13px;color:#555;line-height:1.6;" id="loginStep2Msg">
+            We hebben een magic link gestuurd naar je emailadres.<br>
+            Klik op de link in de email om in te loggen.
+          </div>
+          <div style="font-size:11px;color:#aaa;margin-top:16px;">
+            Geen email ontvangen? Check je spam map of
+            <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- USER BAR (zichtbaar als ingelogd) -->
+<div id="userBar" style="display:none;" class="user-bar">
+  <div>
+    <div class="user-bar-name" id="userBarName">—</div>
+    <div class="user-bar-email" id="userBarEmail">—</div>
+  </div>
+  <button class="user-bar-logout" onclick="logoutUser()">Uitloggen</button>
+</div>
 <div class="disclaimer-overlay" id="discOverlay">
   <div class="disclaimer-modal">
 
@@ -576,8 +715,9 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 </div>
 
 <h1>EuroMillions Picker <span class="machine-badge" id="machineBadge">M13/B21</span></h1>
-<div class="meta">
-  <strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">13 mei 2026 — 4 26 32 35 36 + 5 7</strong>
+<div class="meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+  <span><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">16 mei 2026 — 3 10 38 41 43 + 2 9</strong></span>
+  <button onclick="openLogin()" id="loginBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Inloggen</button>
 </div>
 <div class="resp-gamble-banner">
   <span style="font-size:18px;flex-shrink:0;">ℹ️</span>
@@ -642,7 +782,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
   <div class="box box-blue">
     <div class="box-title blue">
       <span>Som filter + Consecutive</span>
-      <span class="box-stat">2025 data · 104 trekkingen</span>
+      <span class="box-stat">Som filter + Consecutive · <span id="somStatLabel"></span></span>
     </div>
     <div class="som-row">
       <span class="som-label">Min som</span>
@@ -977,6 +1117,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 // DATASET
 // =====================
 let ALL_DRAWS = [
+  { date:'16 mei 2026', draw:1946, nums:[3,10,38,41,43], stars:[2,9], machine:13, bal:21 },
   { date:'13 mei 2026', draw:1945, nums:[4,26,32,35,36], stars:[5,7], machine:13, bal:21 },
   { date:'8 mei 2026', draw:1944, nums:[2,17,19,34,37], stars:[8,11], machine:13, bal:21 },
   { date:'5 mei 2026', draw:1943, nums:[3,4,8,20,31], stars:[6,8], machine:13, bal:21 },
@@ -1460,8 +1601,20 @@ function getStarStrategy(){
   const s=[];
   for(let n=1;n<=12;n++){const f=freq[n]||0;const ab=lastSeen[n]!==undefined?lastSeen[n]:total;s.push({n,score:f>0?Math.max(0.01,ab/(total/f)):0.01});}
   s.sort((a,b)=>b.score-a.score);
-  const top3=s.slice(0,3).map(x=>x.n);
-  return{top3,combis:[[top3[0],top3[1]],[top3[0],top3[2]],[top3[1],top3[2]]]};
+  const top5=s.slice(0,5).map(x=>x.n);
+  const top3=top5.slice(0,3);
+
+  // 2-ster combinaties (voor standaard profiel)
+  const combis2=[[top3[0],top3[1]],[top3[0],top3[2]],[top3[1],top3[2]]];
+
+  // 3-ster combinaties (voor systeem profiel) — alle mogelijke combinaties uit top 5
+  const combis3=[];
+  for(let i=0;i<top5.length;i++)
+    for(let j=i+1;j<top5.length;j++)
+      for(let k=j+1;k<top5.length;k++)
+        combis3.push([top5[i],top5[j],top5[k]]);
+
+  return{top3,top5,combis:combis2,combis3};
 }
 
 function weightedPick(pool,count){
@@ -1626,6 +1779,9 @@ function updateAll(){
   document.getElementById('machineLabel').textContent='M'+currentMachine+'/B'+currentBal;
   document.getElementById('machineBadge').textContent='M'+currentMachine+'/B'+currentBal;
   document.getElementById('machineTag').textContent='M'+currentMachine+'/B'+currentBal+' · '+draws.length+' trekkingen · ×'+weight;
+  // Dynamische stat label voor som/consecutive
+  const somLabel = document.getElementById('somStatLabel');
+  if(somLabel) somLabel.textContent = `${weighted.length} gewogen trekkingen · M${currentMachine}/B${currentBal} ×${weight}`;
   document.getElementById('ruleMain').innerHTML=`<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`;
   document.getElementById('s-hot').textContent=hp.length;
   document.getElementById('s-avg').textContent=ap.length;
@@ -1635,12 +1791,13 @@ function updateAll(){
     `<span class="pill pill-hot">Hot ${hp.length} (&gt;${threshHigh_v}×)</span>`+
     `<span class="pill pill-avg">Avg ${ap.length} (${threshLow_v}–${threshHigh_v}×)</span>`+
     `<span class="pill pill-cold">Cold ${cp.length} (&lt;${threshLow_v}×)</span>`;
-  const{top3,combis}=getStarStrategy();
-  document.getElementById('starSub').textContent=top3.join(', ');
-  document.getElementById('starCombis').innerHTML=combis.map((c,i)=>`
+  const{top3,top5,combis,combis3}=getStarStrategy();
+  const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {stars:2};
+  const displayCombis = profile.stars >= 3 ? combis3.slice(0,3) : combis;
+  document.getElementById('starSub').textContent = profile.stars >= 3 ? top5.join(', ') : top3.join(', ');
+  document.getElementById('starCombis').innerHTML=displayCombis.map((c,i)=>`
     <div class="star-combi"><span class="star-combi-label">Combi ${i+1}:</span>
-    <div class="ball ball-star" style="width:34px;height:34px;font-size:12px;">${c[0]}</div>
-    <div class="ball ball-star" style="width:34px;height:34px;font-size:12px;">${c[1]}</div></div>`).join('');
+    ${c.map(s=>`<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;">${s}</div>`).join('')}</div>`).join('');
   if(document.getElementById('pane-freq').classList.contains('active')) renderFreq();
 }
 
@@ -1697,7 +1854,7 @@ function renderEmpty(n){
 function generateAll(){
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
   const dist=getPickDist();
-  const{combis}=getStarStrategy();
+  const{combis,combis3}=getStarStrategy();
   if(hp.length<dist.hot){alert('Hot pool te klein — pas grenzen aan.');return;}
   if(ap.length<dist.avg){alert('Average pool te klein — pas grenzen aan.');return;}
 
@@ -1706,24 +1863,21 @@ function generateAll(){
   const numsCount = profile.nums || 5;
   const starsCount = profile.stars || 2;
 
+  // Kies juiste ster combinaties op basis van profiel
+  const starCombis = starsCount >= 3 ? combis3 : combis;
+
   const nd=nextDrawDate(),g=document.getElementById('ticketsGrid');
   g.innerHTML='';
   playedTickets=[];
   const pickedNums=[];
 
   for(let t=1;t<=numTickets;t++){
-    // Voor systeem spel: extra nummers = extra picks uit pool
     const extraNums = numsCount - 5;
     const r=pickWithFilters(hp,ap,dist.hot,dist.avg,pickedNums,extraNums);
     const allNums=r.nums.sort((a,b)=>a-b),hotNums=r.h.map(x=>x.num);
 
-    // Sterren: voor 3 sterren pak een extra uit de top sterren
-    let sc = combis[(t-1)%3];
-    if(starsCount === 3){
-      const{top3}=getStarStrategy();
-      const extra = top3.find(s=>!sc.includes(s)) || top3[0];
-      sc = [...sc, extra].sort((a,b)=>a-b);
-    }
+    // Roteer door ster combinaties — elke ticket een andere
+    const sc = starCombis[(t-1) % starCombis.length];
 
     pickedNums.push(allNums);
     playedTickets.push({nums:allNums,stars:sc});
@@ -2666,18 +2820,22 @@ try {
 updateAll();
 </script>
 
-<!-- ===================== SUPABASE + GEBRUIKERSPROFIEL ===================== -->
+<!-- ===================== SUPABASE + AUTH + GEBRUIKERSPROFIEL ===================== -->
 <script>
 const SUPABASE_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_12OtIWelNKVROgLr6WULUQ_8PcTVPuN';
 const RESEND_KEY   = 're_i81eQ4t7_8mrprcfWwaNWCn1hnQH6BqiU';
 
+// Initialiseer Supabase client met Auth
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 const USER_KEY = 'em_user_profile';
 let currentUser = null;
+let currentSession = null;
 let pendingTickets = [];
 let selectedProfile = 'standard';
+let loginSelectedProfile = 'standard';
 
-// Profiel definities
 const PROFILES = {
   standard: { label:'Standaard', tickets:3, nums:5, stars:2 },
   system:   { label:'Systeem',   tickets:6, nums:6, stars:3 },
@@ -2692,24 +2850,196 @@ try {
     currentUser = JSON.parse(saved);
     selectedProfile = currentUser.profile || 'standard';
   }
+  const savedProfile = localStorage.getItem('em_user_profile_type');
+  if (savedProfile) selectedProfile = savedProfile;
 } catch(e) {}
 
 // =====================
-// PROFIEL SELECTIE
+// SUPABASE AUTH
 // =====================
-function selectProfile(profile) {
-  selectedProfile = profile;
+async function initAuth() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    currentSession = session;
+    await loadUserProfile(session.user);
+  }
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      currentSession = session;
+      await loadUserProfile(session.user);
+      document.getElementById('loginOverlay').classList.remove('open');
+    } else if (event === 'SIGNED_OUT') {
+      currentSession = null;
+      currentUser = null;
+      localStorage.removeItem(USER_KEY);
+      updateUserBar(null);
+    }
+  });
+}
+
+async function loadUserProfile(authUser) {
+  try {
+    const { data } = await supabaseClient
+      .from('users')
+      .select('*')
+      .eq('auth_id', authUser.id)
+      .single();
+
+    const pendingName = localStorage.getItem('em_pending_name');
+    const pendingProf = localStorage.getItem('em_pending_profile') || 'standard';
+
+    if (data) {
+      currentUser = {
+        id: data.id, auth_id: authUser.id,
+        name: data.name || pendingName || 'Gebruiker',
+        email: authUser.email,
+        profile: data.profile || pendingProf,
+        ticket_count: data.ticket_count || 3,
+        nums_per_ticket: data.nums_per_ticket || 5,
+        stars_per_ticket: data.stars_per_ticket || 2,
+        blocked: data.blocked || false
+      };
+    } else {
+      // Nieuwe gebruiker aanmaken
+      const p = PROFILES[pendingProf] || PROFILES.standard;
+      const { data: newUser } = await supabaseClient.from('users').insert({
+        auth_id: authUser.id,
+        name: pendingName || 'Gebruiker',
+        email: authUser.email,
+        profile: pendingProf,
+        ticket_count: p.tickets,
+        nums_per_ticket: p.nums,
+        stars_per_ticket: p.stars
+      }).select().single();
+      currentUser = { ...newUser, email: authUser.email };
+    }
+
+    selectedProfile = currentUser.profile || 'standard';
+    localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+    localStorage.removeItem('em_pending_name');
+    localStorage.removeItem('em_pending_profile');
+    applyProfileToGenerator(selectedProfile);
+    updateUserBar(currentUser);
+  } catch(e) {
+    console.warn('Profiel laden:', e);
+    updateUserBar({ email: authUser.email });
+  }
+}
+
+function updateUserBar(user) {
+  const bar = document.getElementById('userBar');
+  const loginBtn = document.getElementById('loginBtn');
+  if (user && user.email) {
+    bar.style.display = 'flex';
+    document.getElementById('userBarName').textContent = user.name || 'Welkom!';
+    document.getElementById('userBarEmail').textContent = user.email;
+    if (loginBtn) loginBtn.style.display = 'none';
+  } else {
+    bar.style.display = 'none';
+    if (loginBtn) loginBtn.style.display = '';
+  }
+}
+
+async function logoutUser() {
+  if (!confirm('Uitloggen?')) return;
+  await supabaseClient.auth.signOut();
+}
+
+// =====================
+// LOGIN MODAL
+// =====================
+function openLogin() {
+  document.getElementById('loginStep1').classList.add('active');
+  document.getElementById('loginStep2').classList.remove('active');
+  document.getElementById('loginMsg').textContent = '';
+  document.getElementById('loginOverlay').classList.add('open');
+}
+
+function backToLogin() {
+  document.getElementById('loginStep1').classList.add('active');
+  document.getElementById('loginStep2').classList.remove('active');
+  document.getElementById('loginMsg').textContent = '';
+}
+
+async function sendMagicLink() {
+  const name = document.getElementById('loginName').value.trim();
+  const email = document.getElementById('loginEmail').value.trim();
+  const msg = document.getElementById('loginMsg');
+  const btn = document.getElementById('magicLinkBtn');
+
+  if (!name) { msg.textContent = '⚠ Vul je naam in'; msg.style.color='#A32D2D'; return; }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { msg.textContent = '⚠ Vul een geldig emailadres in'; msg.style.color='#A32D2D'; return; }
+
+  btn.disabled = true; btn.textContent = 'Bezig…'; msg.textContent = '';
+
+  try {
+    localStorage.setItem('em_pending_name', name);
+    localStorage.setItem('em_pending_profile', loginSelectedProfile);
+
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.href.split('?')[0],
+        data: { name, profile: loginSelectedProfile }
+      }
+    });
+
+    if (error) throw error;
+
+    document.getElementById('loginStep1').classList.remove('active');
+    document.getElementById('loginStep2').classList.add('active');
+    document.getElementById('loginStep2Msg').innerHTML =
+      `We hebben een magic link gestuurd naar <strong>${email}</strong>.<br>Klik op de link in de email om direct in te loggen.`;
+
+  } catch(e) {
+    msg.textContent = '⚠ ' + (e.message || 'Fout — probeer opnieuw');
+    msg.style.color = '#A32D2D';
+  }
+  btn.disabled = false; btn.textContent = '✉ Stuur magic link';
+}
+
+function selectLoginProfile(profile) {
+  loginSelectedProfile = profile;
   Object.keys(PROFILES).forEach(p => {
-    const card = document.getElementById('pc-' + p);
-    const check = document.getElementById('pck-' + p);
+    const card = document.getElementById('lpc-' + p);
+    const check = document.getElementById('lpck-' + p);
     if (card) card.classList.toggle('active', p === profile);
     if (check) check.textContent = p === profile ? '✓' : '';
   });
-  document.getElementById('customProfileOptions').style.display =
-    profile === 'custom' ? 'block' : 'none';
+  const customOpts = document.getElementById('loginCustomOptions');
+  if (customOpts) customOpts.style.display = profile === 'custom' ? 'block' : 'none';
+}
 
-  // Update generator direct als profiel wijzigt
-  applyProfileToGenerator(profile);
+// =====================
+// SUPABASE REST HELPERS
+// =====================
+function selectProfileMain(profile) {
+  selectedProfile = profile;
+
+  // Update buttons
+  document.querySelectorAll('.profile-main-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('pmb-' + profile);
+  if (btn) btn.classList.add('active');
+
+  // Toon/verberg eigen keuze opties
+  const customOpts = document.getElementById('mainCustomOptions');
+  if (customOpts) customOpts.style.display = profile === 'custom' ? 'block' : 'none';
+
+  // Pas generator aan
+  const p = profile === 'custom' ? {
+    tickets: parseInt(document.getElementById('mainCustomTickets')?.value)||3,
+    nums: parseInt(document.getElementById('mainCustomNums')?.value)||5,
+    stars: parseInt(document.getElementById('mainCustomStars')?.value)||2,
+  } : PROFILES[profile] || PROFILES.standard;
+
+  selectTickets(p.tickets);
+
+  // Sla op in localStorage
+  localStorage.setItem('em_user_profile_type', profile);
+}
+
+function selectProfile(profile) {
+  selectProfileMain(profile);
 }
 
 function getActiveProfile() {
@@ -2959,6 +3289,13 @@ window.generateAll = function() {
     }
   }, 200);
 };
+
+// Start authenticatie zodra pagina geladen is
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+});
+// Fallback als DOMContentLoaded al voorbij is
+if (document.readyState !== 'loading') initAuth();
 </script>
 
 <!-- ===================== DISCLAIMER JS ===================== -->
