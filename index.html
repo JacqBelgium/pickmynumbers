@@ -847,16 +847,12 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
     </div>
     <div class="rule-item">
       <div class="rule-label">STERREN</div>
-      <div class="rule-val" style="color:#8a4510;">Top 3</div>
-      <div class="rule-sub" id="starSub">—</div>
+      <div class="rule-val" style="color:#8a4510;" id="ruleStarCount">Top 3</div>
+      <div class="rule-sub">overdue</div>
     </div>
   </div>
 
-  <!-- STAR STRATEGY -->
-  <div class="star-box">
-    <div class="star-title">3-Sterren strategie — meest overdue sterren</div>
-    <div class="star-combis" id="starCombis"></div>
-  </div>
+  <!-- STAR STRATEGY — verplaatst naar onder profiel -->
 
   <!-- PROFIEL KEUZE OP HOOFDPAGINA -->
   <div class="selector-label">Speel profiel</div>
@@ -895,6 +891,13 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
         <input type="number" class="admin-input" id="mainCustomStars" value="2" min="2" max="3" onchange="applyCustomProfile()" style="width:100%;">
       </div>
     </div>
+  </div>
+
+  <!-- STERREN STRATEGIE — dynamisch op basis van profiel -->
+  <div class="star-box">
+    <div class="star-title" id="starStratTitle">2-Sterren strategie — meest overdue sterren</div>
+    <div style="font-size:11px;color:#bbb;margin-bottom:8px;">Top sterren: <span id="starSub">—</span></div>
+    <div class="star-combis" id="starCombis"></div>
   </div>
 
   <div class="selector-label">Aantal tickets (inzet)</div>
@@ -1633,16 +1636,22 @@ function weightedPick(pool,count){
 // FILTERS
 // =====================
 function check2D(nums){
-  const odd=nums.filter(n=>n%2!==0).length,laag=nums.filter(n=>n<=25).length;
+  // Gebruik altijd de eerste 5 nummers voor 2D check
+  const n5 = nums.slice(0,5);
+  const odd=n5.filter(n=>n%2!==0).length,laag=n5.filter(n=>n<=25).length;
   return selectedMatrix.has(odd+'_'+laag);
 }
 function checkSom(nums){
+  // Som van eerste 5 nummers
+  const n5 = nums.slice(0,5);
   const min=parseInt(document.getElementById('somMin').value),max=parseInt(document.getElementById('somMax').value);
-  const s=nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;
+  const s=n5.reduce((a,b)=>a+b,0);return s>=min&&s<=max;
 }
 function checkConsec(nums){
+  // Check eerste 5 nummers op consecutive
+  const n5 = nums.slice(0,5);
   if(!document.getElementById('consecToggle').checked) return true;
-  const s=[...nums].sort((a,b)=>a-b);let run=1;
+  const s=[...n5].sort((a,b)=>a-b);let run=1;
   for(let i=1;i<s.length;i++){if(s[i]===s[i-1]+1)run++;else run=1;if(run>=3)return false;}
   return true;
 }
@@ -1793,8 +1802,19 @@ function updateAll(){
     `<span class="pill pill-cold">Cold ${cp.length} (&lt;${threshLow_v}×)</span>`;
   const{top3,top5,combis,combis3}=getStarStrategy();
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {stars:2};
-  const displayCombis = profile.stars >= 3 ? combis3.slice(0,3) : combis;
-  document.getElementById('starSub').textContent = profile.stars >= 3 ? top5.join(', ') : top3.join(', ');
+  const starsInProfile = profile.stars || 2;
+  const displayCombis = starsInProfile >= 3 ? combis3.slice(0,6) : combis;
+
+  // Update titel en top sterren
+  const starTitle = document.getElementById('starStratTitle');
+  const starSub = document.getElementById('starSub');
+  const ruleStarCount = document.getElementById('ruleStarCount');
+  if (starTitle) starTitle.textContent = starsInProfile >= 3
+    ? '3-Sterren strategie — meest overdue sterren'
+    : '2-Sterren strategie — meest overdue sterren';
+  if (starSub) starSub.textContent = starsInProfile >= 3 ? top5.join(', ') : top3.join(', ');
+  if (ruleStarCount) ruleStarCount.textContent = starsInProfile >= 3 ? 'Top 5' : 'Top 3';
+
   document.getElementById('starCombis').innerHTML=displayCombis.map((c,i)=>`
     <div class="star-combi"><span class="star-combi-label">Combi ${i+1}:</span>
     ${c.map(s=>`<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;">${s}</div>`).join('')}</div>`).join('');
@@ -3025,42 +3045,43 @@ function selectProfileMain(profile) {
   const customOpts = document.getElementById('mainCustomOptions');
   if (customOpts) customOpts.style.display = profile === 'custom' ? 'block' : 'none';
 
-  // Pas generator aan
-  const p = profile === 'custom' ? {
-    tickets: parseInt(document.getElementById('mainCustomTickets')?.value)||3,
-    nums: parseInt(document.getElementById('mainCustomNums')?.value)||5,
-    stars: parseInt(document.getElementById('mainCustomStars')?.value)||2,
-  } : PROFILES[profile] || PROFILES.standard;
-
-  selectTickets(p.tickets);
-
   // Sla op in localStorage
   localStorage.setItem('em_user_profile_type', profile);
-}
 
-function selectProfile(profile) {
-  selectProfileMain(profile);
+  // Pas tickets aan
+  const p = getActiveProfile();
+  selectTickets(p.tickets);
+
+  // Herbereken sterren strategie + UI update
+  updateAll();
 }
 
 function getActiveProfile() {
   if (selectedProfile === 'custom') {
     return {
       label: 'Eigen keuze',
-      tickets: parseInt(document.getElementById('customTickets')?.value) || 3,
-      nums: parseInt(document.getElementById('customNums')?.value) || 5,
-      stars: parseInt(document.getElementById('customStars')?.value) || 2,
+      tickets: parseInt(document.getElementById('mainCustomTickets')?.value) || 3,
+      nums: parseInt(document.getElementById('mainCustomNums')?.value) || 5,
+      stars: parseInt(document.getElementById('mainCustomStars')?.value) || 2,
     };
   }
   return PROFILES[selectedProfile] || PROFILES.standard;
 }
 
 function applyProfileToGenerator(profile) {
-  const p = profile === 'custom' ? getActiveProfile() : PROFILES[profile] || PROFILES.standard;
-  // Update ticket selector
+  if (profile) selectedProfile = profile;
+  const p = getActiveProfile();
   selectTickets(p.tickets);
-  // Update num/star counts in generator
-  if (typeof setNumCount === 'function') setNumCount(p.nums);
-  if (typeof setStarCount === 'function') setStarCount(p.stars);
+  updateAll();
+}
+
+function selectProfile(profile) {
+  selectProfileMain(profile);
+}
+
+function applyCustomProfile() {
+  selectTickets(getActiveProfile().tickets);
+  updateAll();
 }
 
 // =====================
