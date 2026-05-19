@@ -456,15 +456,16 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
     <div class="login-header">
       <div class="login-header-icon">🎰</div>
       <div class="login-header-title">PickMyNumbers</div>
-      <div class="login-header-sub">Inloggen om tickets op te slaan & analyses te ontvangen</div>
+      <div class="login-header-sub" id="loginHeaderSub">Gratis account aanmaken</div>
     </div>
     <div class="login-body">
 
-      <!-- STAP 1: EMAIL INVOEREN -->
-      <div class="login-step active" id="loginStep1">
+      <!-- STAP 1A: REGISTRATIE (eerste bezoek) -->
+      <div class="login-step active" id="loginStepSignup">
         <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Voer je emailadres in — je ontvangt een <strong>magic link</strong> waarmee je direct inlogt. Geen wachtwoord nodig!
+          Maak een gratis account aan om tickets op te slaan en na elke trekking een <strong>persoonlijke analyse</strong> per email te ontvangen.
         </div>
+
         <div class="admin-input-group" style="margin-bottom:12px;">
           <span class="admin-input-label">JOUW NAAM</span>
           <input type="text" class="login-input" id="loginName" placeholder="Bijv. Jacq">
@@ -483,21 +484,21 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
             <div class="profile-card-check" id="lpck-standard">✓</div>
             <div class="profile-card-content">
               <div class="profile-card-title">Standaard <span class="profile-card-badge">Aanbevolen</span></div>
-              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren · €7,50/trekking</div>
+              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren</div>
             </div>
           </label>
           <label class="profile-card" id="lpc-system" onclick="selectLoginProfile('system')">
             <div class="profile-card-check" id="lpck-system"></div>
             <div class="profile-card-content">
               <div class="profile-card-title">Systeem</div>
-              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren · €30/trekking</div>
+              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren</div>
             </div>
           </label>
           <label class="profile-card" id="lpc-extended" onclick="selectLoginProfile('extended')">
             <div class="profile-card-check" id="lpck-extended"></div>
             <div class="profile-card-content">
               <div class="profile-card-title">Uitgebreid</div>
-              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren · €12,50/trekking</div>
+              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren</div>
             </div>
           </label>
           <label class="profile-card" id="lpc-custom" onclick="selectLoginProfile('custom')">
@@ -527,25 +528,50 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
           </div>
         </div>
 
-        <button class="login-btn" onclick="sendMagicLink()" id="magicLinkBtn">✉ Stuur magic link</button>
+        <button class="login-btn" onclick="sendMagicLink('signup')" id="magicLinkBtn">
+          ✉ Maak account aan
+        </button>
         <div class="login-msg" id="loginMsg"></div>
+        <div class="login-divider">Al een account?</div>
+        <button class="login-btn" onclick="showSignin()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
+          🔑 Inloggen
+        </button>
         <div class="login-note">
-          Je email wordt alleen gebruikt voor inloggen en trekking analyses.<br>
+          Geen wachtwoord nodig — je ontvangt een magic link per email.<br>
           Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacyverklaring</a>.
         </div>
       </div>
 
+      <!-- STAP 1B: INLOGGEN (terugkerende gebruiker) -->
+      <div class="login-step" id="loginStepSignin">
+        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
+          Voer je emailadres in — je ontvangt een <strong>magic link</strong> om direct in te loggen.
+        </div>
+        <div class="admin-input-group" style="margin-bottom:12px;">
+          <span class="admin-input-label">EMAIL ADRES</span>
+          <input type="email" class="login-input" id="signinEmail" placeholder="jouw@email.com">
+        </div>
+        <button class="login-btn" onclick="sendMagicLink('signin')" id="signinBtn">
+          ✉ Stuur magic link
+        </button>
+        <div class="login-msg" id="signinMsg"></div>
+        <div class="login-divider">Nog geen account?</div>
+        <button class="login-btn" onclick="showSignup()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
+          ✨ Gratis aanmelden
+        </button>
+      </div>
+
       <!-- STAP 2: EMAIL VERSTUURD -->
-      <div class="login-step" id="loginStep2">
+      <div class="login-step" id="loginStepSent">
         <div style="text-align:center;padding:1rem 0;">
           <div style="font-size:40px;margin-bottom:12px;">📬</div>
           <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check je email!</div>
-          <div style="font-size:13px;color:#555;line-height:1.6;" id="loginStep2Msg">
-            We hebben een magic link gestuurd naar je emailadres.<br>
-            Klik op de link in de email om in te loggen.
+          <div style="font-size:13px;color:#555;line-height:1.6;" id="loginSentMsg">
+            We hebben een magic link gestuurd.<br>
+            Klik op de link in de email om direct in te loggen.
           </div>
           <div style="font-size:11px;color:#aaa;margin-top:16px;">
-            Geen email ontvangen? Check je spam map of
+            Geen email? Check je spam map of
             <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
           </div>
         </div>
@@ -717,7 +743,10 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 <h1>EuroMillions Picker <span class="machine-badge" id="machineBadge">M13/B21</span></h1>
 <div class="meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
   <span><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">16 mei 2026 — 3 10 38 41 43 + 2 9</strong></span>
-  <button onclick="openLogin()" id="loginBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Inloggen</button>
+  <div id="authButtons">
+    <button onclick="openSignup()" id="signupBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:none;background:#1a1a18;color:#fff;cursor:pointer;margin-right:6px;">✨ Aanmelden</button>
+    <button onclick="openSignin()" id="signinBtn2" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Inloggen</button>
+  </div>
 </div>
 <div class="resp-gamble-banner">
   <span style="font-size:18px;flex-shrink:0;">ℹ️</span>
@@ -2948,15 +2977,15 @@ async function loadUserProfile(authUser) {
 
 function updateUserBar(user) {
   const bar = document.getElementById('userBar');
-  const loginBtn = document.getElementById('loginBtn');
+  const authBtns = document.getElementById('authButtons');
   if (user && user.email) {
     bar.style.display = 'flex';
     document.getElementById('userBarName').textContent = user.name || 'Welkom!';
     document.getElementById('userBarEmail').textContent = user.email;
-    if (loginBtn) loginBtn.style.display = 'none';
+    if (authBtns) authBtns.style.display = 'none';
   } else {
     bar.style.display = 'none';
-    if (loginBtn) loginBtn.style.display = '';
+    if (authBtns) authBtns.style.display = '';
   }
 }
 
@@ -2966,56 +2995,82 @@ async function logoutUser() {
 }
 
 // =====================
-// LOGIN MODAL
+// SIGNUP / SIGNIN FLOWS
 // =====================
-function openLogin() {
-  document.getElementById('loginStep1').classList.add('active');
-  document.getElementById('loginStep2').classList.remove('active');
+function showStep(stepId) {
+  ['loginStepSignup','loginStepSignin','loginStepSent'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === stepId);
+  });
+}
+
+function openSignup() {
+  document.getElementById('loginHeaderSub').textContent = 'Gratis account aanmaken';
+  showStep('loginStepSignup');
   document.getElementById('loginMsg').textContent = '';
   document.getElementById('loginOverlay').classList.add('open');
 }
 
+function openSignin() {
+  document.getElementById('loginHeaderSub').textContent = 'Inloggen';
+  showStep('loginStepSignin');
+  document.getElementById('signinMsg').textContent = '';
+  document.getElementById('loginOverlay').classList.add('open');
+}
+
+// Aliassen voor knoppen in modal
+function showSignup() { openSignup(); }
+function showSignin() { openSignin(); }
+function openLogin() { openSignup(); } // fallback
+
 function backToLogin() {
-  document.getElementById('loginStep1').classList.add('active');
-  document.getElementById('loginStep2').classList.remove('active');
+  showStep('loginStepSignup');
   document.getElementById('loginMsg').textContent = '';
 }
 
-async function sendMagicLink() {
-  const name = document.getElementById('loginName').value.trim();
-  const email = document.getElementById('loginEmail').value.trim();
-  const msg = document.getElementById('loginMsg');
-  const btn = document.getElementById('magicLinkBtn');
+async function sendMagicLink(mode) {
+  const isSignup = mode === 'signup';
+  const email = isSignup
+    ? document.getElementById('loginEmail').value.trim()
+    : document.getElementById('signinEmail').value.trim();
+  const name = isSignup ? document.getElementById('loginName').value.trim() : '';
+  const msgEl = document.getElementById(isSignup ? 'loginMsg' : 'signinMsg');
+  const btnEl = document.getElementById(isSignup ? 'magicLinkBtn' : 'signinBtn');
 
-  if (!name) { msg.textContent = '⚠ Vul je naam in'; msg.style.color='#A32D2D'; return; }
-  if (!email || !/\S+@\S+\.\S+/.test(email)) { msg.textContent = '⚠ Vul een geldig emailadres in'; msg.style.color='#A32D2D'; return; }
+  if (isSignup && !name) { msgEl.textContent = '⚠ Vul je naam in'; msgEl.style.color='#A32D2D'; return; }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { msgEl.textContent = '⚠ Vul een geldig emailadres in'; msgEl.style.color='#A32D2D'; return; }
 
-  btn.disabled = true; btn.textContent = 'Bezig…'; msg.textContent = '';
+  btnEl.disabled = true;
+  btnEl.textContent = 'Bezig…';
+  msgEl.textContent = '';
 
   try {
-    localStorage.setItem('em_pending_name', name);
-    localStorage.setItem('em_pending_profile', loginSelectedProfile);
+    if (isSignup) {
+      localStorage.setItem('em_pending_name', name);
+      localStorage.setItem('em_pending_profile', loginSelectedProfile);
+    }
 
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.href.split('?')[0],
-        data: { name, profile: loginSelectedProfile }
+        emailRedirectTo: 'https://pickmynumbers.eu',
+        data: isSignup ? { name, profile: loginSelectedProfile } : {}
       }
     });
 
     if (error) throw error;
 
-    document.getElementById('loginStep1').classList.remove('active');
-    document.getElementById('loginStep2').classList.add('active');
-    document.getElementById('loginStep2Msg').innerHTML =
-      `We hebben een magic link gestuurd naar <strong>${email}</strong>.<br>Klik op de link in de email om direct in te loggen.`;
+    document.getElementById('loginSentMsg').innerHTML =
+      `We hebben een magic link gestuurd naar <strong>${email}</strong>.<br>
+       Klik op de link in de email om direct in te ${isSignup ? 'registreren en in' : ''}loggen.`;
+    showStep('loginStepSent');
 
   } catch(e) {
-    msg.textContent = '⚠ ' + (e.message || 'Fout — probeer opnieuw');
-    msg.style.color = '#A32D2D';
+    msgEl.textContent = '⚠ ' + (e.message || 'Fout — probeer opnieuw');
+    msgEl.style.color = '#A32D2D';
   }
-  btn.disabled = false; btn.textContent = '✉ Stuur magic link';
+  btnEl.disabled = false;
+  btnEl.textContent = isSignup ? '✉ Maak account aan' : '✉ Stuur magic link';
 }
 
 function selectLoginProfile(profile) {
