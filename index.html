@@ -2331,8 +2331,19 @@ renderRendement();
       <div class="admin-section">
         <div class="admin-section-title">📧 Analyse emails sturen</div>
         <p style="font-size:11px;color:#aaa;margin-bottom:10px;">
-          Vul eerst de trekking in op het <strong>Resultaat</strong> tabblad, dan stuur je hier de analyse naar alle gebruikers die tickets hebben opgeslagen voor vandaag.
+          Voer de trekking uitslag in en stuur analyse naar alle gebruikers met tickets van vandaag.
         </p>
+        <div style="font-size:10px;color:#aaa;margin-bottom:4px;font-weight:500;letter-spacing:0.03em;">UITSLAG NUMMERS + STERREN</div>
+        <div class="admin-nums-row" style="margin-bottom:10px;">
+          <input type="number" class="admin-num-input admin-res-num" placeholder="1" min="1" max="50">
+          <input type="number" class="admin-num-input admin-res-num" placeholder="2" min="1" max="50">
+          <input type="number" class="admin-num-input admin-res-num" placeholder="3" min="1" max="50">
+          <input type="number" class="admin-num-input admin-res-num" placeholder="4" min="1" max="50">
+          <input type="number" class="admin-num-input admin-res-num" placeholder="5" min="1" max="50">
+          <span style="font-size:18px;color:#ddd;padding:0 4px;line-height:34px;">+</span>
+          <input type="number" class="admin-num-input admin-res-star" placeholder="★1" min="1" max="12">
+          <input type="number" class="admin-num-input admin-res-star" placeholder="★2" min="1" max="12">
+        </div>
         <button class="btn-admin btn-admin-green" onclick="adminSendAnalysis()" id="sendAnalysisBtn" style="width:100%;">📧 Stuur analyse emails</button>
         <div class="admin-msg" id="analysisMsg" style="margin-top:8px;"></div>
       </div>
@@ -2769,11 +2780,13 @@ async function adminToggleBlock(userId, block) {
 async function adminSendAnalysis() {
   const btn = document.getElementById('sendAnalysisBtn');
   const msg = document.getElementById('analysisMsg');
-  const nums = [...document.querySelectorAll('.res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
-  const stars = [...document.querySelectorAll('.res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
+
+  // Lees uit admin panel velden
+  const nums = [...document.querySelectorAll('.admin-res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
+  const stars = [...document.querySelectorAll('.admin-res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
 
   if (nums.length !== 5 || stars.length !== 2) {
-    msg.textContent = '⚠ Vul eerst de trekking in op het Resultaat tabblad';
+    msg.textContent = '⚠ Vul alle 5 nummers en 2 sterren in';
     msg.style.color = '#A32D2D'; return;
   }
 
