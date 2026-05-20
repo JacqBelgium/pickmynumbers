@@ -1886,6 +1886,18 @@ function nextDrawDate(){
   return`${days[nd.getDay()]} ${nd.getDate()} ${months[nd.getMonth()]}`;
 }
 
+function getNextDrawDateISO(){
+  // Geeft de volgende trekkingsdatum als YYYY-MM-DD
+  const d=new Date();
+  let nd=new Date(d);
+  for(let i=0;i<=7;i++){
+    const wd=nd.getDay();
+    if((wd===2||wd===5)&&(i>0||nd.getHours()<21)) break;
+    nd.setDate(nd.getDate()+1);
+  }
+  return nd.toISOString().split('T')[0];
+}
+
 function selectTickets(n){
   numTickets=n;
   document.querySelectorAll('.sel-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
@@ -2330,9 +2342,18 @@ renderRendement();
       <!-- ANALYSE EMAILS -->
       <div class="admin-section">
         <div class="admin-section-title">📧 Analyse emails sturen</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">
-          Voer de trekking uitslag in en stuur analyse naar alle gebruikers met tickets van vandaag.
-        </p>
+
+        <!-- TREKKINGSDATUM -->
+        <div class="admin-input-group" style="margin-bottom:10px;">
+          <span class="admin-input-label">TREKKINGSDATUM</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="date" class="admin-input" id="analysisDatum" style="flex:1;">
+            <button class="btn-admin" onclick="adminCheckTickets()">↓ Check</button>
+          </div>
+        </div>
+        <div id="analysisTicketInfo" style="font-size:11px;color:#aaa;margin-bottom:10px;min-height:16px;"></div>
+
+        <!-- UITSLAG -->
         <div style="font-size:10px;color:#aaa;margin-bottom:4px;font-weight:500;letter-spacing:0.03em;">UITSLAG NUMMERS + STERREN</div>
         <div class="admin-nums-row" style="margin-bottom:10px;">
           <input type="number" class="admin-num-input admin-res-num" placeholder="1" min="1" max="50">
@@ -2455,6 +2476,27 @@ function adminRefreshPanel(){
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('manDate').value=today;
   document.getElementById('fetchDate').value=today;
+
+  // Stel analyse datum in op de meest recente trekking in dataset
+  const analysisDatumEl = document.getElementById('analysisDatum');
+  if (analysisDatumEl) {
+    // Zoek meest recente di/vr datum
+    const lastDraw = ALL_DRAWS.find(d => d.machine > 0);
+    if (lastDraw) {
+      // Converteer NL datum naar ISO formaat
+      const months = {jan:1,feb:2,mrt:3,apr:4,mei:5,jun:6,jul:7,aug:8,sep:9,okt:10,nov:11,dec:12};
+      const parts = lastDraw.date.split(' ');
+      if (parts.length === 3) {
+        const m = months[parts[1]];
+        if (m) {
+          const iso = `${parts[2]}-${String(m).padStart(2,'0')}-${String(parts[0]).padStart(2,'0')}`;
+          analysisDatumEl.value = iso;
+        }
+      }
+    } else {
+      analysisDatumEl.value = today;
+    }
+  }
 
   // Machine/bal selector
   const combos=getAvailableMachineBal();
@@ -2777,11 +2819,38 @@ async function adminToggleBlock(userId, block) {
 // =====================
 // ANALYSE EMAIL STUREN
 // =====================
+async function adminCheckTickets() {
+  const datum = document.getElementById('analysisDatum').value;
+  const info = document.getElementById('analysisTicketInfo');
+  if (!datum) { info.textContent = '⚠ Kies eerst een datum'; return; }
+  info.textContent = 'Laden…';
+  try {
+    const { data, error } = await supabaseClient
+      .from('tickets')
+      .select('user_id, users(name, email)')
+      .eq('draw_date', datum);
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      info.textContent = `⚠ Geen tickets gevonden voor ${datum}`;
+      info.style.color = '#A32D2D';
+    } else {
+      const users = new Set(data.map(t => t.user_id)).size;
+      info.textContent = `✓ ${data.length} tickets gevonden van ${users} gebruiker${users>1?'s':''}`;
+      info.style.color = '#3B6D11';
+    }
+  } catch(e) {
+    info.textContent = '⚠ ' + e.message;
+    info.style.color = '#A32D2D';
+  }
+}
+
 async function adminSendAnalysis() {
   const btn = document.getElementById('sendAnalysisBtn');
   const msg = document.getElementById('analysisMsg');
+  const datum = document.getElementById('analysisDatum').value;
 
-  // Lees uit admin panel velden
+  if (!datum) { msg.textContent = '⚠ Kies eerst een trekkingsdatum'; msg.style.color='#A32D2D'; return; }
+
   const nums = [...document.querySelectorAll('.admin-res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
   const stars = [...document.querySelectorAll('.admin-res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
 
@@ -2794,11 +2863,10 @@ async function adminSendAnalysis() {
   msg.textContent = 'Tickets ophalen…'; msg.style.color = '#aaa';
 
   try {
-    const today = new Date().toISOString().split('T')[0];
     const { data: tickets, error } = await supabaseClient
       .from('tickets')
       .select('*, users(name, email)')
-      .eq('draw_date', today);
+      .eq('draw_date', datum);
 
     if (error) throw error;
     if (!tickets || tickets.length === 0) {
@@ -3367,8 +3435,9 @@ async function saveUserTickets() {
     };
     localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
 
-    const today = new Date().toISOString().split('T')[0];
-    await saveTicketsToDb(user.id, pendingTickets, today, drawNumber, currentMachine, currentBal);
+    // Gebruik de volgende trekkingsdatum als draw_date
+    const nextDrawDateStr = getNextDrawDateISO();
+    await saveTicketsToDb(user.id, pendingTickets, nextDrawDateStr, drawNumber, currentMachine, currentBal);
     await sendConfirmationEmail(name, email, pendingTickets, nextDraw, profile);
 
     document.getElementById('profileFormArea').style.display = 'none';
