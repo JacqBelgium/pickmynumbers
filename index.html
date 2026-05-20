@@ -257,8 +257,12 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 .admin-input { background:#f8f8f6; border:1px solid #e0e0dc; color:#111; padding:8px 10px; border-radius:8px; font-size:13px; width:100%; }
 .admin-input:focus { outline:none; border-color:#378ADD; background:#fff; }
 .admin-nums-row { display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap; }
-.admin-num-input { width:46px; padding:6px 4px; border:1px solid #ddd; border-radius:6px; font-size:13px; text-align:center; background:#fff; }
+.admin-num-input { width:52px; padding:6px 6px; border:1px solid #ddd; border-radius:6px; font-size:13px; text-align:center; background:#fff; }
 .admin-num-input:focus { outline:none; border-color:#378ADD; }
+/* Verwijder omhoog/omlaag pijltjes */
+.admin-num-input::-webkit-outer-spin-button,
+.admin-num-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.admin-num-input[type=number] { -moz-appearance:textfield; }
 .storage-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:1rem; }
 .ss-card { background:#f8f8f6; border-radius:8px; padding:8px; text-align:center; }
 .ss-val { font-size:18px; font-weight:500; color:#111; }
@@ -758,7 +762,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 
 <div class="tabs">
   <button class="tab active" onclick="showTab('rand')">Generator</button>
-  <button class="tab" onclick="showTab('result')">Resultaat invoeren</button>
+  <button class="tab" onclick="showTab('result')" id="tabResultaat" style="display:none;">Resultaat invoeren</button>
   <button class="tab" onclick="showTab('rendement')">Rendement</button>
   <button class="tab" onclick="showTab('freq')">Frequentie</button>
   <button class="tab" onclick="showTab('score')">Scores</button>
@@ -959,6 +963,12 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 
   <div class="tickets-grid" id="ticketsGrid"></div>
   <button class="btn" onclick="generateAll()" id="genBtn">Genereer 3 tickets</button>
+  <div id="loginPrompt" style="display:none;background:#f8f8f6;border:1.5px solid #e0e0dc;border-radius:10px;padding:14px 16px;text-align:center;margin-top:8px;">
+    <div style="font-size:14px;font-weight:500;margin-bottom:6px;">🔒 Aanmelden vereist</div>
+    <div style="font-size:12px;color:#888;margin-bottom:12px;">Meld je gratis aan om tickets te genereren en analyses te ontvangen.</div>
+    <button onclick="openSignup()" style="padding:8px 20px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-right:8px;">✨ Aanmelden</button>
+    <button onclick="openSignin()" style="padding:8px 20px;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;">🔑 Inloggen</button>
+  </div>
   <div class="attempt-info" id="attemptInfo"></div>
 
   <!-- OPSLAAN & ANALYSE -->
@@ -1901,6 +1911,12 @@ function renderEmpty(n){
 }
 
 function generateAll(){
+  // Check of gebruiker ingelogd is
+  if (!currentSession && !currentUser) {
+    document.getElementById('genBtn').style.display = 'none';
+    document.getElementById('loginPrompt').style.display = 'block';
+    return;
+  }
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
   const dist=getPickDist();
   const{combis,combis3}=getStarStrategy();
@@ -2373,6 +2389,12 @@ function adminToggleLock(){
   document.getElementById('adminPanel').style.display='none';
   pinBuffer=''; updatePinDots();
 }
+
+function showAdminTabs() {
+  // Toon Resultaat tabblad voor admin
+  const tabRes = document.getElementById('tabResultaat');
+  if (tabRes) tabRes.style.display = '';
+}
 function closeAdmin(){ document.getElementById('adminOverlay').classList.remove('open'); }
 function adminOverlayClick(e){ if(e.target===document.getElementById('adminOverlay')) closeAdmin(); }
 function openAdminPanel(){
@@ -2400,6 +2422,7 @@ function pinPress(d){
       document.getElementById('adminPinScreen').style.display='none';
       document.getElementById('adminPanel').style.display='block';
       adminRefreshPanel();
+      showAdminTabs();
     } else {
       document.getElementById('pinMsg').textContent='Onjuiste PIN';
       pinBuffer=''; updatePinDots();
@@ -2978,14 +3001,23 @@ async function loadUserProfile(authUser) {
 function updateUserBar(user) {
   const bar = document.getElementById('userBar');
   const authBtns = document.getElementById('authButtons');
+  const genBtn = document.getElementById('genBtn');
+  const loginPrompt = document.getElementById('loginPrompt');
+
   if (user && user.email) {
     bar.style.display = 'flex';
     document.getElementById('userBarName').textContent = user.name || 'Welkom!';
     document.getElementById('userBarEmail').textContent = user.email;
     if (authBtns) authBtns.style.display = 'none';
+    // Toon genereer knop
+    if (genBtn) genBtn.style.display = '';
+    if (loginPrompt) loginPrompt.style.display = 'none';
   } else {
     bar.style.display = 'none';
     if (authBtns) authBtns.style.display = '';
+    // Verberg genereer knop — toon login prompt
+    if (genBtn) genBtn.style.display = 'none';
+    if (loginPrompt) loginPrompt.style.display = 'block';
   }
 }
 
