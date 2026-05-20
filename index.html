@@ -2725,23 +2725,42 @@ async function adminLoadUsers() {
   if (!container) return;
   container.innerHTML = '<div style="font-size:12px;color:#aaa;">Laden…</div>';
   try {
-    const users = await sbFetch('users?select=*,tickets(*)&order=created_at.desc');
+    const { data: users, error } = await supabaseClient
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
     if (!users || users.length === 0) {
       container.innerHTML = '<div style="font-size:12px;color:#aaa;">Nog geen gebruikers</div>';
       return;
     }
+
+    // Haal ticket counts op
+    const { data: tickets } = await supabaseClient.from('tickets').select('user_id');
+    const ticketCounts = {};
+    (tickets || []).forEach(t => { ticketCounts[t.user_id] = (ticketCounts[t.user_id]||0) + 1; });
+
     container.innerHTML = users.map(u => `
       <div class="admin-draw-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
         <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
-          <span style="font-size:13px;font-weight:500;">${u.name}</span>
-          <span style="font-size:10px;color:#aaa;">${new Date(u.created_at).toLocaleDateString('nl-NL')}</span>
+          <span style="font-size:13px;font-weight:500;">${u.name || '—'}</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${u.blocked ? '<span style="font-size:10px;color:#A32D2D;background:#fdf0f0;padding:2px 6px;border-radius:4px;">Geblokkeerd</span>' : ''}
+            <button onclick="adminToggleBlock('${u.id}',${!u.blocked})" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;">${u.blocked?'Deblokkeren':'Blokkeren'}</button>
+          </div>
         </div>
         <span style="font-size:11px;color:#888;">${u.email}</span>
-        <span style="font-size:10px;color:#bbb;">${(u.tickets||[]).length} ticket(s) opgeslagen</span>
+        <span style="font-size:10px;color:#bbb;">${ticketCounts[u.id]||0} ticket(s) · ${u.profile||'standaard'} profiel</span>
       </div>`).join('');
   } catch(e) {
     container.innerHTML = `<div style="font-size:12px;color:#A32D2D;">⚠ ${e.message}</div>`;
   }
+}
+
+async function adminToggleBlock(userId, block) {
+  await supabaseClient.from('users').update({ blocked: block }).eq('id', userId);
+  adminLoadUsers();
 }
 
 // =====================
@@ -2750,23 +2769,25 @@ async function adminLoadUsers() {
 async function adminSendAnalysis() {
   const btn = document.getElementById('sendAnalysisBtn');
   const msg = document.getElementById('analysisMsg');
-  const nums = [...document.querySelectorAll('.res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n));
-  const stars = [...document.querySelectorAll('.res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n));
+  const nums = [...document.querySelectorAll('.res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
+  const stars = [...document.querySelectorAll('.res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
 
   if (nums.length !== 5 || stars.length !== 2) {
     msg.textContent = '⚠ Vul eerst de trekking in op het Resultaat tabblad';
-    msg.style.color = '#A32D2D';
-    return;
+    msg.style.color = '#A32D2D'; return;
   }
 
   btn.disabled = true; btn.textContent = 'Bezig…';
-  msg.textContent = 'Gebruikers ophalen…'; msg.style.color = '#aaa';
+  msg.textContent = 'Tickets ophalen…'; msg.style.color = '#aaa';
 
   try {
-    // Haal tickets op voor de huidige trekking datum
     const today = new Date().toISOString().split('T')[0];
-    const tickets = await sbFetch(`tickets?draw_date=eq.${today}&select=*,users(name,email)`);
+    const { data: tickets, error } = await supabaseClient
+      .from('tickets')
+      .select('*, users(name, email)')
+      .eq('draw_date', today);
 
+    if (error) throw error;
     if (!tickets || tickets.length === 0) {
       msg.textContent = '⚠ Geen tickets gevonden voor vandaag';
       msg.style.color = '#A32D2D';
@@ -2778,9 +2799,8 @@ async function adminSendAnalysis() {
     const byUser = {};
     tickets.forEach(t => {
       if (!t.users) return;
-      const uid = t.user_id;
-      if (!byUser[uid]) byUser[uid] = { user: t.users, tickets: [] };
-      byUser[uid].tickets.push(t);
+      if (!byUser[t.user_id]) byUser[t.user_id] = { user: t.users, tickets: [] };
+      byUser[t.user_id].tickets.push(t);
     });
 
     let sent = 0;
@@ -3175,63 +3195,85 @@ function applyCustomProfile() {
 // SUPABASE HELPERS
 // =====================
 async function sbFetch(path, method='GET', body=null) {
+  // Gebruik actieve sessie token indien beschikbaar
+  let token = SUPABASE_KEY;
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session?.access_token) token = session.access_token;
+  } catch(e) {}
+
   const opts = {
     method,
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Authorization': `Bearer ${token}`,
       'Prefer': method==='POST' ? 'return=representation' : ''
     }
   };
   if (body) opts.body = JSON.stringify(body);
   try {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
-    if (!r.ok) throw new Error(`Database fout (${r.status})`);
+    if (!r.ok) {
+      const errText = await r.text();
+      throw new Error(`Database fout (${r.status}): ${errText}`);
+    }
     return r.status === 204 ? null : r.json();
   } catch(e) {
-    if (e.message.includes('NetworkError') || e.message.includes('fetch')) {
-      throw new Error('Geen verbinding met database. De app moet online zijn via pickmynumbers.eu — lokaal testen werkt niet met opslaan.');
+    if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      throw new Error('Geen verbinding met database. Controleer je internetverbinding.');
     }
     throw e;
   }
 }
 
 async function getOrCreateUser(name, email, profile) {
-  const existing = await sbFetch(`users?email=eq.${encodeURIComponent(email)}&select=*`);
-  if (existing && existing.length > 0) {
-    // Update profiel voorkeur
-    const p = profile || PROFILES.standard;
-    await sbFetch(`users?id=eq.${existing[0].id}`, 'PATCH', {
+  const p = profile || PROFILES.standard;
+  // Check of gebruiker al bestaat via auth_id
+  if (currentUser?.id) {
+    // Gebruiker bestaat al via auth — update profiel
+    await supabaseClient.from('users').update({
       name,
       ticket_count: p.tickets,
       nums_per_ticket: p.nums,
-      stars_per_ticket: p.stars
-    });
-    return existing[0];
+      stars_per_ticket: p.stars,
+      profile: selectedProfile
+    }).eq('id', currentUser.id);
+    return currentUser;
   }
-  const p = profile || PROFILES.standard;
-  const created = await sbFetch('users', 'POST', {
-    name, email,
-    ticket_count: p.tickets,
-    nums_per_ticket: p.nums,
-    stars_per_ticket: p.stars
-  });
-  return Array.isArray(created) ? created[0] : created;
+  // Zoek op email
+  const { data: existing } = await supabaseClient
+    .from('users').select('*').eq('email', email).maybeSingle();
+  if (existing) {
+    await supabaseClient.from('users').update({
+      name, ticket_count: p.tickets,
+      nums_per_ticket: p.nums, stars_per_ticket: p.stars,
+      profile: selectedProfile
+    }).eq('id', existing.id);
+    return existing;
+  }
+  // Nieuwe gebruiker
+  const { data: newUser, error } = await supabaseClient.from('users').insert({
+    name, email, profile: selectedProfile,
+    ticket_count: p.tickets, nums_per_ticket: p.nums, stars_per_ticket: p.stars
+  }).select().single();
+  if (error) throw new Error('Gebruiker aanmaken mislukt: ' + error.message);
+  return newUser;
 }
 
 async function saveTicketsToDb(userId, tickets, drawDate, drawNumber, machine, bal) {
   const rows = tickets.map((t, i) => ({
     user_id: userId,
     draw_date: drawDate,
-    draw_number: drawNumber,
+    draw_number: drawNumber || 0,
     ticket_number: i + 1,
     nums: t.nums,
     stars: t.stars,
     machine,
     bal
   }));
-  await sbFetch('tickets', 'POST', rows);
+  const { error } = await supabaseClient.from('tickets').insert(rows);
+  if (error) throw new Error('Tickets opslaan mislukt: ' + error.message);
 }
 
 // =====================
