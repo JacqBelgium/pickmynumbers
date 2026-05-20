@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PickMyNumbers — EuroMillions Picker</title>
+<title>PickMyNumbers — EuroMillions Number Optimizer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -601,8 +601,8 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
       <div class="disc-logo">
         <div class="disc-logo-icon">🎰</div>
         <div>
-          <div class="disc-logo-text">EuroMillions Picker</div>
-          <div class="disc-logo-sub">Statistical Analysis Tool — Not a gambling operator</div>
+          <div class="disc-logo-text">EuroMillions Number Optimizer</div>
+          <div class="disc-logo-sub">The only tool that optimizes numbers based on actual use of draw machine and ball set.</div>
         </div>
       </div>
 
@@ -651,7 +651,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
       <div class="disc-section">
         <div class="disc-section-title" id="disc-what-title">What This Tool Is</div>
         <div class="disc-text" id="disc-what-body">
-          EuroMillions Picker is a <strong>free statistical analysis and number generation tool</strong>. It uses historical draw data to identify frequency patterns, hot/cold numbers, and statistical distributions. It does <strong>not</strong> sell lottery tickets, accept bets, or handle any monetary transactions. It is an entertainment and informational service only.
+          EuroMillions Number Optimizer is a <strong>free statistical analysis and number generation tool</strong>. It uses historical draw data to identify frequency patterns, hot/cold numbers, and statistical distributions. It does <strong>not</strong> sell lottery tickets, accept bets, or handle any monetary transactions. It is an entertainment and informational service only.
         </div>
       </div>
 
@@ -667,7 +667,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
       <div class="disc-section">
         <div class="disc-section-title" id="disc-liab-title">Limitation of Liability</div>
         <div class="disc-text danger" id="disc-liab-body">
-          The operators of EuroMillions Picker accept <strong>no responsibility or liability</strong> for any financial loss, damages, or harm arising from the use of this tool or from participation in EuroMillions or any other lottery. Use of this tool is entirely at your own risk. This tool does not constitute financial, legal, or investment advice.
+          The operators of EuroMillions Number Optimizer accept <strong>no responsibility or liability</strong> for any financial loss, damages, or harm arising from the use of this tool or from participation in EuroMillions or any other lottery. Use of this tool is entirely at your own risk. This tool does not constitute financial, legal, or investment advice.
         </div>
       </div>
 
@@ -744,12 +744,21 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
   </div>
 </div>
 
-<h1>EuroMillions Picker <span class="machine-badge" id="machineBadge">M13/B21</span></h1>
+<h1>EuroMillions Number Optimizer <span class="machine-badge" id="machineBadge">M13/B21</span></h1>
 <div class="meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
   <span><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">16 mei 2026 — 3 10 38 41 43 + 2 9</strong></span>
   <div id="authButtons">
     <button onclick="openSignup()" id="signupBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:none;background:#1a1a18;color:#fff;cursor:pointer;margin-right:6px;">✨ Aanmelden</button>
     <button onclick="openSignin()" id="signinBtn2" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Inloggen</button>
+  </div>
+</div>
+
+<!-- INTRO TAGLINE -->
+<div style="background:#f0efea;border-radius:10px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:10px;">
+  <span style="font-size:20px;flex-shrink:0;">🎯</span>
+  <div>
+    <div style="font-size:13px;font-weight:500;color:#1a1a18;margin-bottom:3px;" id="taglineTitle">The only tool that optimizes numbers based on actual use of draw machine and ball set.</div>
+    <div style="font-size:11px;color:#888;line-height:1.6;" id="taglineSub">While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.</div>
   </div>
 </div>
 <div class="resp-gamble-banner">
@@ -1143,7 +1152,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
   <div class="disc-footer-bar-icon">⚖️</div>
   <div>
     <strong style="color:#555;display:block;margin-bottom:2px;">Disclaimer & Responsible Gambling</strong>
-    EuroMillions Picker is a statistical entertainment tool only. No winnings guaranteed. EuroMillions is a game of pure chance. Must be 18+. We accept no liability for financial loss. 
+    EuroMillions Number Optimizer is a statistical entertainment tool only. No winnings guaranteed. EuroMillions is a game of pure chance. Must be 18+. We accept no liability for financial loss. 
     <a onclick="showDisclaimer()">Full disclaimer</a> · 
     🇳🇱 <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 
     🇧🇪 <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a> · 
@@ -3640,11 +3649,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'This tool is intended for persons aged 18 or over. If you are under 18, please leave this page immediately.',
     'disc-countries-title': 'EuroMillions Participating Countries',
     'disc-what-title': 'What This Tool Is',
-    'disc-what-body': 'EuroMillions Picker is a <strong>free statistical analysis and number generation tool</strong>. It uses historical draw data to identify frequency patterns, hot/cold numbers, and statistical distributions. It does <strong>not</strong> sell lottery tickets, accept bets, or handle any monetary transactions. It is an entertainment and informational service only.',
+    'disc-what-body': 'EuroMillions Number Optimizer is a <strong>free statistical analysis and number generation tool</strong>. It uses historical draw data to identify frequency patterns, hot/cold numbers, and statistical distributions. It does <strong>not</strong> sell lottery tickets, accept bets, or handle any monetary transactions. It is an entertainment and informational service only.',
     'disc-nog-title': 'No Guarantee of Winnings',
     'disc-nog-body': '<strong>EuroMillions is a game of pure chance.</strong> No statistical method, algorithm, machine learning model, or prediction system can predict or influence lottery outcomes. Past draw patterns do not guarantee future results. Any numbers generated by this tool have <strong>exactly the same probability of winning</strong> as any other combination.',
     'disc-liab-title': 'Limitation of Liability',
-    'disc-liab-body': 'The operators of EuroMillions Picker accept <strong>no responsibility or liability</strong> for any financial loss, damages, or harm arising from the use of this tool or from participation in EuroMillions or any other lottery. Use of this tool is entirely at your own risk. This tool does not constitute financial, legal, or investment advice.',
+    'disc-liab-body': 'The operators of EuroMillions Number Optimizer accept <strong>no responsibility or liability</strong> for any financial loss, damages, or harm arising from the use of this tool or from participation in EuroMillions or any other lottery. Use of this tool is entirely at your own risk. This tool does not constitute financial, legal, or investment advice.',
     'disc-resp-title': 'Responsible Gambling',
     'disc-resp-body': 'Gambling can be addictive and harmful. <strong>Only spend what you can afford to lose.</strong> If you or someone you know has a gambling problem, seek help:<br><br>🇳🇱 <strong>NL:</strong> <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 0900-2178710<br>🇧🇪 <strong>BE:</strong> <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a><br>🇫🇷 <strong>FR:</strong> <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a> · 09 74 75 13 13<br>🇩🇪 <strong>DE:</strong> <a href="https://www.bzga.de" target="_blank">bzga.de</a> · 0800 137 2700<br>🇪🇸 <strong>ES:</strong> <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a><br>🇵🇹 <strong>PT:</strong> <a href="https://www.sicad.pt" target="_blank">sicad.pt</a><br>🇬🇧 <strong>UK:</strong> <a href="https://www.gamcare.org.uk" target="_blank">gamcare.org.uk</a> · 0808 8020 133<br>🇮🇪 <strong>IE:</strong> <a href="https://www.problemgambling.ie" target="_blank">problemgambling.ie</a><br>🇦🇹 <strong>AT:</strong> <a href="https://www.spielsuchthilfe.at" target="_blank">spielsuchthilfe.at</a><br>🇨🇭 <strong>CH:</strong> <a href="https://www.sos-spielsucht.ch" target="_blank">sos-spielsucht.ch</a>',
     'disc-gdpr-title': 'Privacy & GDPR',
@@ -3663,11 +3672,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Dit hulpmiddel is uitsluitend bestemd voor personen van 18 jaar en ouder. Bent u jonger dan 18? Verlaat deze pagina onmiddellijk.',
     'disc-countries-title': 'EuroMillions deelnemende landen',
     'disc-what-title': 'Wat dit hulpmiddel is',
-    'disc-what-body': 'EuroMillions Picker is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische trekkingsdata om frequentiepatronen, hete/koude nummers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
+    'disc-what-body': 'EuroMillions Number Optimizer is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische trekkingsdata om frequentiepatronen, hete/koude nummers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
     'disc-nog-title': 'Geen garantie op winst',
     'disc-nog-body': '<strong>EuroMillions is een kansspel.</strong> Geen enkele statistische methode, algoritme of voorspellingsmodel kan loterijuitslagen voorspellen of beïnvloeden. Historische patronen garanderen geen toekomstige resultaten. Gegenereerde nummers hebben <strong>precies dezelfde winkans</strong> als elke andere combinatie.',
     'disc-liab-title': 'Beperking van aansprakelijkheid',
-    'disc-liab-body': 'De exploitanten van EuroMillions Picker aanvaarden <strong>geen enkele verantwoordelijkheid of aansprakelijkheid</strong> voor financieel verlies, schade of nadeel voortvloeiend uit het gebruik van dit hulpmiddel of deelname aan EuroMillions of enige andere loterij. Gebruik is volledig op eigen risico. Dit is geen financieel, juridisch of beleggingsadvies.',
+    'disc-liab-body': 'De exploitanten van EuroMillions Number Optimizer aanvaarden <strong>geen enkele verantwoordelijkheid of aansprakelijkheid</strong> voor financieel verlies, schade of nadeel voortvloeiend uit het gebruik van dit hulpmiddel of deelname aan EuroMillions of enige andere loterij. Gebruik is volledig op eigen risico. Dit is geen financieel, juridisch of beleggingsadvies.',
     'disc-resp-title': 'Verantwoord gokken',
     'disc-resp-body': 'Gokken kan verslavend en schadelijk zijn. <strong>Speel alleen met geld dat u kunt missen.</strong> Heeft u of iemand die u kent een gokprobleem? Zoek hulp:<br><br>🇳🇱 <strong>NL:</strong> <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 0900-2178710<br>🇧🇪 <strong>BE:</strong> <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a><br>🇫🇷 <strong>FR:</strong> <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a><br>🇩🇪 <strong>DE:</strong> <a href="https://www.bzga.de" target="_blank">bzga.de</a><br>🇪🇸 <strong>ES:</strong> <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a><br>🇬🇧 <strong>UK:</strong> <a href="https://www.gamcare.org.uk" target="_blank">gamcare.org.uk</a>',
     'disc-gdpr-title': 'Privacy & AVG',
@@ -3686,11 +3695,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Cet outil est destiné aux personnes âgées de 18 ans et plus. Si vous avez moins de 18 ans, quittez immédiatement cette page.',
     'disc-countries-title': 'Pays participants EuroMillions',
     'disc-what-title': 'Qu\'est-ce que cet outil',
-    'disc-what-body': 'EuroMillions Picker est un <strong>outil gratuit d\'analyse statistique et de génération de numéros</strong>. Il utilise les données historiques des tirages pour identifier des modèles de fréquence. Il ne <strong>vend pas</strong> de billets de loterie, n\'accepte pas de paris et ne traite aucune transaction monétaire. C\'est un service de divertissement et d\'information uniquement.',
+    'disc-what-body': 'EuroMillions Number Optimizer est un <strong>outil gratuit d\'analyse statistique et de génération de numéros</strong>. Il utilise les données historiques des tirages pour identifier des modèles de fréquence. Il ne <strong>vend pas</strong> de billets de loterie, n\'accepte pas de paris et ne traite aucune transaction monétaire. C\'est un service de divertissement et d\'information uniquement.',
     'disc-nog-title': 'Aucune garantie de gains',
     'disc-nog-body': '<strong>EuroMillions est un jeu de pur hasard.</strong> Aucune méthode statistique ne peut prédire ou influencer les résultats de la loterie. Les modèles de tirages passés ne garantissent pas les résultats futurs. Les numéros générés ont <strong>exactement la même probabilité de gagner</strong> que toute autre combinaison.',
     'disc-liab-title': 'Limitation de responsabilité',
-    'disc-liab-body': 'Les opérateurs d\'EuroMillions Picker n\'acceptent <strong>aucune responsabilité</strong> pour toute perte financière, dommage ou préjudice découlant de l\'utilisation de cet outil. L\'utilisation est entièrement à vos risques et périls. Cet outil ne constitue pas un conseil financier, juridique ou d\'investissement.',
+    'disc-liab-body': 'Les opérateurs d\'EuroMillions Number Optimizer n\'acceptent <strong>aucune responsabilité</strong> pour toute perte financière, dommage ou préjudice découlant de l\'utilisation de cet outil. L\'utilisation est entièrement à vos risques et périls. Cet outil ne constitue pas un conseil financier, juridique ou d\'investissement.',
     'disc-resp-title': 'Jeu responsable',
     'disc-resp-body': 'Le jeu peut être addictif et nuisible. <strong>Ne dépensez que ce que vous pouvez vous permettre de perdre.</strong> Besoin d\'aide? 🇫🇷 <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a> · 09 74 75 13 13',
     'disc-gdpr-title': 'Confidentialité & RGPD',
@@ -3709,11 +3718,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Dieses Tool ist nur für Personen ab 18 Jahren bestimmt. Wenn Sie unter 18 Jahre alt sind, verlassen Sie diese Seite sofort.',
     'disc-countries-title': 'EuroMillions teilnehmende Länder',
     'disc-what-title': 'Was dieses Tool ist',
-    'disc-what-body': 'EuroMillions Picker ist ein <strong>kostenloses statistisches Analyse- und Nummerntools</strong>. Es verwendet historische Ziehdaten zur Mustererkennung. Es <strong>verkauft keine</strong> Lottoscheine, nimmt keine Wetten an und führt keine Geldtransaktionen durch. Es ist ausschließlich ein Unterhaltungs- und Informationsdienst.',
+    'disc-what-body': 'EuroMillions Number Optimizer ist ein <strong>kostenloses statistisches Analyse- und Nummerntools</strong>. Es verwendet historische Ziehdaten zur Mustererkennung. Es <strong>verkauft keine</strong> Lottoscheine, nimmt keine Wetten an und führt keine Geldtransaktionen durch. Es ist ausschließlich ein Unterhaltungs- und Informationsdienst.',
     'disc-nog-title': 'Keine Gewinngarantie',
     'disc-nog-body': '<strong>EuroMillions ist ein reines Glücksspiel.</strong> Keine statistische Methode kann Lotterieziehergebnisse vorhersagen oder beeinflussen. Historische Muster garantieren keine zukünftigen Ergebnisse. Generierte Zahlen haben <strong>genau die gleiche Gewinnwahrscheinlichkeit</strong> wie jede andere Kombination.',
     'disc-liab-title': 'Haftungsbeschränkung',
-    'disc-liab-body': 'Die Betreiber von EuroMillions Picker übernehmen <strong>keinerlei Verantwortung oder Haftung</strong> für finanzielle Verluste oder Schäden, die aus der Nutzung dieses Tools entstehen. Die Nutzung erfolgt ausschließlich auf eigene Gefahr. Dieses Tool stellt keine Finanz-, Rechts- oder Anlageberatung dar.',
+    'disc-liab-body': 'Die Betreiber von EuroMillions Number Optimizer übernehmen <strong>keinerlei Verantwortung oder Haftung</strong> für finanzielle Verluste oder Schäden, die aus der Nutzung dieses Tools entstehen. Die Nutzung erfolgt ausschließlich auf eigene Gefahr. Dieses Tool stellt keine Finanz-, Rechts- oder Anlageberatung dar.',
     'disc-resp-title': 'Verantwortungsvolles Spielen',
     'disc-resp-body': 'Glücksspiel kann süchtig machen. <strong>Spielen Sie nur mit Geld, das Sie sich leisten können zu verlieren.</strong> Hilfe: 🇩🇪 <a href="https://www.bzga.de" target="_blank">bzga.de</a> · 0800 137 2700 · 🇦🇹 <a href="https://www.spielsuchthilfe.at" target="_blank">spielsuchthilfe.at</a> · 🇨🇭 <a href="https://www.sos-spielsucht.ch" target="_blank">sos-spielsucht.ch</a>',
     'disc-gdpr-title': 'Datenschutz & DSGVO',
@@ -3732,11 +3741,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Esta herramienta está destinada a personas mayores de 18 años. Si es menor de 18 años, abandone esta página inmediatamente.',
     'disc-countries-title': 'Países participantes en EuroMillones',
     'disc-what-title': 'Qué es esta herramienta',
-    'disc-what-body': 'EuroMillions Picker es una <strong>herramienta gratuita de análisis estadístico y generación de números</strong>. Utiliza datos históricos de sorteos para identificar patrones de frecuencia. <strong>No vende</strong> billetes de lotería, no acepta apuestas ni gestiona transacciones monetarias. Es un servicio de entretenimiento e información únicamente.',
+    'disc-what-body': 'EuroMillions Number Optimizer es una <strong>herramienta gratuita de análisis estadístico y generación de números</strong>. Utiliza datos históricos de sorteos para identificar patrones de frecuencia. <strong>No vende</strong> billetes de lotería, no acepta apuestas ni gestiona transacciones monetarias. Es un servicio de entretenimiento e información únicamente.',
     'disc-nog-title': 'Sin garantía de premios',
     'disc-nog-body': '<strong>EuroMillones es un juego de puro azar.</strong> Ningún método estadístico puede predecir o influir en los resultados de la lotería. Los patrones históricos no garantizan resultados futuros. Los números generados tienen <strong>exactamente la misma probabilidad de ganar</strong> que cualquier otra combinación.',
     'disc-liab-title': 'Limitación de responsabilidad',
-    'disc-liab-body': 'Los operadores de EuroMillions Picker no aceptan <strong>ninguna responsabilidad</strong> por pérdidas financieras, daños o perjuicios derivados del uso de esta herramienta. El uso es enteramente bajo su propia responsabilidad. Esta herramienta no constituye asesoramiento financiero, legal o de inversión.',
+    'disc-liab-body': 'Los operadores de EuroMillions Number Optimizer no aceptan <strong>ninguna responsabilidad</strong> por pérdidas financieras, daños o perjuicios derivados del uso de esta herramienta. El uso es enteramente bajo su propia responsabilidad. Esta herramienta no constituye asesoramiento financiero, legal o de inversión.',
     'disc-resp-title': 'Juego responsable',
     'disc-resp-body': 'El juego puede ser adictivo y perjudicial. <strong>Juegue solo con lo que pueda permitirse perder.</strong> Ayuda: 🇪🇸 <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a> · 🇵🇹 <a href="https://www.sicad.pt" target="_blank">sicad.pt</a>',
     'disc-gdpr-title': 'Privacidad & RGPD',
@@ -3755,11 +3764,11 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Esta ferramenta destina-se a pessoas com 18 anos ou mais. Se tiver menos de 18 anos, saia imediatamente desta página.',
     'disc-countries-title': 'Países participantes no EuroMilhões',
     'disc-what-title': 'O que é esta ferramenta',
-    'disc-what-body': 'EuroMillions Picker é uma <strong>ferramenta gratuita de análise estatística e geração de números</strong>. Utiliza dados históricos de sorteios para identificar padrões de frequência. <strong>Não vende</strong> bilhetes de lotaria, não aceita apostas nem realiza transações monetárias. É um serviço de entretenimento e informação apenas.',
+    'disc-what-body': 'EuroMillions Number Optimizer é uma <strong>ferramenta gratuita de análise estatística e geração de números</strong>. Utiliza dados históricos de sorteios para identificar padrões de frequência. <strong>Não vende</strong> bilhetes de lotaria, não aceita apostas nem realiza transações monetárias. É um serviço de entretenimento e informação apenas.',
     'disc-nog-title': 'Sem garantia de prémios',
     'disc-nog-body': '<strong>O EuroMilhões é um jogo de puro acaso.</strong> Nenhum método estatístico pode prever ou influenciar os resultados da lotaria. Os padrões históricos não garantem resultados futuros. Os números gerados têm <strong>exatamente a mesma probabilidade de ganhar</strong> que qualquer outra combinação.',
     'disc-liab-title': 'Limitação de responsabilidade',
-    'disc-liab-body': 'Os operadores do EuroMillions Picker não aceitam <strong>nenhuma responsabilidade</strong> por perdas financeiras, danos ou prejuízos decorrentes da utilização desta ferramenta. A utilização é inteiramente por sua conta e risco.',
+    'disc-liab-body': 'Os operadores do EuroMillions Number Optimizer não aceitam <strong>nenhuma responsabilidade</strong> por perdas financeiras, danos ou prejuízos decorrentes da utilização desta ferramenta. A utilização é inteiramente por sua conta e risco.',
     'disc-resp-title': 'Jogo responsável',
     'disc-resp-body': 'O jogo pode ser viciante e prejudicial. <strong>Jogue apenas com o que pode perder.</strong> Ajuda: 🇵🇹 <a href="https://www.sicad.pt" target="_blank">sicad.pt</a>',
     'disc-gdpr-title': 'Privacidade & RGPD',
@@ -3788,6 +3797,40 @@ function discLang(lang) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = t[id];
   });
+
+  // Update intro tagline per taal
+  const taglines = {
+    en: {
+      title: 'The only tool that optimizes numbers based on actual use of draw machine and ball set.',
+      sub: 'While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.'
+    },
+    nl: {
+      title: 'De enige tool die nummers optimaliseert op basis van de daadwerkelijk gebruikte trekkmachine en balset.',
+      sub: 'Terwijl anderen 20 jaar algemene trekkingen analyseren — filteren wij op de specifieke machine &amp; balset van vanavond.'
+    },
+    fr: {
+      title: 'Le seul outil qui optimise les numéros en fonction de la machine et du jeu de boules réellement utilisés.',
+      sub: 'Pendant que d\'autres analysent 20 ans de tirages généraux — nous filtrons sur la machine &amp; le jeu de boules spécifique utilisé ce soir.'
+    },
+    de: {
+      title: 'Das einzige Tool, das Zahlen basierend auf der tatsächlich verwendeten Ziehmaschine und dem Ballsatz optimiert.',
+      sub: 'Während andere 20 Jahre allgemeine Ziehungen analysieren — filtern wir nach der spezifischen Maschine &amp; dem Ballsatz von heute Abend.'
+    },
+    es: {
+      title: 'La única herramienta que optimiza números basándose en el uso real de la máquina de sorteo y el juego de bolas.',
+      sub: 'Mientras otros analizan 20 años de sorteos generales — nosotros filtramos por la máquina &amp; juego de bolas específico de esta noche.'
+    },
+    pt: {
+      title: 'A única ferramenta que otimiza números com base no uso real da máquina de sorteio e do conjunto de bolas.',
+      sub: 'Enquanto outros analisam 20 anos de sorteios gerais — nós filtramos pela máquina &amp; conjunto de bolas específico desta noite.'
+    },
+  };
+  const tl = taglines[lang] || taglines.en;
+  const titleEl = document.getElementById('taglineTitle');
+  const subEl = document.getElementById('taglineSub');
+  if (titleEl) titleEl.innerHTML = tl.title;
+  if (subEl) subEl.innerHTML = tl.sub;
+
   updateDiscAcceptBtn();
 }
 
