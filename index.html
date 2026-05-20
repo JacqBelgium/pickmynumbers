@@ -2882,11 +2882,11 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars) 
     </div>
     </body></html>`;
 
-  await fetch('https://api.resend.com/emails', {
+  await fetch(EDGE_EMAIL_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${RESEND_KEY}`
+      'Authorization': `Bearer ${SUPABASE_KEY}`
     },
     body: JSON.stringify({
       from: 'PickMyNumbers <noreply@pickmynumbers.eu>',
@@ -2917,6 +2917,7 @@ updateAll();
 const SUPABASE_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_12OtIWelNKVROgLr6WULUQ_8PcTVPuN';
 const RESEND_KEY   = 're_i81eQ4t7_8mrprcfWwaNWCn1hnQH6BqiU';
+const EDGE_EMAIL_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/send-email';
 
 // Initialiseer Supabase client met Auth
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -3410,11 +3411,11 @@ async function sendConfirmationEmail(name, email, tickets, nextDraw, profile) {
     </div>
     </body></html>`;
 
-  await fetch('https://api.resend.com/emails', {
+  await fetch(EDGE_EMAIL_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${RESEND_KEY}`
+      'Authorization': `Bearer ${SUPABASE_KEY}`
     },
     body: JSON.stringify({
       from: 'PickMyNumbers <noreply@pickmynumbers.eu>',
