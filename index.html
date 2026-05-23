@@ -2926,9 +2926,8 @@ function adminChangePin(){
 }
 
 // =====================
-// ADMIN — GEBRUIKERS OVERZICHT
+// ADMIN — GEBRUIKERS OVERZICHT (gebruikt supabaseClient — zie onder)
 // =====================
-async function adminLoadPoolAnalysis() {
   const container = document.getElementById('adminPoolAnalysis');
   container.innerHTML = 'Laden…';
   try {
@@ -3010,10 +3009,7 @@ async function adminLoadPoolAnalysis() {
   }
 }
 
-async function adminToggleBlock(userId, block) {
-  await supabaseClient.from('users').update({ blocked: block }).eq('id', userId);
-  adminLoadUsers();
-}
+// adminToggleBlock — verplaatst naar Supabase script blok
 
 // =====================
 // ANALYSE EMAIL STUREN
@@ -4098,6 +4094,92 @@ function showDisclaimer() {
   }
   document.getElementById('discOverlay').classList.add('open');
 })();
+
+// =====================
+// ADMIN — SUPABASE FUNCTIES
+// =====================
+async function adminLoadPoolAnalysis() {
+  const container = document.getElementById('adminPoolAnalysis');
+  if (!container) return;
+  container.innerHTML = 'Laden…';
+  try {
+    const { data, error } = await supabaseClient
+      .from('draw_analysis')
+      .select('*')
+      .order('draw_date', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<span style="color:#aaa;">Nog geen analyse data. Voeg een trekking toe via het admin panel.</span>';
+      return;
+    }
+
+    const avgCoverage = Math.round(data.reduce((sum,d) => sum + d.pool_coverage_pct, 0) / data.length);
+    const perfect = data.filter(d => d.pool_coverage_pct === 100).length;
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div class="ss-card"><div class="ss-val">${avgCoverage}%</div><div class="ss-lbl">Gem. dekking</div></div>
+        <div class="ss-card"><div class="ss-val">${perfect}</div><div class="ss-lbl">100% dekking</div></div>
+        <div class="ss-card"><div class="ss-val">${data.length}</div><div class="ss-lbl">Trekkingen</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;">
+        ${data.map(d => {
+          const color = d.pool_coverage_pct === 100 ? '#3B6D11' : d.pool_coverage_pct >= 60 ? '#854F0B' : '#A32D2D';
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f8f6;border-radius:6px;gap:8px;">
+            <span style="font-size:11px;color:#555;min-width:90px;">${d.draw_date}</span>
+            <span style="font-size:11px;color:#888;">${d.actual_nums.join(' ')} +★${d.actual_stars.join(' ★')}</span>
+            <span style="font-size:11px;font-weight:500;color:${color};">${d.pool_coverage_pct}%</span>
+            <span style="font-size:10px;color:#aaa;">${d.nums_out_pool?.length>0?'❌'+d.nums_out_pool.join(','):'✓'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<span style="color:#A32D2D;">⚠ ${e.message}</span>`;
+  }
+}
+
+async function adminLoadUsers() {
+  const container = document.getElementById('adminUsersList');
+  if (!container) return;
+  container.innerHTML = '<div style="font-size:12px;color:#aaa;">Laden…</div>';
+  try {
+    const { data: users, error } = await supabaseClient
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!users || users.length === 0) {
+      container.innerHTML = '<div style="font-size:12px;color:#aaa;">Nog geen gebruikers</div>';
+      return;
+    }
+
+    const { data: tickets } = await supabaseClient.from('tickets').select('user_id');
+    const ticketCounts = {};
+    (tickets || []).forEach(t => { ticketCounts[t.user_id] = (ticketCounts[t.user_id]||0) + 1; });
+
+    container.innerHTML = users.map(u => `
+      <div class="admin-draw-item" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+          <span style="font-size:13px;font-weight:500;">${u.name||'—'}</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${u.blocked?'<span style="font-size:10px;color:#A32D2D;background:#fdf0f0;padding:2px 6px;border-radius:4px;">Geblokkeerd</span>':''}
+            <button onclick="adminToggleBlock('${u.id}',${!u.blocked})" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;">${u.blocked?'Deblokkeren':'Blokkeren'}</button>
+          </div>
+        </div>
+        <span style="font-size:11px;color:#888;">${u.email}</span>
+        <span style="font-size:10px;color:#bbb;">${ticketCounts[u.id]||0} ticket(s) · ${u.profile||'standaard'} profiel</span>
+      </div>`).join('');
+  } catch(e) {
+    container.innerHTML = `<div style="font-size:12px;color:#A32D2D;">⚠ ${e.message}</div>`;
+  }
+}
+async function adminToggleBlock(userId, block) {
+  await supabaseClient.from('users').update({ blocked: block }).eq('id', userId);
+  adminLoadUsers();
+}
 </script>
 </body>
 </html>
