@@ -1162,6 +1162,7 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
 // DATASET
 // =====================
 let ALL_DRAWS = [
+  { date:'22 mei 2026', draw:1948, nums:[6,22,26,31,37], stars:[5,8], machine:13, bal:21 },
   { date:'19 mei 2026', draw:1947, nums:[2,12,20,38,45], stars:[2,5], machine:13, bal:21 },
   { date:'16 mei 2026', draw:1946, nums:[3,10,38,41,43], stars:[2,9], machine:13, bal:21 },
   { date:'13 mei 2026', draw:1945, nums:[4,26,32,35,36], stars:[5,7], machine:13, bal:21 },
@@ -1921,7 +1922,10 @@ function updateAll(){
     ${c.map(s=>{
       const isHot = hotStars.includes(s);
       const isAvg = avgStars.includes(s);
-      return `<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;${isHot?'background:#A32D2D;':''}${isAvg?'background:#8a6010;':''}">${s}</div>`;
+      const bg = isHot ? '#C0392B' : isAvg ? '#E67E22' : '#fff4e6';
+      const color = isHot || isAvg ? '#fff' : '#8a4510';
+      const border = isHot ? '#C0392B' : isAvg ? '#E67E22' : '#e8922a';
+      return `<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;background:${bg};color:${color};border-color:${border};display:inline-flex;align-items:center;justify-content:center;">${s}</div>`;
     }).join('')}</div>`).join('');
   if(document.getElementById('pane-freq').classList.contains('active')) renderFreq();
 }
@@ -2418,28 +2422,21 @@ renderRendement();
       <div class="admin-section">
         <div class="admin-section-title">📧 Analyse emails sturen</div>
 
-        <!-- TREKKINGSDATUM -->
+        <!-- KIES TREKKING UIT DATASET -->
         <div class="admin-input-group" style="margin-bottom:10px;">
-          <span class="admin-input-label">TREKKINGSDATUM</span>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="date" class="admin-input" id="analysisDatum" style="flex:1;">
-            <button class="btn-admin" onclick="adminCheckTickets()">↓ Check</button>
-          </div>
+          <span class="admin-input-label">KIES TREKKING</span>
+          <select class="admin-input" id="analysisDraw" onchange="adminSelectDraw()" style="width:100%;">
+            <option value="">— Selecteer trekking —</option>
+          </select>
         </div>
-        <div id="analysisTicketInfo" style="font-size:11px;color:#aaa;margin-bottom:10px;min-height:16px;"></div>
 
-        <!-- UITSLAG -->
-        <div style="font-size:10px;color:#aaa;margin-bottom:4px;font-weight:500;letter-spacing:0.03em;">UITSLAG NUMMERS + STERREN</div>
-        <div class="admin-nums-row" style="margin-bottom:10px;">
-          <input type="number" class="admin-num-input admin-res-num" placeholder="1" min="1" max="50">
-          <input type="number" class="admin-num-input admin-res-num" placeholder="2" min="1" max="50">
-          <input type="number" class="admin-num-input admin-res-num" placeholder="3" min="1" max="50">
-          <input type="number" class="admin-num-input admin-res-num" placeholder="4" min="1" max="50">
-          <input type="number" class="admin-num-input admin-res-num" placeholder="5" min="1" max="50">
-          <span style="font-size:18px;color:#ddd;padding:0 4px;line-height:34px;">+</span>
-          <input type="number" class="admin-num-input admin-res-star" placeholder="★1" min="1" max="12">
-          <input type="number" class="admin-num-input admin-res-star" placeholder="★2" min="1" max="12">
+        <!-- UITSLAG PREVIEW -->
+        <div id="analysisDrawPreview" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+          <div style="font-size:11px;color:#aaa;margin-bottom:6px;">Uitslag:</div>
+          <div id="analysisDrawBalls"></div>
         </div>
+
+        <div id="analysisTicketInfo" style="font-size:11px;color:#aaa;margin-bottom:10px;min-height:16px;"></div>
         <button class="btn-admin btn-admin-green" onclick="adminSendAnalysis()" id="sendAnalysisBtn" style="width:100%;">📧 Stuur analyse emails</button>
         <div class="admin-msg" id="analysisMsg" style="margin-top:8px;"></div>
       </div>
@@ -2552,25 +2549,16 @@ function adminRefreshPanel(){
   document.getElementById('manDate').value=today;
   document.getElementById('fetchDate').value=today;
 
-  // Stel analyse datum in op de meest recente trekking in dataset
-  const analysisDatumEl = document.getElementById('analysisDatum');
-  if (analysisDatumEl) {
-    // Zoek meest recente di/vr datum
-    const lastDraw = ALL_DRAWS.find(d => d.machine > 0);
-    if (lastDraw) {
-      // Converteer NL datum naar ISO formaat
-      const months = {jan:1,feb:2,mrt:3,apr:4,mei:5,jun:6,jul:7,aug:8,sep:9,okt:10,nov:11,dec:12};
-      const parts = lastDraw.date.split(' ');
-      if (parts.length === 3) {
-        const m = months[parts[1]];
-        if (m) {
-          const iso = `${parts[2]}-${String(m).padStart(2,'0')}-${String(parts[0]).padStart(2,'0')}`;
-          analysisDatumEl.value = iso;
-        }
-      }
-    } else {
-      analysisDatumEl.value = today;
-    }
+  // Vul trekking dropdown met laatste 20 trekkingen uit dataset
+  const drawSelect = document.getElementById('analysisDraw');
+  if(drawSelect) {
+    drawSelect.innerHTML = '<option value="">— Selecteer trekking —</option>';
+    ALL_DRAWS.filter(d => d.machine > 0).slice(0, 20).forEach((d, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${d.date} — ${d.nums.join(' ')} + ★${d.stars.join(' ★')} (M${d.machine}/B${d.bal})`;
+      drawSelect.appendChild(opt);
+    });
   }
 
   // Machine/bal selector
@@ -2894,45 +2882,66 @@ async function adminToggleBlock(userId, block) {
 // =====================
 // ANALYSE EMAIL STUREN
 // =====================
-async function adminCheckTickets() {
-  const datum = document.getElementById('analysisDatum').value;
+function adminSelectDraw() {
+  const sel = document.getElementById('analysisDraw');
+  const idx = parseInt(sel.value);
   const info = document.getElementById('analysisTicketInfo');
-  if (!datum) { info.textContent = '⚠ Kies eerst een datum'; return; }
-  info.textContent = 'Laden…';
-  try {
-    const { data, error } = await supabaseClient
-      .from('tickets')
-      .select('user_id, users(name, email)')
-      .eq('draw_date', datum);
-    if (error) throw error;
-    if (!data || data.length === 0) {
-      info.textContent = `⚠ Geen tickets gevonden voor ${datum}`;
-      info.style.color = '#A32D2D';
-    } else {
-      const users = new Set(data.map(t => t.user_id)).size;
-      info.textContent = `✓ ${data.length} tickets gevonden van ${users} gebruiker${users>1?'s':''}`;
-      info.style.color = '#3B6D11';
-    }
-  } catch(e) {
-    info.textContent = '⚠ ' + e.message;
-    info.style.color = '#A32D2D';
-  }
+  const preview = document.getElementById('analysisDrawPreview');
+  const balls = document.getElementById('analysisDrawBalls');
+
+  if (isNaN(idx)) { preview.style.display='none'; info.textContent=''; return; }
+
+  const mbDraws = ALL_DRAWS.filter(d => d.machine > 0);
+  const draw = mbDraws[idx];
+  if (!draw) return;
+
+  // Toon uitslag preview
+  preview.style.display = 'block';
+  balls.innerHTML =
+    draw.nums.map(n => `<span class="fetch-mini-ball fmb-num">${n}</span>`).join('') +
+    `<span style="margin:0 6px;color:#ddd;font-size:16px;">+</span>` +
+    draw.stars.map(s => `<span class="fetch-mini-ball fmb-star">★${s}</span>`).join('');
+
+  // Converteer datum naar ISO voor Supabase query
+  const months = {jan:'01',feb:'02',mrt:'03',apr:'04',mei:'05',jun:'06',jul:'07',aug:'08',sep:'09',okt:'10',nov:'11',dec:'12'};
+  const parts = draw.date.split(' ');
+  const isoDate = parts.length === 3 && months[parts[1]]
+    ? `${parts[2]}-${months[parts[1]]}-${parts[0].padStart(2,'0')}` : '';
+
+  // Check tickets voor deze datum
+  info.textContent = 'Tickets ophalen…';
+  supabaseClient.from('tickets').select('user_id').eq('draw_date', isoDate)
+    .then(({data, error}) => {
+      if (error) { info.textContent = '⚠ ' + error.message; return; }
+      const count = data?.length || 0;
+      const users = new Set((data||[]).map(t=>t.user_id)).size;
+      info.textContent = count > 0
+        ? `✓ ${count} tickets van ${users} gebruiker${users>1?'s':''} gevonden`
+        : `⚠ Geen tickets gevonden voor ${draw.date}`;
+      info.style.color = count > 0 ? '#3B6D11' : '#A32D2D';
+    });
 }
 
 async function adminSendAnalysis() {
   const btn = document.getElementById('sendAnalysisBtn');
   const msg = document.getElementById('analysisMsg');
-  const datum = document.getElementById('analysisDatum').value;
+  const sel = document.getElementById('analysisDraw');
+  const idx = parseInt(sel.value);
 
-  if (!datum) { msg.textContent = '⚠ Kies eerst een trekkingsdatum'; msg.style.color='#A32D2D'; return; }
+  if (isNaN(idx)) { msg.textContent = '⚠ Kies eerst een trekking'; msg.style.color='#A32D2D'; return; }
 
-  const nums = [...document.querySelectorAll('.admin-res-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
-  const stars = [...document.querySelectorAll('.admin-res-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
+  const mbDraws = ALL_DRAWS.filter(d => d.machine > 0);
+  const draw = mbDraws[idx];
+  if (!draw) return;
 
-  if (nums.length !== 5 || stars.length !== 2) {
-    msg.textContent = '⚠ Vul alle 5 nummers en 2 sterren in';
-    msg.style.color = '#A32D2D'; return;
-  }
+  const nums = draw.nums;
+  const stars = draw.stars;
+
+  // Converteer datum naar ISO
+  const months = {jan:'01',feb:'02',mrt:'03',apr:'04',mei:'05',jun:'06',jul:'07',aug:'08',sep:'09',okt:'10',nov:'11',dec:'12'};
+  const parts = draw.date.split(' ');
+  const isoDate = parts.length === 3 && months[parts[1]]
+    ? `${parts[2]}-${months[parts[1]]}-${parts[0].padStart(2,'0')}` : '';
 
   btn.disabled = true; btn.textContent = 'Bezig…';
   msg.textContent = 'Tickets ophalen…'; msg.style.color = '#aaa';
@@ -2941,11 +2950,11 @@ async function adminSendAnalysis() {
     const { data: tickets, error } = await supabaseClient
       .from('tickets')
       .select('*, users(name, email)')
-      .eq('draw_date', datum);
+      .eq('draw_date', isoDate);
 
     if (error) throw error;
     if (!tickets || tickets.length === 0) {
-      msg.textContent = '⚠ Geen tickets gevonden voor vandaag';
+      msg.textContent = `⚠ Geen tickets gevonden voor ${draw.date}`;
       msg.style.color = '#A32D2D';
       btn.disabled = false; btn.textContent = '📧 Stuur analyse emails';
       return;
@@ -2966,7 +2975,7 @@ async function adminSendAnalysis() {
       msg.textContent = `${sent}/${Object.keys(byUser).length} emails verzonden…`;
     }
 
-    msg.textContent = `✓ ${sent} analyse email${sent>1?'s':''} verzonden!`;
+    msg.textContent = `✓ ${sent} analyse email${sent>1?'s':''} verzonden voor ${draw.date}!`;
     msg.style.color = '#3B6D11';
   } catch(e) {
     msg.textContent = '⚠ ' + e.message;
@@ -3026,12 +3035,12 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars) 
         <div style="margin-bottom:8px;">
           ${t.nums.map(n => {
             const hit = actualNums.includes(n);
-            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:11px;font-weight:600;margin:2px;">${n}</span>`;
+            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:11px;font-weight:600;margin:2px;line-height:1;">${n}</span>`;
           }).join('')}
           <span style="margin:0 4px;color:#ddd;font-size:16px;">+</span>
           ${t.stars.map(s => {
             const hit = actualStars.includes(s);
-            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:11px;font-weight:600;margin:2px;">★${s}</span>`;
+            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:11px;font-weight:600;margin:2px;line-height:1;">★${s}</span>`;
           }).join('')}
         </div>
         <div style="font-size:10px;color:#aaa;display:flex;gap:12px;">
