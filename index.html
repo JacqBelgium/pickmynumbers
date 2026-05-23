@@ -2615,9 +2615,14 @@ function adminSetMachineBal(machine, bal){
 }
 
 // =====================
-// POOL DEKKING ANALYSE
+// POOL DEKKING ANALYSE — wordt geladen na Supabase initialisatie
 // =====================
 async function saveDrawAnalysis(draw) {
+  // Wacht tot supabaseClient beschikbaar is
+  if (typeof supabaseClient === 'undefined') {
+    setTimeout(() => saveDrawAnalysis(draw), 500);
+    return;
+  }
   try {
     // Bereken de optimizer pool op het moment van deze trekking
     // Gebruik getWeightedDraws maar zonder deze trekking zelf
