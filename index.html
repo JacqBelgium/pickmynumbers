@@ -1925,8 +1925,13 @@ function updateAll(){
       const bg = isHot ? '#C0392B' : isAvg ? '#E67E22' : '#fff4e6';
       const color = isHot || isAvg ? '#fff' : '#8a4510';
       const border = isHot ? '#C0392B' : isAvg ? '#E67E22' : '#e8922a';
-      return `<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;background:${bg};color:${color};border-color:${border};display:inline-flex;align-items:center;justify-content:center;">${s}</div>`;
-    }).join('')}</div>`).join('');
+      return `<div class="ball ball-star" style="width:34px;height:34px;font-size:12px;background:${bg};color:${color};border-color:${border};display:inline-flex;align-items:center;justify-content:center;line-height:1;">${s}</div>`;
+    }).join('')}</div>`).join('') +
+    `<div style="font-size:10px;color:#aaa;margin-top:8px;display:flex;gap:12px;">
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#C0392B;display:inline-block;"></span>Hot</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#E67E22;display:inline-block;"></span>Avg</span>
+      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#fff4e6;border:1px solid #e8922a;display:inline-block;"></span>Cold</span>
+    </div>`;
   if(document.getElementById('pane-freq').classList.contains('active')) renderFreq();
 }
 
@@ -2411,6 +2416,14 @@ renderRendement();
         <div class="admin-draw-list" id="adminDrawList"></div>
       </div>
 
+      <!-- POOL DEKKING ANALYSE -->
+      <div class="admin-section">
+        <div class="admin-section-title">📊 Pool dekking analyse</div>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Hoeveel uitslag nummers vielen binnen de optimizer pool per trekking.</p>
+        <button class="btn-admin btn-admin-primary" onclick="adminLoadPoolAnalysis()" style="margin-bottom:10px;">↓ Laad analyse</button>
+        <div id="adminPoolAnalysis" style="font-size:12px;color:#aaa;"></div>
+      </div>
+
       <!-- GEBRUIKERS OVERZICHT -->
       <div class="admin-section">
         <div class="admin-section-title">👥 Gebruikers & tickets</div>
@@ -2602,7 +2615,75 @@ function adminSetMachineBal(machine, bal){
 }
 
 // =====================
-// ADMIN — BEATLOTTERY SCRAPER
+// POOL DEKKING ANALYSE
+// =====================
+async function saveDrawAnalysis(draw) {
+  try {
+    // Bereken de optimizer pool op het moment van deze trekking
+    // Gebruik getWeightedDraws maar zonder deze trekking zelf
+    const weighted = getWeightedDraws(draw.machine, draw.bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+
+    const total = weighted.length;
+    const avgFreq = (total * 5) / 50;
+    const threshLow = Math.round(avgFreq * 0.67);
+    const threshHigh = Math.round(avgFreq * 1.33);
+
+    // Pool = hot + avg nummers
+    const poolNums = [];
+    for(let n=1;n<=50;n++) {
+      if(freq[n] >= threshLow) poolNums.push(n);
+    }
+
+    // Welke uitslag nummers zitten IN de pool?
+    const inPool = draw.nums.filter(n => poolNums.includes(n));
+    const outPool = draw.nums.filter(n => !poolNums.includes(n));
+    const coveragePct = Math.round((inPool.length / draw.nums.length) * 100);
+
+    // Sterren analyse
+    const starFreq = {};
+    for(let s=1;s<=12;s++) starFreq[s]=0;
+    weighted.forEach(d => d.stars.forEach(s => starFreq[s]++));
+    const avgStarFreq = (total * 2) / 12;
+    const hotStarsList = Object.keys(starFreq).map(Number).filter(s => starFreq[s] >= avgStarFreq * 1.3);
+    const avgStarsList = Object.keys(starFreq).map(Number).filter(s => starFreq[s] >= avgStarFreq * 0.7 && starFreq[s] < avgStarFreq * 1.3);
+
+    const starsCoverage = draw.stars.every(s => hotStarsList.includes(s)) ? 'beide hot' :
+      draw.stars.some(s => hotStarsList.includes(s)) ? '1 hot' :
+      draw.stars.every(s => avgStarsList.includes(s)) ? 'beide avg' :
+      draw.stars.some(s => avgStarsList.includes(s)) ? '1 avg' : 'cold';
+
+    // Datum naar ISO
+    const months = {jan:'01',feb:'02',mrt:'03',apr:'04',mei:'05',jun:'06',jul:'07',aug:'08',sep:'09',okt:'10',nov:'11',dec:'12'};
+    const parts = draw.date.split(' ');
+    const isoDate = parts.length === 3 && months[parts[1]]
+      ? `${parts[2]}-${months[parts[1]]}-${parts[0].padStart(2,'0')}` : draw.date;
+
+    // Opslaan in Supabase
+    await supabaseClient.from('draw_analysis').upsert({
+      draw_date: isoDate,
+      draw_number: draw.draw || 0,
+      machine: draw.machine,
+      bal: draw.bal,
+      actual_nums: draw.nums,
+      actual_stars: draw.stars,
+      pool_nums: poolNums,
+      pool_size: poolNums.length,
+      nums_in_pool: inPool,
+      nums_out_pool: outPool,
+      pool_coverage_pct: coveragePct,
+      hot_stars: hotStarsList,
+      avg_stars: avgStarsList,
+      stars_coverage: starsCoverage
+    }, { onConflict: 'draw_date' });
+
+    console.log(`✓ Pool analyse opgeslagen: ${draw.date} — dekking ${coveragePct}% (${inPool.length}/5 in pool, buiten: ${outPool.join(',')||'geen'})`);
+  } catch(e) {
+    console.warn('Pool analyse fout:', e.message);
+  }
+}
 // =====================
 async function adminFetchBeatLottery(){
   const btn=document.getElementById('fetchBtn');
@@ -2741,8 +2822,11 @@ function adminSaveFetched(){
   if(isNaN(machine)||isNaN(bal)){ msg.textContent='⚠ Vul machine en balset in'; msg.style.color='#A32D2D'; return; }
   const exists=ALL_DRAWS.some(d=>d.date===fetchedDrawData.dateStr&&d.machine===machine&&d.bal===bal);
   if(exists){ msg.textContent='⚠ Al aanwezig in dataset'; msg.style.color='#A32D2D'; return; }
-  ALL_DRAWS.unshift({date:fetchedDrawData.dateStr,nums:fetchedDrawData.nums,stars:fetchedDrawData.stars,machine,bal});
+  const newDraw = {date:fetchedDrawData.dateStr,nums:fetchedDrawData.nums,stars:fetchedDrawData.stars,machine,bal};
+  ALL_DRAWS.unshift(newDraw);
   adminSaveToStorage(); updateAll(); adminRefreshPanel();
+  // Sla pool dekking analyse op
+  saveDrawAnalysis(newDraw);
   document.getElementById('fetchResult').style.display='none';
   msg.textContent=`✓ ${fetchedDrawData.dateStr} M${machine}/B${bal} opgeslagen`; msg.style.color='#3B6D11';
   document.getElementById('lastDraw').textContent=`${fetchedDrawData.dateStr} — ${fetchedDrawData.nums.join(' ')} + ${fetchedDrawData.stars.join(' ')}`;
@@ -2767,8 +2851,11 @@ function adminAddManual(){
   const d=new Date(dateVal);
   const months=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
   const dateStr=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  ALL_DRAWS.unshift({date:dateStr,nums:nums.sort((a,b)=>a-b),stars:stars.sort((a,b)=>a-b),machine,bal});
+  const newDraw = {date:dateStr,nums:nums.sort((a,b)=>a-b),stars:stars.sort((a,b)=>a-b),machine,bal};
+  ALL_DRAWS.unshift(newDraw);
   adminSaveToStorage(); updateAll(); adminRefreshPanel();
+  // Sla pool dekking analyse op
+  saveDrawAnalysis(newDraw);
   document.querySelectorAll('.man-num,.man-star').forEach(i=>i.value='');
   msg.textContent=`✓ ${dateStr} M${machine}/B${bal} toegevoegd`; msg.style.color='#3B6D11';
   setTimeout(()=>msg.textContent='',4000);
@@ -2836,7 +2923,51 @@ function adminChangePin(){
 // =====================
 // ADMIN — GEBRUIKERS OVERZICHT
 // =====================
-async function adminLoadUsers() {
+async function adminLoadPoolAnalysis() {
+  const container = document.getElementById('adminPoolAnalysis');
+  container.innerHTML = 'Laden…';
+  try {
+    const { data, error } = await supabaseClient
+      .from('draw_analysis')
+      .select('*')
+      .order('draw_date', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    if (!data || data.length === 0) {
+      container.innerHTML = '<span style="color:#aaa;">Nog geen analyse data. Voeg een trekking toe via het admin panel.</span>';
+      return;
+    }
+
+    // Gemiddelde dekking
+    const avgCoverage = Math.round(data.reduce((sum,d) => sum + d.pool_coverage_pct, 0) / data.length);
+    const perfect = data.filter(d => d.pool_coverage_pct === 100).length;
+    const good = data.filter(d => d.pool_coverage_pct >= 60 && d.pool_coverage_pct < 100).length;
+
+    container.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div class="ss-card"><div class="ss-val">${avgCoverage}%</div><div class="ss-lbl">Gem. dekking</div></div>
+        <div class="ss-card"><div class="ss-val">${perfect}</div><div class="ss-lbl">100% dekking</div></div>
+        <div class="ss-card"><div class="ss-val">${data.length}</div><div class="ss-lbl">Trekkingen</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;">
+        ${data.map(d => {
+          const color = d.pool_coverage_pct === 100 ? '#3B6D11' : d.pool_coverage_pct >= 60 ? '#854F0B' : '#A32D2D';
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f8f6;border-radius:6px;gap:8px;">
+            <span style="font-size:11px;color:#555;min-width:80px;">${d.draw_date}</span>
+            <span style="font-size:11px;color:#888;">${d.actual_nums.join(' ')} + ★${d.actual_stars.join(' ★')}</span>
+            <span style="font-size:11px;font-weight:500;color:${color};">${d.pool_coverage_pct}%</span>
+            <span style="font-size:10px;color:#aaa;">${d.nums_out_pool?.length>0 ? '❌'+d.nums_out_pool.join(',') : '✓'}</span>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } catch(e) {
+    container.innerHTML = `<span style="color:#A32D2D;">⚠ ${e.message}</span>`;
+  }
+}
+
+// =====================
+// ADMIN — GEBRUIKERS OVERZICHT
   const container = document.getElementById('adminUsersList');
   if (!container) return;
   container.innerHTML = '<div style="font-size:12px;color:#aaa;">Laden…</div>';
