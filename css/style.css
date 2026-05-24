@@ -443,3 +443,106 @@ input[type=number] { background:#fff; border:1px solid #ddd; color:#111; padding
   line-height:1.6;
 }
 .resp-gamble-banner strong { display:block; margin-bottom:2px; font-size:12px; }
+
+/* ===================== RESPONSIVE DESIGN ===================== */
+
+/* Tablet (max 768px) */
+@media (max-width: 768px) {
+  body { padding: 1rem; font-size: 13px; }
+  h1 { font-size: 18px; }
+  .tabs { gap: 4px; }
+  .tab { padding: 7px 10px; font-size: 12px; }
+  .strategy-row { flex-wrap: wrap; gap: 6px; }
+  .rule-grid { grid-template-columns: repeat(3, 1fr); }
+  .matrix-table td, .matrix-table th { width: 28px; height: 28px; font-size: 10px; }
+}
+
+/* Mobiel (max 480px) */
+@media (max-width: 480px) {
+  body { padding: 0.75rem; font-size: 13px; }
+
+  /* Header */
+  h1 { font-size: 16px; line-height: 1.3; }
+  .machine-badge { font-size: 10px; padding: 2px 8px; }
+  #taglineTitle { font-size: 11px; }
+  #taglineSub { font-size: 10px; }
+
+  /* Auth knoppen */
+  #authButtons button { font-size: 10px; padding: 4px 10px; }
+  .user-bar { padding: 6px 12px; }
+  .user-bar-name { font-size: 12px; }
+  .user-bar-email { font-size: 10px; }
+
+  /* Tabs */
+  .tabs { gap: 3px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+  .tab { padding: 7px 12px; font-size: 11px; white-space: nowrap; flex-shrink: 0; }
+
+  /* Strategy boxes */
+  .strategy-row { flex-direction: column; gap: 6px; }
+  .rule-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .rule-item { padding: 8px; }
+  .rule-val { font-size: 16px; }
+  .rule-label { font-size: 9px; }
+
+  /* Ballen */
+  .ball { width: 34px; height: 34px; font-size: 12px; }
+  .balls { gap: 4px; flex-wrap: wrap; }
+
+  /* Tickets */
+  .ticket { padding: 12px; }
+  .ticket-header { font-size: 11px; }
+  .ticket-tags { flex-wrap: wrap; gap: 3px; }
+  .ttag { font-size: 9px; padding: 2px 6px; }
+
+  /* Ticket selector */
+  .sel-btns { gap: 4px; }
+  .sel-btn { width: 34px; height: 34px; font-size: 13px; }
+
+  /* Profiel knoppen */
+  #profileCards, .profile-cards-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+  .profile-main-btn { padding: 8px 6px; }
+  .profile-main-btn div:first-child { font-size: 11px; }
+  .profile-main-btn div:last-child { font-size: 9px; }
+
+  /* Star combis */
+  .star-box { padding: 10px 12px; }
+  .star-combi { flex-wrap: wrap; gap: 3px; }
+  .ball-star { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+
+  /* Matrix */
+  .matrix-table td, .matrix-table th { width: 24px; height: 24px; font-size: 9px; }
+  .matrix-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Admin lock knop — groter op mobiel */
+  .admin-lock { width: 44px; height: 44px; font-size: 18px; bottom: 16px; right: 16px; }
+
+  /* Login/disclaimer modals */
+  .login-modal, .disclaimer-modal { width: 95vw; margin: 0 auto; }
+  .disc-body { padding: 1rem; }
+  .login-body { padding: 1rem; }
+  .profile-card { padding: 8px 10px; }
+  .profile-card-title { font-size: 12px; }
+  .profile-card-sub { font-size: 10px; }
+
+  /* Som filter */
+  .som-row { flex-wrap: wrap; gap: 6px; }
+
+  /* Genereer knop */
+  .btn { padding: 12px; font-size: 14px; }
+  #loginPrompt { padding: 12px; }
+  #loginPrompt button { padding: 8px 16px; font-size: 12px; }
+
+  /* Meta info */
+  .meta { font-size: 10px; flex-direction: column; align-items: flex-start; gap: 4px; }
+
+  /* Frequentie/Scores tabs */
+  .freq-grid { grid-template-columns: repeat(2, 1fr); }
+  .score-card { padding: 8px; }
+}
+
+/* Kleine schermen (max 360px) */
+@media (max-width: 360px) {
+  .ball { width: 30px; height: 30px; font-size: 11px; }
+  .matrix-table td, .matrix-table th { width: 20px; height: 20px; font-size: 8px; }
+  .tab { padding: 6px 8px; font-size: 10px; }
+}
