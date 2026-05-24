@@ -678,12 +678,12 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
         <div style="margin-bottom:8px;">
           ${t.nums.map(n => {
             const hit = actualNums.includes(n);
-            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:11px;font-weight:600;margin:2px;line-height:1;text-align:center;vertical-align:middle;">${n}</span>`;
+            return `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">${n}</span>`;
           }).join('')}
           <span style="margin:0 4px;color:#ddd;font-size:16px;">+</span>
           ${t.stars.map(s => {
             const hit = actualStars.includes(s);
-            return `<span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:11px;font-weight:600;margin:2px;line-height:1;text-align:center;vertical-align:middle;">★${s}</span>`;
+            return `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">★${s}</span>`;
           }).join('')}
         </div>
         <div style="font-size:10px;color:#aaa;display:flex;gap:12px;">
@@ -722,7 +722,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     <!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8f8f6;padding:2rem;margin:0;">
     <div style="max-width:560px;margin:auto;">
 
-      // HEADER 
+
       <div style="background:#1a1a18;border-radius:14px 14px 0 0;padding:1.5rem;color:#fff;text-align:center;">
         <div style="font-size:22px;margin-bottom:4px;">🎰 PickMyNumbers</div>
         <div style="font-size:14px;font-weight:500;">Trekking Analyse — ${draw ? draw.date : ''}</div>
@@ -731,30 +731,30 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
       <div style="background:#fff;border:1px solid #e8e8e4;border-top:none;border-radius:0 0 14px 14px;padding:1.5rem;">
 
-        // UITSLAG 
+
         <div style="background:#f8f8f6;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;">
           <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.06em;margin-bottom:10px;text-transform:uppercase;">Officiële uitslag</div>
           <div style="margin-bottom:4px;">
-            ${actualNums.map(n => `<span style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#1a1a18;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:1;text-align:center;vertical-align:middle;">${n}</span>`).join('')}
+            ${actualNums.map(n => `<span style="display:inline-block;width:38px;height:38px;border-radius:50%;background:#1a1a18;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:38px;text-align:center;vertical-align:middle;">${n}</span>`).join('')}
             <span style="margin:0 8px;color:#ddd;font-size:20px;vertical-align:middle;">+</span>
-            ${actualStars.map(s => `<span style="display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#e8922a;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:1;text-align:center;vertical-align:middle;">★${s}</span>`).join('')}
+            ${actualStars.map(s => `<span style="display:inline-block;width:38px;height:38px;border-radius:50%;background:#e8922a;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:38px;text-align:center;vertical-align:middle;">★${s}</span>`).join('')}
           </div>
         </div>
 
-        // BESTE RESULTAAT 
+
         <div style="background:${bestNumHits>=2?'#f0f8ec':'#fff4e6'};border:1px solid ${bestNumHits>=2?'#c8e0b8':'#fdd'};border-radius:10px;padding:12px 16px;margin-bottom:1.5rem;text-align:center;">
           <div style="font-size:13px;color:#555;margin-bottom:4px;">Jouw beste resultaat</div>
           <div style="font-size:20px;font-weight:600;color:${bestPrize.color};">${bestPrize.label}</div>
           <div style="font-size:12px;color:#888;margin-top:4px;">${bestNumHits} nummers + ${bestStarHits} ster${bestStarHits!==1?'ren':''} raak</div>
         </div>
 
-        // TICKETS 
+
         <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px;">
           Jouw tickets <span style="font-size:11px;font-weight:400;color:#aaa;">(donkerblauw/oranje = raak)</span>
         </div>
         ${ticketRows}
 
-        // ANALYSE SAMENVATTING 
+
         <div style="background:#f0f6ff;border:1px solid #bdd9f5;border-radius:10px;padding:14px 16px;margin-top:1.5rem;">
           <div style="font-size:11px;font-weight:600;color:#0C447C;letter-spacing:0.06em;margin-bottom:8px;text-transform:uppercase;">📊 Statistische analyse</div>
           <div style="font-size:12px;color:#333;line-height:1.8;">
@@ -769,7 +769,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
           </div>
         </div>
 
-        // MOTIVATIE 
+
         <div style="text-align:center;margin-top:1.5rem;padding:14px;background:#f8f8f6;border-radius:10px;">
           <div style="font-size:14px;color:#333;margin-bottom:12px;">${motivation}</div>
           <a href="https://pickmynumbers.eu" style="display:inline-block;background:#1a1a18;color:#fff;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;">
@@ -777,7 +777,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
           </a>
         </div>
 
-        // FOOTER 
+
         <p style="font-size:11px;color:#888;text-align:center;margin-top:1.5rem;padding:12px;background:#fff8e6;border-radius:8px;line-height:1.6;border:1px solid #fde8a0;">
           ℹ️ <em>Deze analyse is gebaseerd op je gegenereerde tickets. Indien je niet of gedeeltelijk hebt deelgenomen aan deze trekking, kan de analyse afwijken van je werkelijke resultaat.</em>
         </p>
