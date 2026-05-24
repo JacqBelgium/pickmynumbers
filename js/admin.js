@@ -452,47 +452,84 @@ function adminChangePin(){
 // =====================
 // ADMIN — POOL ANALYSE & GEBRUIKERS (gebruikt supabaseClient)
 // =====================
-async function adminLoadPoolAnalysis() {
+function adminLoadPoolAnalysis() {
   const container = document.getElementById('adminPoolAnalysis');
-  container.innerHTML = 'Laden…';
-  try {
-    const { data, error } = await supabaseClient
-      .from('draw_analysis')
-      .select('*')
-      .order('draw_date', { ascending: false })
-      .limit(20);
+  if (!container) return;
 
-    if (error) throw error;
-    if (!data || data.length === 0) {
-      container.innerHTML = '<span style="color:#aaa;">Nog geen analyse data. Voeg een trekking toe via het admin panel.</span>';
-      return;
+  // Bereken pool analyse direct uit ALL_DRAWS — geen database nodig
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+
+  if (mbDraws.length === 0) {
+    container.innerHTML = '<span style="color:#aaa;">Geen trekkingen voor huidige machine/bal combinatie.</span>';
+    return;
+  }
+
+  // Bereken optimizer pool en dekking per trekking
+  const results = mbDraws.map((draw, idx) => {
+    // Bouw gewogen dataset op zoals de optimizer dat doet
+    const weighted = getWeightedDraws(draw.machine, draw.bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+
+    const total = weighted.length;
+    const avgFreq = (total * 5) / 50;
+    const threshLow = Math.round(avgFreq * 0.67);
+
+    // Pool = nummers boven of gelijk aan threshold
+    const pool = [];
+    for(let n=1;n<=50;n++) {
+      if(freq[n] >= threshLow) pool.push(n);
     }
 
-    // Gemiddelde dekking
-    const avgCoverage = Math.round(data.reduce((sum,d) => sum + d.pool_coverage_pct, 0) / data.length);
-    const perfect = data.filter(d => d.pool_coverage_pct === 100).length;
-    const good = data.filter(d => d.pool_coverage_pct >= 60 && d.pool_coverage_pct < 100).length;
+    const inPool = draw.nums.filter(n => pool.includes(n));
+    const outPool = draw.nums.filter(n => !pool.includes(n));
+    const pct = Math.round((inPool.length / draw.nums.length) * 100);
 
-    container.innerHTML = `
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div class="ss-card"><div class="ss-val">${avgCoverage}%</div><div class="ss-lbl">Gem. dekking</div></div>
-        <div class="ss-card"><div class="ss-val">${perfect}</div><div class="ss-lbl">100% dekking</div></div>
-        <div class="ss-card"><div class="ss-val">${data.length}</div><div class="ss-lbl">Trekkingen</div></div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:4px;max-height:300px;overflow-y:auto;">
-        ${data.map(d => {
-          const color = d.pool_coverage_pct === 100 ? '#3B6D11' : d.pool_coverage_pct >= 60 ? '#854F0B' : '#A32D2D';
-          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8f8f6;border-radius:6px;gap:8px;">
-            <span style="font-size:11px;color:#555;min-width:80px;">${d.draw_date}</span>
-            <span style="font-size:11px;color:#888;">${d.actual_nums.join(' ')} + ★${d.actual_stars.join(' ★')}</span>
-            <span style="font-size:11px;font-weight:500;color:${color};">${d.pool_coverage_pct}%</span>
-            <span style="font-size:10px;color:#aaa;">${d.nums_out_pool?.length>0 ? '❌'+d.nums_out_pool.join(',') : '✓'}</span>
-          </div>`;
-        }).join('')}
-      </div>`;
-  } catch(e) {
-    container.innerHTML = `<span style="color:#A32D2D;">⚠ ${e.message}</span>`;
-  }
+    // Sterren analyse
+    const starFreq = {};
+    for(let s=1;s<=12;s++) starFreq[s]=0;
+    weighted.forEach(d => d.stars.forEach(s => starFreq[s]++));
+    const avgStar = (total * 2) / 12;
+    const hotStars = Object.keys(starFreq).map(Number).filter(s => starFreq[s] >= avgStar * 1.3);
+    const starsHot = draw.stars.filter(s => hotStars.includes(s)).length;
+
+    return { draw, pool, inPool, outPool, pct, starsHot, poolSize: pool.length };
+  });
+
+  // Statistieken
+  const avgPct = Math.round(results.reduce((s,r) => s+r.pct, 0) / results.length);
+  const perfect = results.filter(r => r.pct === 100).length;
+  const good = results.filter(r => r.pct >= 80 && r.pct < 100).length;
+  const poor = results.filter(r => r.pct < 60).length;
+  const avgPool = Math.round(results.reduce((s,r) => s+r.poolSize, 0) / results.length);
+  const bothStarsHot = results.filter(r => r.starsHot === 2).length;
+
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div class="ss-card"><div class="ss-val">${avgPct}%</div><div class="ss-lbl">Gem. dekking</div></div>
+      <div class="ss-card"><div class="ss-val">${perfect}</div><div class="ss-lbl">100% raak</div></div>
+      <div class="ss-card"><div class="ss-val">${mbDraws.length}</div><div class="ss-lbl">Trekkingen</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div class="ss-card"><div class="ss-val">${avgPool}</div><div class="ss-lbl">Gem. pool</div></div>
+      <div class="ss-card"><div class="ss-val">${bothStarsHot}</div><div class="ss-lbl">Beide ★ hot</div></div>
+      <div class="ss-card"><div class="ss-val">${poor}</div><div class="ss-lbl">&lt;60% dekking</div></div>
+    </div>
+    <div style="font-size:11px;color:#aaa;margin-bottom:8px;">Per trekking — M${currentMachine}/B${currentBal}:</div>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;">
+      ${results.map(r => {
+        const color = r.pct===100 ? '#3B6D11' : r.pct>=80 ? '#854F0B' : r.pct>=60 ? '#E67E22' : '#A32D2D';
+        const bar = '█'.repeat(Math.round(r.pct/20)) + '░'.repeat(5-Math.round(r.pct/20));
+        return `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#f8f8f6;border-radius:6px;">
+          <span style="font-size:10px;color:#888;min-width:80px;">${r.draw.date}</span>
+          <span style="font-size:10px;color:#aaa;flex:1;">${r.draw.nums.join(' ')} +★${r.draw.stars.join('★')}</span>
+          <span style="font-size:10px;font-family:monospace;color:#bbb;">${bar}</span>
+          <span style="font-size:11px;font-weight:600;color:${color};min-width:32px;text-align:right;">${r.pct}%</span>
+          <span style="font-size:10px;color:#aaa;min-width:40px;">${r.outPool.length>0?'❌'+r.outPool.join(','):'✓'}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 
