@@ -287,34 +287,36 @@ async function sbFetch(path, method='GET', body=null) {
 
 async function getOrCreateUser(name, email, profile) {
   const p = profile || PROFILES.standard;
-  // Check of gebruiker al bestaat via auth_id
-  if (currentUser?.id) {
-    // Gebruiker bestaat al via auth — update profiel
+
+  // Altijd zoeken op email — meest betrouwbaar
+  const { data: existing } = await supabaseClient
+    .from('users').select('*').eq('email', email).maybeSingle();
+
+  if (existing) {
+    // Update profiel voorkeur
     await supabaseClient.from('users').update({
       name,
       ticket_count: p.tickets,
       nums_per_ticket: p.nums,
       stars_per_ticket: p.stars,
       profile: selectedProfile
-    }).eq('id', currentUser.id);
-    return currentUser;
-  }
-  // Zoek op email
-  const { data: existing } = await supabaseClient
-    .from('users').select('*').eq('email', email).maybeSingle();
-  if (existing) {
-    await supabaseClient.from('users').update({
-      name, ticket_count: p.tickets,
-      nums_per_ticket: p.nums, stars_per_ticket: p.stars,
-      profile: selectedProfile
     }).eq('id', existing.id);
     return existing;
   }
-  // Nieuwe gebruiker
+
+  // Nieuwe gebruiker aanmaken
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  const authId = session?.user?.id || null;
+
   const { data: newUser, error } = await supabaseClient.from('users').insert({
-    name, email, profile: selectedProfile,
-    ticket_count: p.tickets, nums_per_ticket: p.nums, stars_per_ticket: p.stars
+    name, email,
+    auth_id: authId,
+    profile: selectedProfile,
+    ticket_count: p.tickets,
+    nums_per_ticket: p.nums,
+    stars_per_ticket: p.stars
   }).select().single();
+
   if (error) throw new Error('Gebruiker aanmaken mislukt: ' + error.message);
   return newUser;
 }
