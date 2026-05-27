@@ -161,7 +161,16 @@ function getStarStrategy(){
       for(let k=j+1;k<top5.length;k++)
         combis3.push([top5[i],top5[j],top5[k]].sort((a,b)=>a-b));
 
-  return {top3, top5, hotStars, avgStars, coldStars, starData, combis:combis2, combis3, avgFreq};
+  // 4-ster combinaties — alle combinaties uit top 6
+  const top6 = starData.slice(0,6).map(s=>s.n);
+  const combis4 = [];
+  for(let i=0;i<top6.length;i++)
+    for(let j=i+1;j<top6.length;j++)
+      for(let k=j+1;k<top6.length;k++)
+        for(let l=k+1;l<top6.length;l++)
+          combis4.push([top6[i],top6[j],top6[k],top6[l]].sort((a,b)=>a-b));
+
+  return {top3, top5, top6, hotStars, avgStars, coldStars, starData, combis:combis2, combis3, combis4, avgFreq};
 }
 
 function weightedPick(pool,count){
@@ -349,23 +358,25 @@ function updateAll(){
     `<span class="pill pill-hot">Hot ${hp.length} (&gt;${threshHigh_v}×)</span>`+
     `<span class="pill pill-avg">Avg ${ap.length} (${threshLow_v}–${threshHigh_v}×)</span>`+
     `<span class="pill pill-cold">Cold ${cp.length} (&lt;${threshLow_v}×)</span>`;
-  const{top3,top5,hotStars,avgStars,coldStars,starData,combis,combis3,avgFreq}=getStarStrategy();
+  const{top3,top5,top6,hotStars,avgStars,coldStars,starData,combis,combis3,combis4,avgFreq}=getStarStrategy();
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {stars:2};
   const starsInProfile = profile.stars || 2;
-  const displayCombis = starsInProfile >= 3 ? combis3.slice(0,6) : combis.slice(0,3);
+  const displayCombis = starsInProfile >= 4 ? combis4.slice(0,6) : starsInProfile >= 3 ? combis3.slice(0,6) : combis.slice(0,3);
 
   // Update titel
   const starTitle = document.getElementById('starStratTitle');
   const starSub = document.getElementById('starSub');
   const ruleStarCount = document.getElementById('ruleStarCount');
-  if(starTitle) starTitle.textContent = starsInProfile >= 3
+  if(starTitle) starTitle.textContent = starsInProfile >= 4
+    ? '4-Sterren strategie — hot/cold analyse M/B specifiek'
+    : starsInProfile >= 3
     ? '3-Sterren strategie — hot/cold analyse M/B specifiek'
     : '2-Sterren strategie — hot/cold analyse M/B specifiek';
   if(starSub) starSub.innerHTML =
     `<span style="color:#A32D2D;">🔥 Hot: ${hotStars.join(' ')||'—'}</span> &nbsp;` +
     `<span style="color:#7a5c1e;">📊 Avg: ${avgStars.join(' ')||'—'}</span> &nbsp;` +
     `<span style="color:#888;">❄️ Cold: ${coldStars.join(' ')||'—'}</span>`;
-  if(ruleStarCount) ruleStarCount.textContent = starsInProfile >= 3 ? 'Top 5' : 'Top 3';
+  if(ruleStarCount) ruleStarCount.textContent = starsInProfile >= 4 ? 'Top 6' : starsInProfile >= 3 ? 'Top 5' : 'Top 3';
 
   document.getElementById('starCombis').innerHTML=displayCombis.map((c,i)=>`
     <div class="star-combi"><span class="star-combi-label">Combi ${i+1}:</span>
@@ -457,7 +468,7 @@ function generateAll(){
   }
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
   const dist=getPickDist();
-  const{combis,combis3}=getStarStrategy();
+  const{combis,combis3,combis4}=getStarStrategy();
   if(hp.length<dist.hot){alert('Hot pool te klein — pas grenzen aan.');return;}
   if(ap.length<dist.avg){alert('Average pool te klein — pas grenzen aan.');return;}
 
@@ -467,7 +478,7 @@ function generateAll(){
   const starsCount = profile.stars || 2;
 
   // Kies juiste ster combinaties op basis van profiel
-  const starCombis = starsCount >= 3 ? combis3 : combis;
+  const starCombis = starsCount >= 4 ? combis4 : starsCount >= 3 ? combis3 : combis;
 
   const nd=nextDrawDate(),g=document.getElementById('ticketsGrid');
   g.innerHTML='';
