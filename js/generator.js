@@ -706,12 +706,3 @@ function showTab(t){
 }
 
 
-
-// Update lastDraw dynamisch vanuit dataset
-(function updateLastDrawDisplay() {
-  const last = ALL_DRAWS[0];
-  if (last) {
-    const el = document.getElementById('lastDraw');
-    if (el) el.textContent = `${last.date} — ${last.nums.join(' ')} + ${last.stars.join(' ')}`;
-  }
-})();
