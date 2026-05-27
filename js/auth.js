@@ -199,8 +199,8 @@ function selectLoginProfile(profile) {
 // =====================
 // Profiel limieten
 const PROFILE_LIMITS = {
-  standard: { tickets: [1,3], nums: [5,5], stars: [2,4] },  // Freemium
-  custom:   { tickets: [1,10], nums: [5,8], stars: [2,4] }  // Premium
+  standard: { tickets: [1,3], nums: [5,5], stars: [2,2] },  // Freemium: vast 5+2
+  custom:   { tickets: [1,10], nums: [5,8], stars: [2,4] }  // Premium: instelbaar
 };
 
 // Huidige waarden
