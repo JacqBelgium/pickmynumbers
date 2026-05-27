@@ -203,8 +203,8 @@ const PROFILE_LIMITS = {
   custom:   { tickets: [1,10], nums: [5,8], stars: [2,4] }  // Premium: instelbaar
 };
 
-// Huidige waarden
-let profileValues = { tickets: 3, nums: 5, stars: 2 };
+// Huidige waarden — globaal zodat generator.js er bij kan
+window.profileValues = { tickets: 3, nums: 5, stars: 2 };
 
 function selectProfileMain(profile) {
   selectedProfile = profile;
@@ -216,13 +216,13 @@ function selectProfileMain(profile) {
 
   // Reset waarden naar standaard voor dit profiel
   const limits = PROFILE_LIMITS[profile] || PROFILE_LIMITS.standard;
-  profileValues.tickets = limits.tickets[0] === limits.tickets[1] ? limits.tickets[0] : Math.min(profileValues.tickets, limits.tickets[1]);
-  profileValues.nums = limits.nums[0];
-  profileValues.stars = limits.stars[0];
+  window.profileValues.tickets = limits.tickets[0] === limits.tickets[1] ? limits.tickets[0] : Math.min(window.profileValues.tickets, limits.tickets[1]);
+  window.profileValues.nums = limits.nums[0];
+  window.profileValues.stars = limits.stars[0];
 
   // Freemium: reset naar standaard
   if (profile === 'standard') {
-    profileValues = { tickets: 3, nums: 5, stars: 2 };
+    window.profileValues = { tickets: 3, nums: 5, stars: 2 };
   }
 
   // Update display
@@ -240,16 +240,16 @@ function selectProfileMain(profile) {
   localStorage.setItem('em_user_profile_type', profile);
 
   // Pas generator aan
-  selectTickets(profileValues.tickets);
+  selectTickets(window.profileValues.tickets);
   updateAll();
 }
 
 function adjustProfile(type, delta) {
   const limits = PROFILE_LIMITS[selectedProfile] || PROFILE_LIMITS.standard;
   const [min, max] = limits[type];
-  profileValues[type] = Math.max(min, Math.min(max, profileValues[type] + delta));
+  window.profileValues[type] = Math.max(min, Math.min(max, window.profileValues[type] + delta));
   updateProfileDisplay();
-  selectTickets(profileValues.tickets);
+  selectTickets(window.profileValues.tickets);
   updateAll();
 }
 
@@ -257,9 +257,9 @@ function updateProfileDisplay() {
   const tv = document.getElementById('profileTicketsVal');
   const nv = document.getElementById('profileNumsVal');
   const sv = document.getElementById('profileStarsVal');
-  if (tv) tv.textContent = profileValues.tickets;
-  if (nv) nv.textContent = profileValues.nums;
-  if (sv) sv.textContent = profileValues.stars;
+  if (tv) tv.textContent = window.profileValues.tickets;
+  if (nv) nv.textContent = window.profileValues.nums;
+  if (sv) sv.textContent = window.profileValues.stars;
 
   // Disable knoppen bij limieten
   const limits = PROFILE_LIMITS[selectedProfile] || PROFILE_LIMITS.standard;
@@ -268,7 +268,7 @@ function updateProfileDisplay() {
     const btns = document.querySelectorAll(`button[onclick*="adjustProfile('${type}'"]`);
     btns.forEach(b => {
       const delta = b.textContent === '+' ? 1 : -1;
-      const newVal = profileValues[type] + delta;
+      const newVal = window.profileValues[type] + delta;
       b.disabled = newVal < min || newVal > max;
       b.style.opacity = b.disabled ? '0.3' : '1';
     });
@@ -278,16 +278,16 @@ function updateProfileDisplay() {
 function getActiveProfile() {
   return {
     label: selectedProfile === 'standard' ? 'Freemium' : 'Premium',
-    tickets: profileValues.tickets,
-    nums: profileValues.nums,
-    stars: profileValues.stars,
+    tickets: window.profileValues.tickets,
+    nums: window.profileValues.nums,
+    stars: window.profileValues.stars,
   };
 }
 
 function applyProfileToGenerator(profile) {
   if (profile) selectedProfile = profile;
   updateProfileDisplay();
-  selectTickets(profileValues.tickets);
+  selectTickets(window.profileValues.tickets);
   updateAll();
 }
 
@@ -296,7 +296,7 @@ function selectProfile(profile) {
 }
 
 function applyCustomProfile() {
-  selectTickets(profileValues.tickets);
+  selectTickets(window.profileValues.tickets);
   updateAll();
 }
 
