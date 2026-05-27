@@ -317,7 +317,7 @@
 
 <!-- META + DISCLAIMER -->
 <div class="meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-  <span style="font-size:11px;"><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">—</strong></span>
+  <span style="font-size:11px;"><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">19 mei 2026</strong></span>
   <span style="font-size:10px;color:#aaa;">18+ · <a href="#" onclick="showDisclaimer()" style="color:#aaa;">Disclaimer</a></span>
 </div>
 
@@ -330,19 +330,15 @@
 
 <!-- GENERATOR -->
 <div id="pane-rand" class="pane active">
-
-  <!-- DEEL 1: ANALYSE PARAMETERS -->
-
-  <!-- Machine badge -->
   <div class="strategy-row">
-    <span class="sb sb-amber" id="machineTag">M13/B21 · 33 trekkingen</span>
+    <span class="sb sb-amber" id="machineTag">M13/B21 · 24 trekkingen</span>
     <span class="sb sb-green">✓ 50% Regel</span>
+    <span class="sb sb-green">✓ 3-Sterren</span>
     <span class="sb sb-blue">✓ 2D Filter</span>
     <span class="sb sb-green">✓ Som + Consecutive</span>
     <span class="sb sb-new">★ Anti-overlap</span>
   </div>
 
-  <!-- Hot/Average/Cold grenzen -->
   <div class="box">
     <div class="box-title gray">
       <span>Grenzen hot / average / cold</span>
@@ -362,22 +358,7 @@
     <div class="param-warn" id="paramWarnSlider">⚠ You have modified the default thresholds — results deviate from our statistical recommendation.</div>
   </div>
 
-  <!-- Rule summary: Hot/Avg/Cold/Star pools -->
-  <div class="stats-row">
-    <div class="stat"><div class="stat-label">Hot pool</div><div class="stat-val" id="s-hot">—</div></div>
-    <div class="stat"><div class="stat-label">Avg pool</div><div class="stat-val" id="s-avg">—</div></div>
-    <div class="stat"><div class="stat-label">Star pool</div><div class="stat-val" id="s-star">—</div></div>
-    <div class="stat"><div class="stat-label">Cold (uit)</div><div class="stat-val" id="s-cold">—</div></div>
-  </div>
-
-  <!-- Sterren strategie -->
-  <div class="star-box">
-    <div class="star-title" id="starStratTitle">2-Sterren strategie — hot/cold analyse M/B specifiek</div>
-    <div style="font-size:11px;color:#bbb;margin-bottom:8px;line-height:1.6;" id="starSub">—</div>
-    <div class="star-combis" id="starCombis"></div>
-  </div>
-
-  <!-- 2D Matrix -->
+  <!-- 2D MATRIX -->
   <div class="box box-green">
     <div class="box-title green">
       <span>2D Combinatie filter — Odd/Even × Laag/Hoog</span>
@@ -392,11 +373,11 @@
     <div class="filter-detail" id="matrixDetail"></div>
   </div>
 
-  <!-- Som + Consecutive -->
+  <!-- SOM + CONSECUTIVE -->
   <div class="box box-blue">
     <div class="box-title blue">
       <span>Som filter + Consecutive</span>
-      <span class="box-stat"><span id="somStatLabel"></span></span>
+      <span class="box-stat">Som filter + Consecutive · <span id="somStatLabel"></span></span>
     </div>
     <div class="som-row">
       <span class="som-label">Min som</span>
@@ -418,7 +399,7 @@
     </div>
   </div>
 
-  <!-- Anti-overlap -->
+  <!-- ANTI-OVERLAP -->
   <div class="box box-purple">
     <div class="box-title purple">
       <span>Anti-overlap — max overlappende nummers tussen tickets</span>
@@ -437,105 +418,8 @@
     </div>
   </div>
 
-  <!-- DEEL 2: SPEEL PROFIEL -->
-
-  <!-- Profiel keuze -->
-  <div class="selector-label" style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #f0efea;">Speel profiel</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
-    <button class="profile-main-btn active" id="pmb-standard" onclick="selectProfileMain('standard')">
-      <div style="font-size:12px;font-weight:500;">Standaard</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">3 tickets · 5+2</div>
-    </button>
-    <button class="profile-main-btn" id="pmb-system" onclick="selectProfileMain('system')">
-      <div style="font-size:12px;font-weight:500;">Systeem</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">6 tickets · 6+3</div>
-    </button>
-    <button class="profile-main-btn" id="pmb-extended" onclick="selectProfileMain('extended')">
-      <div style="font-size:12px;font-weight:500;">Uitgebreid</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">5 tickets · 5+2</div>
-    </button>
-    <button class="profile-main-btn" id="pmb-custom" onclick="selectProfileMain('custom')">
-      <div style="font-size:12px;font-weight:500;">Eigen keuze</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">Stel zelf in</div>
-    </button>
-  </div>
-
-  <!-- Eigen keuze — dropdowns -->
-  <div id="mainCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:1rem;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-      <div class="admin-input-group">
-        <span class="admin-input-label">TICKETS</span>
-        <select class="admin-input" id="mainCustomTickets" onchange="applyCustomProfile()" style="width:100%;">
-          <option value="1">1</option><option value="2">2</option><option value="3" selected>3</option>
-          <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
-        </select>
-      </div>
-      <div class="admin-input-group">
-        <span class="admin-input-label">NUMMERS</span>
-        <select class="admin-input" id="mainCustomNums" onchange="applyCustomProfile()" style="width:100%;">
-          <option value="5" selected>5</option><option value="6">6</option>
-          <option value="7">7</option><option value="8">8</option>
-        </select>
-      </div>
-      <div class="admin-input-group">
-        <span class="admin-input-label">STERREN</span>
-        <select class="admin-input" id="mainCustomStars" onchange="applyCustomProfile()" style="width:100%;">
-          <option value="2" selected>2</option><option value="3">3</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <!-- Aantal tickets selector -->
-  <div class="selector-label">Aantal tickets</div>
-  <div class="selector-btns">
-    <button class="sel-btn" onclick="selectTickets(1)">1</button>
-    <button class="sel-btn" onclick="selectTickets(2)">2</button>
-    <button class="sel-btn active" onclick="selectTickets(3)">3</button>
-    <button class="sel-btn" onclick="selectTickets(4)">4</button>
-    <button class="sel-btn" onclick="selectTickets(5)">5</button>
-    <button class="sel-btn" onclick="selectTickets(6)">6</button>
-  </div>
-
-  <!-- Genereer knop -->
-  <button class="btn" onclick="generateAll()" id="genBtn" style="margin-top:1rem;">Genereer 3 tickets</button>
-  <div id="loginPrompt" style="display:none;background:#f8f8f6;border:1.5px solid #e0e0dc;border-radius:10px;padding:14px 16px;text-align:center;margin-top:8px;">
-    <div style="font-size:14px;font-weight:500;margin-bottom:6px;">🔒 Aanmelden vereist</div>
-    <div style="font-size:12px;color:#888;margin-bottom:12px;">Meld je gratis aan om tickets te genereren en analyses te ontvangen.</div>
-    <button onclick="openSignup()" style="padding:8px 20px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-right:8px;">✨ Aanmelden</button>
-    <button onclick="openSignin()" style="padding:8px 20px;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;">🔑 Inloggen</button>
-  </div>
-  <div class="attempt-info" id="attemptInfo"></div>
-
-  <!-- Legenda -->
-  <div class="legend" style="margin-top:0.5rem;">
-    <span class="lbl"><span class="ldot" style="background:#378ADD;"></span>Hot</span>
-    <span class="lbl"><span class="ldot" style="background:#d4a840;"></span>Average</span>
-    <span class="lbl"><span class="ldot" style="background:#e8922a;"></span>Lucky Star</span>
-  </div>
-
-  <!-- Gegenereerde tickets -->
-  <div class="tickets-grid" id="ticketsGrid"></div>
-
-  <!-- Inzet + volgende trekking -->
-  <div class="inzet-box" style="margin-top:0.75rem;">
-    <span>Volgende trekking: <strong id="nextDraw"></strong></span>
-    <span id="inzetInfo">3 tickets · <strong>€7,50</strong></span>
-  </div>
-
-  <!-- Opslaan & analyse -->
-  <div id="saveTicketsArea" style="display:none;margin-top:0.75rem;">
-    <div style="border-top:1px solid #f0efea;padding-top:1rem;display:flex;flex-direction:column;gap:8px;">
-      <button class="btn btn-save" onclick="openSaveProfile()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <span>📧</span> Sla tickets op & ontvang analyse na trekking
-      </button>
-      <div style="font-size:11px;color:#aaa;text-align:center;">Je ontvangt na elke trekking een persoonlijke analyse per email</div>
-    </div>
-  </div>
-
-  <!-- Rule summary -->
-  <div class="rule-box" style="margin-top:1rem;">
+  <!-- RULE SUMMARY -->
+  <div class="rule-box">
     <div class="rule-item">
       <div class="rule-label">VERDELING</div>
       <div class="rule-val" id="ruleMain">—</div>
@@ -559,10 +443,105 @@
     <div class="rule-item">
       <div class="rule-label">STERREN</div>
       <div class="rule-val" style="color:#8a4510;" id="ruleStarCount">Top 3</div>
-      <div class="rule-sub">hot/avg</div>
+      <div class="rule-sub">overdue</div>
     </div>
   </div>
 
+  <!-- STAR STRATEGY — verplaatst naar onder profiel -->
+
+  <!-- PROFIEL KEUZE OP HOOFDPAGINA -->
+  <div class="selector-label">Speel profiel</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+    <button class="profile-main-btn active" id="pmb-standard" onclick="selectProfileMain('standard')">
+      <div style="font-size:12px;font-weight:500;">Standaard</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">3 tickets · 5+2</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-system" onclick="selectProfileMain('system')">
+      <div style="font-size:12px;font-weight:500;">Systeem</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">6 tickets · 6+3</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-extended" onclick="selectProfileMain('extended')">
+      <div style="font-size:12px;font-weight:500;">Uitgebreid</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">5 tickets · 5+2</div>
+    </button>
+    <button class="profile-main-btn" id="pmb-custom" onclick="selectProfileMain('custom')">
+      <div style="font-size:12px;font-weight:500;">Eigen keuze</div>
+      <div style="font-size:10px;color:#aaa;margin-top:2px;">Stel zelf in</div>
+    </button>
+  </div>
+
+  <!-- EIGEN KEUZE OPTIES -->
+  <div id="mainCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:1rem;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+      <div class="admin-input-group">
+        <span class="admin-input-label">TICKETS</span>
+        <input type="number" class="admin-input" id="mainCustomTickets" value="3" min="1" max="10" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+      <div class="admin-input-group">
+        <span class="admin-input-label">NUMMERS</span>
+        <input type="number" class="admin-input" id="mainCustomNums" value="5" min="5" max="8" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+      <div class="admin-input-group">
+        <span class="admin-input-label">STERREN</span>
+        <input type="number" class="admin-input" id="mainCustomStars" value="2" min="2" max="3" onchange="applyCustomProfile()" style="width:100%;">
+      </div>
+    </div>
+  </div>
+
+  <!-- STERREN STRATEGIE — dynamisch op basis van profiel -->
+  <div class="star-box">
+    <div class="star-title" id="starStratTitle">2-Sterren strategie — meest overdue sterren</div>
+    <div style="font-size:11px;color:#bbb;margin-bottom:8px;">Top sterren: <span id="starSub">—</span></div>
+    <div class="star-combis" id="starCombis"></div>
+  </div>
+
+  <div class="selector-label">Aantal tickets (inzet)</div>
+  <div class="selector-btns">
+    <button class="sel-btn" onclick="selectTickets(1)">1</button>
+    <button class="sel-btn" onclick="selectTickets(2)">2</button>
+    <button class="sel-btn active" onclick="selectTickets(3)">3</button>
+    <button class="sel-btn" onclick="selectTickets(4)">4</button>
+    <button class="sel-btn" onclick="selectTickets(5)">5</button>
+    <button class="sel-btn" onclick="selectTickets(6)">6</button>
+  </div>
+
+  <div class="inzet-box">
+    <span>Volgende trekking: <strong id="nextDraw"></strong></span>
+    <span id="inzetInfo">3 tickets · <strong>€7,50</strong></span>
+  </div>
+
+  <div class="legend">
+    <span class="lbl"><span class="ldot" style="background:#378ADD;"></span>Hot</span>
+    <span class="lbl"><span class="ldot" style="background:#d4a840;"></span>Average</span>
+    <span class="lbl"><span class="ldot" style="background:#e8922a;"></span>Lucky Star</span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">Hot pool</div><div class="stat-val" id="s-hot">—</div></div>
+    <div class="stat"><div class="stat-label">Avg pool</div><div class="stat-val" id="s-avg">—</div></div>
+    <div class="stat"><div class="stat-label">Star pool</div><div class="stat-val" id="s-star">—</div></div>
+    <div class="stat"><div class="stat-label">Cold (uit)</div><div class="stat-val" id="s-cold">—</div></div>
+  </div>
+
+  <div class="tickets-grid" id="ticketsGrid"></div>
+  <button class="btn" onclick="generateAll()" id="genBtn">Genereer 3 tickets</button>
+  <div id="loginPrompt" style="display:none;background:#f8f8f6;border:1.5px solid #e0e0dc;border-radius:10px;padding:14px 16px;text-align:center;margin-top:8px;">
+    <div style="font-size:14px;font-weight:500;margin-bottom:6px;">🔒 Aanmelden vereist</div>
+    <div style="font-size:12px;color:#888;margin-bottom:12px;">Meld je gratis aan om tickets te genereren en analyses te ontvangen.</div>
+    <button onclick="openSignup()" style="padding:8px 20px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-right:8px;">✨ Aanmelden</button>
+    <button onclick="openSignin()" style="padding:8px 20px;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;">🔑 Inloggen</button>
+  </div>
+  <div class="attempt-info" id="attemptInfo"></div>
+
+  <!-- OPSLAAN & ANALYSE -->
+  <div id="saveTicketsArea" style="display:none;margin-top:1rem;">
+    <div style="border-top:1px solid #f0efea;padding-top:1rem;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-save" onclick="openSaveProfile()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+        <span>📧</span> Sla tickets op & ontvang analyse na trekking
+      </button>
+      <div style="font-size:11px;color:#aaa;text-align:center;">Je ontvangt na elke trekking een persoonlijke analyse per email</div>
+    </div>
+  </div>
 </div>
 
 <!-- GEBRUIKERSPROFIEL MODAL -->
