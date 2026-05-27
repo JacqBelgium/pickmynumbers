@@ -727,4 +727,5 @@ document.addEventListener('DOMContentLoaded', function() {
   setOverlap(1);
   selectTickets(3);
   document.getElementById('nextDraw').textContent = nextDrawDate();
+  if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
 });
