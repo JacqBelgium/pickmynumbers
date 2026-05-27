@@ -867,10 +867,8 @@ let selectedProfile = 'standard';
 let loginSelectedProfile = 'standard';
 
 const PROFILES = {
-  standard: { label:'Standaard', tickets:3, nums:5, stars:2 },
-  system:   { label:'Systeem',   tickets:6, nums:6, stars:3 },
-  extended: { label:'Uitgebreid',tickets:5, nums:5, stars:2 },
-  custom:   { label:'Eigen keuze', tickets:3, nums:5, stars:2 },
+  standard: { label:'Freemium', tickets:3, nums:5, stars:2 },
+  custom:   { label:'Premium',  tickets:3, nums:5, stars:2 },
 };
 
 // Laad opgeslagen gebruiker
