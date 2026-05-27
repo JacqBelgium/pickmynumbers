@@ -197,45 +197,97 @@ function selectLoginProfile(profile) {
 // =====================
 // SUPABASE REST HELPERS
 // =====================
+// Profiel limieten
+const PROFILE_LIMITS = {
+  standard: { tickets: [1,3], nums: [5,5], stars: [2,4] },  // Freemium
+  custom:   { tickets: [1,10], nums: [5,8], stars: [2,4] }  // Premium
+};
+
+// Huidige waarden
+let profileValues = { tickets: 3, nums: 5, stars: 2 };
+
 function selectProfileMain(profile) {
   selectedProfile = profile;
 
-  // Update buttons
+  // Update knoppen
   document.querySelectorAll('.profile-main-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('pmb-' + profile);
   if (btn) btn.classList.add('active');
 
-  // Toon/verberg eigen keuze opties
-  const customOpts = document.getElementById('mainCustomOptions');
-  if (customOpts) customOpts.style.display = profile === 'custom' ? 'block' : 'none';
+  // Reset waarden naar standaard voor dit profiel
+  const limits = PROFILE_LIMITS[profile] || PROFILE_LIMITS.standard;
+  profileValues.tickets = limits.tickets[0] === limits.tickets[1] ? limits.tickets[0] : Math.min(profileValues.tickets, limits.tickets[1]);
+  profileValues.nums = limits.nums[0];
+  profileValues.stars = limits.stars[0];
 
-  // Sla op in localStorage
+  // Freemium: reset naar standaard
+  if (profile === 'standard') {
+    profileValues = { tickets: 3, nums: 5, stars: 2 };
+  }
+
+  // Update display
+  updateProfileDisplay();
+
+  // Update note
+  const note = document.getElementById('profileLimitNote');
+  if (note) {
+    note.textContent = profile === 'standard'
+      ? 'Freemium: max 3 tickets · 5 nummers · 4 sterren'
+      : 'Premium: max 10 tickets · 8 nummers · 4 sterren';
+  }
+
+  // Sla op
   localStorage.setItem('em_user_profile_type', profile);
 
-  // Pas tickets aan
-  const p = getActiveProfile();
-  selectTickets(p.tickets);
-
-  // Herbereken sterren strategie + UI update
+  // Pas generator aan
+  selectTickets(profileValues.tickets);
   updateAll();
 }
 
+function adjustProfile(type, delta) {
+  const limits = PROFILE_LIMITS[selectedProfile] || PROFILE_LIMITS.standard;
+  const [min, max] = limits[type];
+  profileValues[type] = Math.max(min, Math.min(max, profileValues[type] + delta));
+  updateProfileDisplay();
+  selectTickets(profileValues.tickets);
+  updateAll();
+}
+
+function updateProfileDisplay() {
+  const tv = document.getElementById('profileTicketsVal');
+  const nv = document.getElementById('profileNumsVal');
+  const sv = document.getElementById('profileStarsVal');
+  if (tv) tv.textContent = profileValues.tickets;
+  if (nv) nv.textContent = profileValues.nums;
+  if (sv) sv.textContent = profileValues.stars;
+
+  // Disable knoppen bij limieten
+  const limits = PROFILE_LIMITS[selectedProfile] || PROFILE_LIMITS.standard;
+  ['tickets','nums','stars'].forEach(type => {
+    const [min, max] = limits[type];
+    const btns = document.querySelectorAll(`button[onclick*="adjustProfile('${type}'"]`);
+    btns.forEach(b => {
+      const delta = b.textContent === '+' ? 1 : -1;
+      const newVal = profileValues[type] + delta;
+      b.disabled = newVal < min || newVal > max;
+      b.style.opacity = b.disabled ? '0.3' : '1';
+    });
+  });
+}
+
 function getActiveProfile() {
-  if (selectedProfile === 'custom') {
-    return {
-      label: 'Eigen keuze',
-      tickets: parseInt(document.getElementById('mainCustomTickets')?.value) || 3,
-      nums: parseInt(document.getElementById('mainCustomNums')?.value) || 5,
-      stars: parseInt(document.getElementById('mainCustomStars')?.value) || 2,
-    };
-  }
-  return PROFILES[selectedProfile] || PROFILES.standard;
+  return {
+    label: selectedProfile === 'standard' ? 'Freemium' : 'Premium',
+    tickets: profileValues.tickets,
+    nums: profileValues.nums,
+    stars: profileValues.stars,
+  };
 }
 
 function applyProfileToGenerator(profile) {
   if (profile) selectedProfile = profile;
-  const p = getActiveProfile();
-  selectTickets(p.tickets);
+  updateProfileDisplay();
+  selectTickets(profileValues.tickets);
   updateAll();
 }
 
@@ -244,7 +296,7 @@ function selectProfile(profile) {
 }
 
 function applyCustomProfile() {
-  selectTickets(getActiveProfile().tickets);
+  selectTickets(profileValues.tickets);
   updateAll();
 }
 
