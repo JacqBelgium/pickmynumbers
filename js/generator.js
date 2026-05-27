@@ -476,6 +476,7 @@ function generateAll(){
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {nums:5,stars:2,tickets:numTickets};
   const numsCount = profile.nums || 5;
   const starsCount = profile.stars || 2;
+  console.log('Profile:', profile, 'starsCount:', starsCount);
 
   // Kies juiste ster combinaties op basis van profiel
   const starCombis = starsCount >= 4 ? combis4 : starsCount >= 3 ? combis3 : combis;
