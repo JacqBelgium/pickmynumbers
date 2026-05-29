@@ -133,42 +133,45 @@ function getStarStrategy(){
   // Cold sterren (vermijden)
   const coldStars = starData.filter(s => s.tier === 'cold').map(s => s.n);
 
-  // Top 5 voor combinaties (hot eerst, dan avg)
+  // Top 5 voor combinaties (hot eerst, dan avg) — GEEN cold sterren
   const top5 = [...hotStars, ...avgStars].slice(0, 5);
   const top3 = top5.slice(0, 3);
 
   // 2-ster combinaties — altijd minstens 1 hot ster erin
   const combis2 = [];
-  // Prioriteit: hot+hot, hot+avg
   const allCandidates = [...hotStars, ...avgStars];
   for(let i=0; i<allCandidates.length && combis2.length<6; i++){
     for(let j=i+1; j<allCandidates.length && combis2.length<6; j++){
-      // Minstens 1 hot ster
       if(hotStars.includes(allCandidates[i]) || hotStars.includes(allCandidates[j])){
         combis2.push([allCandidates[i], allCandidates[j]].sort((a,b)=>a-b));
       }
     }
   }
-  // Fallback als niet genoeg
   if(combis2.length < 3) {
     combis2.push(...[[top3[0],top3[1]],[top3[0],top3[2]],[top3[1],top3[2]]]);
   }
 
-  // 3-ster combinaties — alle combinaties uit top 5, hot prioriteit
+  // 3-ster combinaties — uit top5 (hot+avg), altijd minstens 1 hot
   const combis3 = [];
   for(let i=0;i<top5.length;i++)
     for(let j=i+1;j<top5.length;j++)
-      for(let k=j+1;k<top5.length;k++)
-        combis3.push([top5[i],top5[j],top5[k]].sort((a,b)=>a-b));
+      for(let k=j+1;k<top5.length;k++){
+        const combo = [top5[i],top5[j],top5[k]];
+        if(combo.some(s => hotStars.includes(s)))
+          combis3.push(combo.sort((a,b)=>a-b));
+      }
 
-  // 4-ster combinaties — alle combinaties uit top 6
-  const top6 = starData.slice(0,6).map(s=>s.n);
+  // 4-ster combinaties — uit top6 (hot+avg), altijd minstens 1 hot
+  const top6 = [...hotStars, ...avgStars].slice(0, 6);
   const combis4 = [];
   for(let i=0;i<top6.length;i++)
     for(let j=i+1;j<top6.length;j++)
       for(let k=j+1;k<top6.length;k++)
-        for(let l=k+1;l<top6.length;l++)
-          combis4.push([top6[i],top6[j],top6[k],top6[l]].sort((a,b)=>a-b));
+        for(let l=k+1;l<top6.length;l++){
+          const combo = [top6[i],top6[j],top6[k],top6[l]];
+          if(combo.some(s => hotStars.includes(s)))
+            combis4.push(combo.sort((a,b)=>a-b));
+        }
 
   return {top3, top5, top6, hotStars, avgStars, coldStars, starData, combis:combis2, combis3, combis4, avgFreq};
 }
