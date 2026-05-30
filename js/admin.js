@@ -645,9 +645,10 @@ async function adminSendAnalysis() {
   msg.textContent = 'Tickets ophalen…'; msg.style.color = '#aaa';
 
   try {
+    // Haal tickets op
     const { data: tickets, error } = await supabaseClient
       .from('tickets')
-      .select('*, users(name, email)')
+      .select('*')
       .eq('draw_date', isoDate);
 
     if (error) throw error;
@@ -658,11 +659,22 @@ async function adminSendAnalysis() {
       return;
     }
 
+    // Haal gebruikers op
+    const userIds = [...new Set(tickets.map(t => t.user_id))];
+    const { data: users } = await supabaseClient
+      .from('users')
+      .select('id, name, email')
+      .in('id', userIds);
+
+    const usersMap = {};
+    (users || []).forEach(u => usersMap[u.id] = u);
+
     // Groepeer per gebruiker
     const byUser = {};
     tickets.forEach(t => {
-      if (!t.users) return;
-      if (!byUser[t.user_id]) byUser[t.user_id] = { user: t.users, tickets: [] };
+      const user = usersMap[t.user_id];
+      if (!user) return;
+      if (!byUser[t.user_id]) byUser[t.user_id] = { user, tickets: [] };
       byUser[t.user_id].tickets.push(t);
     });
 
