@@ -1,0 +1,174 @@
+name: Update EuroMillions Draw
+
+on:
+  schedule:
+    # Elke dinsdag en vrijdag om 22:15 CET (21:15 UTC)
+    - cron: '15 21 * * 2,5'
+  workflow_dispatch:  # Handmatig starten mogelijk
+
+jobs:
+  fetch-and-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch latest draw and update dataset
+        id: fetch
+        run: |
+          node << 'SCRIPT'
+          const https = require('https');
+          const fs = require('fs');
+
+          // Bereken de datum van vandaag
+          const now = new Date();
+          const day = String(now.getDate()).padStart(2, '0');
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const year = now.getFullYear();
+          const dateStr = `${day}-${month}-${year}`;
+          
+          // NL datum formaat voor dataset
+          const monthsNL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+          const nlDate = `${parseInt(day)} ${monthsNL[now.getMonth()]} ${year}`;
+
+          console.log(`Ophalen trekking voor: ${dateStr}`);
+
+          // Probeer euro-millions.com
+          const url = `https://www.euro-millions.com/results/${dateStr}`;
+          
+          function fetchUrl(url) {
+            return new Promise((resolve, reject) => {
+              const options = {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                  'Accept': 'text/html,application/xhtml+xml',
+                  'Accept-Language': 'en-GB,en;q=0.9',
+                }
+              };
+              https.get(url, options, (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => resolve({ status: res.statusCode, body: data }));
+              }).on('error', reject);
+            });
+          }
+
+          async function parseDrawData(html) {
+            // Parse nummers
+            const nums = [];
+            const numMatches = html.matchAll(/class="[^"]*ball[^"]*main[^"]*"[^>]*>(\d+)/gi);
+            for (const m of numMatches) {
+              const n = parseInt(m[1]);
+              if (n >= 1 && n <= 50 && nums.length < 5) nums.push(n);
+            }
+            
+            // Parse sterren
+            const stars = [];
+            const starMatches = html.matchAll(/class="[^"]*ball[^"]*lucky[^"]*"[^>]*>(\d+)/gi);
+            for (const m of starMatches) {
+              const s = parseInt(m[1]);
+              if (s >= 1 && s <= 12 && stars.length < 2) stars.push(s);
+            }
+
+            // Parse machine en balset
+            const machineMatch = html.match(/Ball Machine[:\s]*(\d+)/i) || 
+                                 html.match(/Machine[:\s]*(\d+)/i);
+            const ballMatch = html.match(/Ball Set[:\s]*(\d+)/i) || 
+                              html.match(/Set[:\s]*(\d+)/i);
+            const drawMatch = html.match(/Draw Number[:\s#]*([0-9,]+)/i);
+
+            const machine = machineMatch ? parseInt(machineMatch[1]) : 0;
+            const bal = ballMatch ? parseInt(ballMatch[1]) : 0;
+            const drawNum = drawMatch ? parseInt(drawMatch[1].replace(',','')) : 0;
+
+            return { nums, stars, machine, bal, drawNum };
+          }
+
+          try {
+            const result = await fetchUrl(url);
+            console.log(`HTTP status: ${result.status}`);
+            
+            if (result.status !== 200) {
+              console.log('Pagina niet beschikbaar — trekking mogelijk nog niet gepubliceerd');
+              process.exit(0);
+            }
+
+            const data = await parseDrawData(result.body);
+            console.log('Gevonden data:', JSON.stringify(data));
+
+            if (data.nums.length !== 5 || data.stars.length !== 2) {
+              console.log('Onvoldoende data gevonden — overslaan');
+              process.exit(0);
+            }
+
+            // Lees huidige data.js
+            let dataJs = fs.readFileSync('js/data.js', 'utf8');
+            
+            // Check of deze datum al bestaat
+            if (dataJs.includes(`'${nlDate}'`)) {
+              console.log(`Trekking ${nlDate} al aanwezig — overslaan`);
+              process.exit(0);
+            }
+
+            // Voeg nieuwe trekking toe aan begin van ALL_DRAWS
+            const newEntry = `  { date:'${nlDate}', draw:${data.drawNum}, nums:[${data.nums.sort((a,b)=>a-b).join(',')}], stars:[${data.stars.sort((a,b)=>a-b).join(',')}], machine:${data.machine}, bal:${data.bal} },`;
+            
+            dataJs = dataJs.replace(
+              'let ALL_DRAWS = [',
+              `let ALL_DRAWS = [\n${newEntry}`
+            );
+
+            fs.writeFileSync('js/data.js', dataJs);
+            console.log(`✓ Trekking ${nlDate} toegevoegd: ${data.nums.join('-')} + ${data.stars.join('-')} M${data.machine}/B${data.bal}`);
+            
+            // Sla trekking info op voor volgende stap
+            fs.writeFileSync('/tmp/draw_info.json', JSON.stringify({
+              date: nlDate,
+              isoDate: `${year}-${month}-${day}`,
+              nums: data.nums,
+              stars: data.stars,
+              machine: data.machine,
+              bal: data.bal,
+              drawNum: data.drawNum
+            }));
+
+          } catch(e) {
+            console.error('Fout:', e.message);
+            process.exit(1);
+          }
+          SCRIPT
+
+      - name: Commit updated dataset
+        run: |
+          git config --global user.name 'PickMyNumbers Bot'
+          git config --global user.email 'bot@pickmynumbers.eu'
+          git add js/data.js
+          if git diff --staged --quiet; then
+            echo "Geen wijzigingen — niets te committen"
+          else
+            git commit -m "Auto: trekking $(date +'%d %b %Y') toegevoegd"
+            git push
+            echo "COMMITTED=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send analysis emails via Supabase Edge Function
+        if: steps.fetch.outputs.COMMITTED == 'true'
+        run: |
+          if [ -f /tmp/draw_info.json ]; then
+            DRAW_INFO=$(cat /tmp/draw_info.json)
+            echo "Analyse emails sturen voor: $DRAW_INFO"
+            
+            curl -X POST \
+              "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/send-analysis" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+              -d "$DRAW_INFO"
+          fi
