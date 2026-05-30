@@ -167,7 +167,7 @@ jobs:
             echo "Analyse emails sturen voor: $DRAW_INFO"
             
             curl -X POST \
-              "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/send-analysis" \
+              "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/rapid-processor" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
               -d "$DRAW_INFO"
