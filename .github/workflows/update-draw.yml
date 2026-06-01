@@ -1,16 +1,13 @@
-
 name: Update EuroMillions Draw
  
 on:
   schedule:
-    # Elke dinsdag en vrijdag om 22:15 CET (21:15 UTC)
     - cron: '15 21 * * 2,5'
-  workflow_dispatch:  # Handmatig starten mogelijk
+  workflow_dispatch:
  
 jobs:
   fetch-and-update:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,148 +19,104 @@ jobs:
         with:
           node-version: '24'
  
-      - name: Fetch latest draw and update dataset
-        id: fetch
+      - name: Create fetch script
         run: |
-          cat > /tmp/fetch-draw.mjs << 'SCRIPT'
-          import { get } from 'node:https';
-          import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+          cat > fetch-draw.js << 'JSEOF'
+import https from 'node:https';
+import fs from 'node:fs';
  
-          const now = new Date();
-          const day = String(now.getDate()).padStart(2, '0');
-          const month = String(now.getMonth() + 1).padStart(2, '0');
-          const year = now.getFullYear();
-          const dateStr = `${day}-${month}-${year}`;
-          
-          const monthsNL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-          const nlDate = `${parseInt(day)} ${monthsNL[now.getMonth()]} ${year}`;
+const now = new Date();
+const day = String(now.getDate()).padStart(2, '0');
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const year = now.getFullYear();
+const dateStr = `${day}-${month}-${year}`;
+const monthsNL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const nlDate = `${parseInt(day)} ${monthsNL[now.getMonth()]} ${year}`;
  
-          console.log(`Ophalen trekking voor: ${dateStr} (${nlDate})`);
+console.log(`Ophalen: ${dateStr} (${nlDate})`);
  
-          function fetchUrl(url) {
-            return new Promise((resolve, reject) => {
-              const options = {
-                headers: {
-                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0',
-                  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                  'Accept-Language': 'en-GB,en;q=0.9,nl;q=0.8',
-                }
-              };
-              get(url, options, (res) => {
-                if (res.statusCode === 301 || res.statusCode === 302) {
-                  return fetchUrl(res.headers.location).then(resolve).catch(reject);
-                }
-                let data = '';
-                res.on('data', chunk => data += chunk);
-                res.on('end', () => resolve({ status: res.statusCode, body: data }));
-              }).on('error', reject);
-            });
-          }
+function fetchUrl(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html',
+      }
+    }, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchUrl(res.headers.location).then(resolve).catch(reject);
+      }
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => resolve({ status: res.statusCode, body: data }));
+    }).on('error', reject);
+  });
+}
  
-          function parseDrawData(html) {
-            const nums = [];
-            const stars = [];
+function parse(html) {
+  const nums = [];
+  const stars = [];
+  for (const m of html.matchAll(/class="[^"]*ball[^"]*">(\d+)</gi)) {
+    const n = parseInt(m[1]);
+    if (n >= 1 && n <= 50 && !nums.includes(n) && nums.length < 5) nums.push(n);
+  }
+  for (const m of html.matchAll(/class="[^"]*lucky[^"]*star[^"]*">(\d+)</gi)) {
+    const s = parseInt(m[1]);
+    if (s >= 1 && s <= 12 && !stars.includes(s) && stars.length < 2) stars.push(s);
+  }
+  if (stars.length < 2) {
+    for (const m of html.matchAll(/class="[^"]*star[^"]*">(\d+)</gi)) {
+      const s = parseInt(m[1]);
+      if (s >= 1 && s <= 12 && !stars.includes(s) && stars.length < 2) stars.push(s);
+    }
+  }
+  const machineM = html.match(/[Mm]achine[:\s#]*(\d+)/);
+  const balM = html.match(/[Bb]all?\s*[Ss]et[:\s]*(\d+)/i);
+  const drawM = html.match(/[Dd]raw[:\s#]*([0-9,]+)/);
+  return {
+    nums: nums.sort((a,b)=>a-b),
+    stars: stars.sort((a,b)=>a-b),
+    machine: machineM ? parseInt(machineM[1]) : 0,
+    bal: balM ? parseInt(balM[1]) : 0,
+    drawNum: drawM ? parseInt(drawM[1].replace(',','')) : 0
+  };
+}
  
-            // Probeer diverse patronen voor nummers
-            const patterns = [
-              /class="[^"]*ball[^"]*">(\d+)</gi,
-              /winning-number[^>]*>(\d+)</gi,
-              /<li[^>]*class="[^"]*ball[^"]*"[^>]*>(\d+)/gi,
-            ];
+try {
+  const r = await fetchUrl(`https://www.euro-millions.com/results/${dateStr}`);
+  console.log(`Status: ${r.status}`);
+  if (r.status !== 200) { console.log('Niet beschikbaar'); process.exit(0); }
  
-            for (const pattern of patterns) {
-              if (nums.length >= 5) break;
-              const matches = [...html.matchAll(pattern)];
-              for (const m of matches) {
-                const n = parseInt(m[1]);
-                if (n >= 1 && n <= 50 && !nums.includes(n) && nums.length < 5) nums.push(n);
-              }
-            }
+  const d = parse(r.body);
+  console.log('Data:', JSON.stringify(d));
  
-            // Sterren
-            const starPatterns = [
-              /class="[^"]*lucky[^"]*">(\d+)</gi,
-              /class="[^"]*star[^"]*">(\d+)</gi,
-              /lucky-star[^>]*>(\d+)</gi,
-            ];
-            for (const pattern of starPatterns) {
-              if (stars.length >= 2) break;
-              const matches = [...html.matchAll(pattern)];
-              for (const m of matches) {
-                const s = parseInt(m[1]);
-                if (s >= 1 && s <= 12 && !stars.includes(s) && stars.length < 2) stars.push(s);
-              }
-            }
+  if (d.nums.length !== 5 || d.stars.length !== 2) {
+    console.log('Onvoldoende data — overslaan');
+    process.exit(0);
+  }
  
-            // Machine en balset
-            const machineMatch = html.match(/[Mm]achine[:\s#]*(\d+)/) ||
-                                 html.match(/Ball Machine[:\s]*(\d+)/i);
-            const ballMatch = html.match(/Ball Set[:\s]*(\d+)/i) ||
-                              html.match(/[Bb]al(?:set)?[:\s]*(\d+)/);
-            const drawMatch = html.match(/[Dd]raw[:\s#]*([0-9,]+)/) ||
-                              html.match(/draw-number[^>]*>([0-9,]+)/i);
+  let dataJs = fs.readFileSync('js/data.js', 'utf8');
+  if (dataJs.includes(`'${nlDate}'`)) {
+    console.log(`${nlDate} al aanwezig`);
+    process.exit(0);
+  }
  
-            return {
-              nums: nums.sort((a,b) => a-b),
-              stars: stars.sort((a,b) => a-b),
-              machine: machineMatch ? parseInt(machineMatch[1]) : 0,
-              bal: ballMatch ? parseInt(ballMatch[1]) : 0,
-              drawNum: drawMatch ? parseInt(drawMatch[1].replace(',','')) : 0
-            };
-          }
+  const entry = `  { date:'${nlDate}', draw:${d.drawNum}, nums:[${d.nums}], stars:[${d.stars}], machine:${d.machine}, bal:${d.bal} },`;
+  dataJs = dataJs.replace('let ALL_DRAWS = [', `let ALL_DRAWS = [\n${entry}`);
+  fs.writeFileSync('js/data.js', dataJs);
+  fs.writeFileSync('/tmp/draw_info.json', JSON.stringify({ date:nlDate, isoDate:`${year}-${month}-${day}`, nums:d.nums, stars:d.stars, machine:d.machine, bal:d.bal }));
+  fs.writeFileSync('/tmp/new_draw.txt', 'true');
+  console.log(`✓ ${nlDate} toegevoegd`);
+} catch(e) {
+  console.error('Fout:', e.message);
+  process.exit(1);
+}
+JSEOF
  
-          try {
-            const url = `https://www.euro-millions.com/results/${dateStr}`;
-            console.log(`Ophalen: ${url}`);
-            const result = await fetchUrl(url);
-            console.log(`HTTP status: ${result.status}`);
-            
-            if (result.status !== 200) {
-              console.log('Pagina niet beschikbaar — trekking mogelijk nog niet gepubliceerd');
-              process.exit(0);
-            }
+      - name: Run fetch script
+        run: node --input-type=module < fetch-draw.js
  
-            const data = parseDrawData(result.body);
-            console.log('Geparseerde data:', JSON.stringify(data));
- 
-            if (data.nums.length !== 5 || data.stars.length !== 2) {
-              console.log(`Onvoldoende data: ${data.nums.length} nummers, ${data.stars.length} sterren — overslaan`);
-              process.exit(0);
-            }
- 
-            let dataJs = readFileSync('js/data.js', 'utf8');
-            
-            if (dataJs.includes(`'${nlDate}'`)) {
-              console.log(`Trekking ${nlDate} al aanwezig`);
-              process.exit(0);
-            }
- 
-            const newEntry = `  { date:'${nlDate}', draw:${data.drawNum}, nums:[${data.nums.join(',')}], stars:[${data.stars.join(',')}], machine:${data.machine}, bal:${data.bal} },`;
-            dataJs = dataJs.replace('let ALL_DRAWS = [', `let ALL_DRAWS = [\n${newEntry}`);
-            writeFileSync('js/data.js', dataJs);
- 
-            console.log(`✓ Toegevoegd: ${nlDate} — ${data.nums.join('-')} + ★${data.stars.join('-')} M${data.machine}/B${data.bal}`);
-            
-            writeFileSync('/tmp/draw_info.json', JSON.stringify({
-              date: nlDate,
-              isoDate: `${year}-${month}-${day}`,
-              nums: data.nums,
-              stars: data.stars,
-              machine: data.machine,
-              bal: data.bal,
-              drawNum: data.drawNum
-            }));
- 
-            writeFileSync('/tmp/committed.txt', 'true');
- 
-          } catch(e) {
-            console.error('Fout:', e.message);
-            process.exit(1);
-          }
-          SCRIPT
-          node /tmp/fetch-draw.mjs
- 
-      - name: Commit updated dataset
+      - name: Commit dataset
         run: |
           git config --global user.name 'PickMyNumbers Bot'
           git config --global user.email 'bot@pickmynumbers.eu'
@@ -175,16 +128,12 @@ jobs:
             git push
           fi
  
-      - name: Send analysis emails
+      - name: Send emails
         run: |
-          if [ -f /tmp/committed.txt ] && [ -f /tmp/draw_info.json ]; then
-            DRAW_INFO=$(cat /tmp/draw_info.json)
-            echo "Emails sturen voor: $DRAW_INFO"
+          if [ -f /tmp/new_draw.txt ]; then
             curl -s -X POST \
               "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/rapid-processor" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
-              -d "$DRAW_INFO"
-          else
-            echo "Geen nieuwe trekking — geen emails"
+              -d "$(cat /tmp/draw_info.json)"
           fi
