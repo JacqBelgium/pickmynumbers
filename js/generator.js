@@ -694,29 +694,105 @@ function renderFreq(){
 
 let cst='hot';
 function showScoreTab(t){
-  cst=t;document.querySelectorAll('.stab').forEach((b,i)=>b.classList.toggle('active',['hot','avg','star'][i]===t));renderScoreTable();
+  cst=t;
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  renderScoreTable();
 }
 function renderScoreTable(){
-  const isStar=cst==='star',isHot=cst==='hot',field=isStar?'stars':'nums',tier=isStar?'star':isHot?'hot':'avg';
+  const isStar=cst==='star', isCold=cst==='cold', isHot=cst==='hot';
+  const field=isStar?'stars':'nums';
+  const tier=isStar?'star':isHot?'hot':isCold?'cold':'avg';
   const pool=buildPool(field,tier).sort((a,b)=>b.score-a.score);
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
-  const maxScore=pool[0]?.score||1,total=pool.length,bc=isStar?'sball-star':isHot?'sball-hot':'sball-avg';
+  const maxScore=pool[0]?.score||1,total=pool.length;
+  const bc=isStar?'sball-star':isHot?'sball-hot':isCold?'sball-cold':'sball-avg';
   function qp(i){if(i<Math.ceil(total*.25))return`<span class="q-high">Hoog</span>`;if(i<Math.ceil(total*.5))return`<span class="q-mid">Mid</span>`;if(i<Math.ceil(total*.75))return`<span class="q-low">Laag</span>`;return`<span class="q-rest">Rest</span>`;}
   function ac(s){return s>=1.5?'overdue':s>=0.8?'normal':'fresh';}
-  document.getElementById('scoreTable').innerHTML=pool.length===0?`<div style="color:#bbb;font-size:12px;padding:1rem 0;">Geen nummers in deze pool.</div>`
+  document.getElementById('scoreTable').innerHTML=pool.length===0
+    ?`<div style="color:#bbb;font-size:12px;padding:1rem 0;">Geen nummers in deze pool.</div>`
     :`<table><thead><tr><th>Rank</th><th>Nr</th><th>Freq</th><th>Interval</th><th>Afwezig</th><th>Score</th><th>Quote</th></tr></thead>
     <tbody>${pool.map((r,i)=>{const bw=Math.round(r.score/maxScore*80);const iv=(draws.length/r.freq).toFixed(1);const ab=draws.findIndex(d=>(isStar?d.stars:d.nums).includes(r.num));const al=ab===0?'laatste':ab+' geleden';
     return`<tr><td style="color:#bbb;font-size:11px;">${i+1}</td><td><div class="sball ${bc}">${r.num}</div></td><td>${r.freq}×</td><td>${iv}</td><td class="${ac(r.score)}">${al}</td><td><div class="score-bar-wrap"><div class="score-bar" style="width:${bw}px;"></div><span style="font-size:11px;" class="${ac(r.score)}">${r.score.toFixed(2)}</span></div></td><td>${qp(i)}</td></tr>`}).join('')}</tbody></table>`;
 }
 
-function showTab(t){
-  ['rand','result','rendement','freq','score'].forEach((p,i)=>{
-    document.getElementById('pane-'+p).classList.toggle('active',p===t);
-    document.querySelectorAll('.tab')[i].classList.toggle('active',p===t);
+let currentAnalyseTab = 'hot';
+
+function showAnalyseTab(t) {
+  currentAnalyseTab = t;
+  ['hot','avg','cold','star'].forEach(tab => {
+    const btn = document.getElementById('atab-' + tab);
+    if (btn) btn.classList.toggle('active', tab === t);
   });
-  if(t==='freq') renderFreq();
-  if(t==='score') renderScoreTable();
-  if(t==='rendement') renderRendement();
+  // Map analyse tab naar freq field en filter
+  if (t === 'star') {
+    document.getElementById('freqSort').value = 'num';
+    renderFreqFiltered('stars', null);
+  } else {
+    document.getElementById('freqSort').value = 'num';
+    renderFreqFiltered('nums', t);
+  }
+}
+
+function renderFreqFiltered(field, tier) {
+  const sort = document.getElementById('freqSort').value;
+  const {freq, maxN, total} = getFreqData(field);
+  const avg = field === 'stars' ? (total*2)/12 : (total*5)/50;
+  const lo = Math.round(avg * 0.67);
+  const hi = Math.round(avg * 1.33);
+
+  // Filter op tier
+  let nums = Array.from({length: maxN}, (_, i) => i+1);
+  if (tier === 'hot') nums = nums.filter(n => freq[n] > hi);
+  else if (tier === 'avg') nums = nums.filter(n => freq[n] >= lo && freq[n] <= hi);
+  else if (tier === 'cold') nums = nums.filter(n => freq[n] < lo);
+
+  if (sort === 'desc') nums.sort((a,b) => freq[b]-freq[a] || a-b);
+  else if (sort === 'asc') nums.sort((a,b) => freq[a]-freq[b] || a-b);
+
+  const maxCount = nums.length > 0 ? Math.max(...nums.map(n => freq[n])) : 1;
+  const linePos = maxCount > 0 ? (avg/maxCount*100).toFixed(1) : 0;
+
+  const colorMap = { hot: '#378ADD', avg: '#d4a840', cold: '#e05555' };
+  const color = field === 'stars' ? '#e8922a' : (colorMap[tier] || '#378ADD');
+
+  const legend = field === 'stars'
+    ? `<span><span class="freq-dot" style="background:#e8922a;"></span>Lucky Stars (1-12)</span>`
+    : tier === 'hot' ? `<span><span class="freq-dot" style="background:#378ADD;"></span>Hot nummers (&gt;${hi}×)</span>`
+    : tier === 'avg' ? `<span><span class="freq-dot" style="background:#d4a840;"></span>Average nummers (${lo}–${hi}×)</span>`
+    : `<span><span class="freq-dot" style="background:#e05555;"></span>Cold nummers (&lt;${lo}×)</span>`;
+
+  document.getElementById('freqLegend').innerHTML = legend +
+    `<span style="margin-left:12px;color:#bbb;font-size:11px;">${nums.length} nummers · ${total} trekkingen M${currentMachine}/B${currentBal}</span>`;
+
+  if (nums.length === 0) {
+    document.getElementById('freqChart').innerHTML = '<div style="color:#bbb;padding:1rem;font-size:12px;">Geen nummers in deze categorie.</div>';
+    return;
+  }
+
+  document.getElementById('freqChart').innerHTML = nums.map(n => {
+    const c = freq[n];
+    const pct = maxCount > 0 ? (c/maxCount*100).toFixed(1) : 0;
+    return `<div class="bar-row">
+      <div class="bar-num">${n}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${color};"></div>
+        <div class="bar-avg-line" style="left:${linePos}%;"></div>
+      </div>
+      <div class="bar-count">${c}×</div>
+    </div>`;
+  }).join('');
+}
+
+function showTab(t) {
+  ['rand','result','freq','score'].forEach(p => {
+    const pane = document.getElementById('pane-' + p);
+    const tab = document.getElementById('tab-' + p);
+    if (pane) pane.classList.toggle('active', p === t);
+    if (tab) tab.classList.toggle('active', p === t);
+  });
+  if (t === 'freq') showAnalyseTab(currentAnalyseTab);
+  if (t === 'score') renderScoreTable();
 }
 
 
@@ -742,4 +818,6 @@ document.addEventListener('DOMContentLoaded', function() {
   selectTickets(3);
   document.getElementById('nextDraw').textContent = nextDrawDate();
   if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
+  // Init analyse tab
+  showAnalyseTab('hot');
 });
