@@ -25,8 +25,7 @@ function adminToggleLock(){
 }
 
 function showAdminTabs() {
-  // Toon Resultaat tabblad voor admin
-  const tabRes = document.getElementById('tabResultaat');
+  const tabRes = document.getElementById('tab-result');
   if (tabRes) tabRes.style.display = '';
 }
 function closeAdmin(){ document.getElementById('adminOverlay').classList.remove('open'); }
