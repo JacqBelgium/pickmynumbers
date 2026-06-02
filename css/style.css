@@ -190,6 +190,7 @@ tr:last-child td { border-bottom: none; }
 .sball { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
 .sball-hot  { background: #E6F1FB; color: #0C447C; border: 1.5px solid #378ADD; }
 .sball-avg  { background: #fdf8ec; color: #7a5c1e; border: 1px solid #d4a840; }
+.sball-cold { background: #fdf0f0; color: #A32D2D; border: 1.5px solid #e05555; }
 .sball-star { background: #fff4e6; color: #8a4510; border: 1.5px solid #e8922a; }
 .score-bar-wrap { display: flex; align-items: center; gap: 5px; }
 .score-bar { height: 8px; border-radius: 3px; background: #378ADD; }
