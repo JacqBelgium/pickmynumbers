@@ -397,6 +397,40 @@ function updateAll(){
       <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#fff4e6;border:1px solid #e8922a;display:inline-block;"></span>Cold</span>
     </div>`;
   if(document.getElementById('pane-freq').classList.contains('active')) renderFreq();
+  updatePerformanceBadge();
+}
+
+function updatePerformanceBadge() {
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+  const badge = document.getElementById('performanceBadge');
+  if (mbDraws.length < 3) { if (badge) badge.style.display = 'none'; return; }
+
+  const results = mbDraws.map(draw => {
+    const weighted = getWeightedDraws(draw.machine, draw.bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+    const total = weighted.length;
+    const threshLow = Math.round((total*5/50) * 0.67);
+    const pool = [];
+    for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
+    const inPool = draw.nums.filter(n => pool.includes(n));
+    return Math.round((inPool.length / draw.nums.length) * 100);
+  });
+
+  const avgPct = Math.round(results.reduce((a,b) => a+b, 0) / results.length);
+  const good = results.filter(p => p >= 80).length;
+  const perfect = results.filter(p => p === 100).length;
+
+  if (badge) badge.style.display = '';
+  const perfPct = document.getElementById('perfPct');
+  const perfDraws = document.getElementById('perfDraws');
+  const perfMachine = document.getElementById('perfMachine');
+  const perfDetail = document.getElementById('perfDetail');
+  if (perfPct) perfPct.textContent = avgPct + '%';
+  if (perfDraws) perfDraws.textContent = mbDraws.length;
+  if (perfMachine) perfMachine.textContent = `M${currentMachine}/B${currentBal}`;
+  if (perfDetail) perfDetail.textContent = `${good} van ${mbDraws.length} trekkingen ≥80% · ${perfect}× volledig raak`;
 }
 
 function updateSom(){
