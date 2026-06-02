@@ -322,10 +322,10 @@
 </div>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('rand')">Optimizer</button>
-  <button class="tab" onclick="showTab('result')" id="tabResultaat" style="display:none;">Resultaat invoeren</button>
-  <button class="tab" onclick="showTab('freq')">Frequentie</button>
-  <button class="tab" onclick="showTab('score')">Scores</button>
+  <button class="tab active" id="tab-rand" onclick="showTab('rand')">Optimizer</button>
+  <button class="tab" id="tab-result" onclick="showTab('result')" style="display:none;">Resultaat invoeren</button>
+  <button class="tab" id="tab-freq" onclick="showTab('freq')">Analyse</button>
+  <button class="tab" id="tab-score" onclick="showTab('score')">Scores</button>
 </div>
 
 <!-- GENERATOR -->
@@ -705,11 +705,19 @@
 
 <!-- FREQUENTIE -->
 <div id="pane-freq" class="pane">
-  <div class="freq-controls">
-    <label>Toon:</label>
-    <select id="freqField" onchange="renderFreq()"><option value="nums">Hoofdnummers (1–50)</option><option value="stars">Lucky Stars (1–12)</option></select>
-    <label style="margin-left:8px;">Sortering:</label>
-    <select id="freqSort" onchange="renderFreq()"><option value="num">Op nummer</option><option value="desc">Meest getrokken</option><option value="asc">Minst getrokken</option></select>
+  <div class="score-tabs">
+    <button class="stab active" id="atab-hot" onclick="showAnalyseTab('hot')">🔥 Hot</button>
+    <button class="stab" id="atab-avg" onclick="showAnalyseTab('avg')">📊 Average</button>
+    <button class="stab" id="atab-cold" onclick="showAnalyseTab('cold')">❄️ Cold</button>
+    <button class="stab" id="atab-star" onclick="showAnalyseTab('star')">★ Lucky Stars</button>
+  </div>
+  <div class="freq-controls" style="margin-top:10px;">
+    <label>Sortering:</label>
+    <select id="freqSort" onchange="renderFreq()">
+      <option value="num">Op nummer</option>
+      <option value="desc">Meest getrokken</option>
+      <option value="asc">Minst getrokken</option>
+    </select>
   </div>
   <div class="freq-legend" id="freqLegend"></div>
   <div id="freqChart"></div>
@@ -718,11 +726,12 @@
 <!-- SCORES -->
 <div id="pane-score" class="pane">
   <div class="score-tabs">
-    <button class="stab active" onclick="showScoreTab('hot')">Hot</button>
-    <button class="stab" onclick="showScoreTab('avg')">Average</button>
-    <button class="stab" onclick="showScoreTab('star')">Lucky Stars</button>
+    <button class="stab active" onclick="showScoreTab('hot')">🔥 Hot</button>
+    <button class="stab" onclick="showScoreTab('avg')">📊 Average</button>
+    <button class="stab" onclick="showScoreTab('cold')">❄️ Cold</button>
+    <button class="stab" onclick="showScoreTab('star')">★ Lucky Stars</button>
   </div>
-  <div style="font-size:11px;color:#bbb;margin-bottom:1rem;">Score = trekkingen afwezig ÷ verwacht interval.</div>
+  <div style="font-size:11px;color:#bbb;margin-bottom:1rem;">Score = trekkingen afwezig ÷ verwacht interval. Hoe hoger de score hoe langer afwezig.</div>
   <div id="scoreTable"></div>
 </div>
 
