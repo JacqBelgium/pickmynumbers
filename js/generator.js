@@ -724,12 +724,9 @@ function showAnalyseTab(t) {
     const btn = document.getElementById('atab-' + tab);
     if (btn) btn.classList.toggle('active', tab === t);
   });
-  // Map analyse tab naar freq field en filter
   if (t === 'star') {
-    document.getElementById('freqSort').value = 'num';
     renderFreqFiltered('stars', null);
   } else {
-    document.getElementById('freqSort').value = 'num';
     renderFreqFiltered('nums', t);
   }
 }
@@ -746,21 +743,37 @@ function renderFreqFiltered(field, tier) {
   if (tier === 'hot') nums = nums.filter(n => freq[n] > hi);
   else if (tier === 'avg') nums = nums.filter(n => freq[n] >= lo && freq[n] <= hi);
   else if (tier === 'cold') nums = nums.filter(n => freq[n] < lo);
+  // Voor sterren: toon alle 12 maar met hot/avg/cold kleuren
 
+  // Sortering
   if (sort === 'desc') nums.sort((a,b) => freq[b]-freq[a] || a-b);
   else if (sort === 'asc') nums.sort((a,b) => freq[a]-freq[b] || a-b);
+  // 'num' = op nummer, standaard volgorde
 
   const maxCount = nums.length > 0 ? Math.max(...nums.map(n => freq[n])) : 1;
   const linePos = maxCount > 0 ? (avg/maxCount*100).toFixed(1) : 0;
 
-  const colorMap = { hot: '#378ADD', avg: '#d4a840', cold: '#e05555' };
-  const color = field === 'stars' ? '#e8922a' : (colorMap[tier] || '#378ADD');
+  // Kleur per nummer
+  function getColor(n) {
+    if (field === 'stars') {
+      return freq[n] > hi ? '#C0392B' : freq[n] >= lo ? '#E67E22' : '#bbb';
+    }
+    return freq[n] > hi ? '#378ADD' : freq[n] >= lo ? '#d4a840' : '#e05555';
+  }
 
-  const legend = field === 'stars'
-    ? `<span><span class="freq-dot" style="background:#e8922a;"></span>Lucky Stars (1-12)</span>`
-    : tier === 'hot' ? `<span><span class="freq-dot" style="background:#378ADD;"></span>Hot nummers (&gt;${hi}×)</span>`
-    : tier === 'avg' ? `<span><span class="freq-dot" style="background:#d4a840;"></span>Average nummers (${lo}–${hi}×)</span>`
-    : `<span><span class="freq-dot" style="background:#e05555;"></span>Cold nummers (&lt;${lo}×)</span>`;
+  // Legenda
+  let legend = '';
+  if (field === 'stars') {
+    legend = `<span><span class="freq-dot" style="background:#C0392B;"></span>🔥 Hot (&gt;${hi}×)</span>
+      <span><span class="freq-dot" style="background:#E67E22;"></span>📊 Avg (${lo}–${hi}×)</span>
+      <span><span class="freq-dot" style="background:#bbb;"></span>❄️ Cold (&lt;${lo}×)</span>`;
+  } else if (tier === 'hot') {
+    legend = `<span><span class="freq-dot" style="background:#378ADD;"></span>🔥 Hot nummers (&gt;${hi}×)</span>`;
+  } else if (tier === 'avg') {
+    legend = `<span><span class="freq-dot" style="background:#d4a840;"></span>📊 Average nummers (${lo}–${hi}×)</span>`;
+  } else {
+    legend = `<span><span class="freq-dot" style="background:#e05555;"></span>❄️ Cold nummers (&lt;${lo}×)</span>`;
+  }
 
   document.getElementById('freqLegend').innerHTML = legend +
     `<span style="margin-left:12px;color:#bbb;font-size:11px;">${nums.length} nummers · ${total} trekkingen M${currentMachine}/B${currentBal}</span>`;
@@ -773,6 +786,7 @@ function renderFreqFiltered(field, tier) {
   document.getElementById('freqChart').innerHTML = nums.map(n => {
     const c = freq[n];
     const pct = maxCount > 0 ? (c/maxCount*100).toFixed(1) : 0;
+    const color = getColor(n);
     return `<div class="bar-row">
       <div class="bar-num">${n}</div>
       <div class="bar-track">
