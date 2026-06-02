@@ -236,6 +236,7 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
     }
 
     if(check2D(nums.slice(0,5))&&checkSom(nums.slice(0,5))&&checkConsec(nums.slice(0,5))&&checkOverlap(nums,prevTickets)){
+      nums.sort((a,b)=>a-b);
       const odd=nums.filter(n=>n%2!==0).length,laag=nums.filter(n=>n<=25).length;
       return{h,a:av,nums,odd,even:nums.length-odd,laag,hoog:nums.length-laag,som:nums.reduce((a,b)=>a+b,0),ok:true};
     }
@@ -249,6 +250,7 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
       nums.push(allPool.splice(idx,1)[0]);
     }
   }
+  nums.sort((a,b)=>a-b);
   const odd=nums.filter(n=>n%2!==0).length,laag=nums.filter(n=>n<=25).length;
   return{h,a:av,nums,odd,even:nums.length-odd,laag,hoog:nums.length-laag,som:nums.reduce((a,b)=>a+b,0),ok:false,fallback:true};
 }
