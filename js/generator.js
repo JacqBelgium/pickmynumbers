@@ -89,7 +89,6 @@ function getPickDist(){
 }
 
 function getStarStrategy(){
-  // Bereken sterren frequentie op gewogen dataset (M/B trekkingen wegen zwaarder)
   const weighted = getWeightedDraws(currentMachine, currentBal);
   const starFreq = {};
   const starLastSeen = {};
@@ -103,55 +102,58 @@ function getStarStrategy(){
   });
 
   const total = weighted.length;
-  const avgFreq = (total * 2) / 12; // verwachte frequentie per ster
+  const avgFreq = (total * 2) / 12;
 
-  // Bereken score per ster: combinatie van frequentie en recentheid
+  // Strengere hot drempel: 1.5× ipv 1.3× — alleen echt frequente sterren
+  const hotThresh = avgFreq * 1.5;
+  const coldThresh = avgFreq * 0.7;
+
   const starData = [];
   for(let n=1;n<=12;n++){
     const f = starFreq[n] || 0;
     const lastSeen = starLastSeen[n] !== undefined ? starLastSeen[n] : total;
-    // Score = frequentie gewogen + overdue bonus
-    const freqScore = f / avgFreq; // >1 = hot, <1 = cold
+    const freqScore = f / avgFreq;
     const overdueScore = lastSeen / (total / Math.max(f,1));
     const combinedScore = (freqScore * 0.6) + (overdueScore * 0.4);
-
-    // Tier bepalen
-    const hotThresh = avgFreq * 1.3;
-    const coldThresh = avgFreq * 0.7;
     const tier = f >= hotThresh ? 'hot' : f <= coldThresh ? 'cold' : 'avg';
-
     starData.push({n, f, freqScore, overdueScore, combinedScore, tier, lastSeen});
   }
 
-  // Sorteer op combined score (hoogste = meest aanbevolen)
   starData.sort((a,b) => b.combinedScore - a.combinedScore);
 
-  // Hot sterren (>1.3× gemiddeld)
   const hotStars = starData.filter(s => s.tier === 'hot').map(s => s.n);
-  // Avg sterren
   const avgStars = starData.filter(s => s.tier === 'avg').map(s => s.n);
-  // Cold sterren (vermijden)
   const coldStars = starData.filter(s => s.tier === 'cold').map(s => s.n);
 
-  // Top 5 voor combinaties (hot eerst, dan avg) — GEEN cold sterren
+  // Top 5 voor combinaties — hot eerst, dan avg, nooit cold
   const top5 = [...hotStars, ...avgStars].slice(0, 5);
   const top3 = top5.slice(0, 3);
 
-  // 2-ster combinaties — altijd minstens 1 hot ster erin
+  // 2-ster combinaties: altijd 1 hot + 1 avg (of beste beschikbare)
   const combis2 = [];
-  const allCandidates = [...hotStars, ...avgStars];
-  for(let i=0; i<allCandidates.length && combis2.length<6; i++){
-    for(let j=i+1; j<allCandidates.length && combis2.length<6; j++){
-      if(hotStars.includes(allCandidates[i]) || hotStars.includes(allCandidates[j])){
-        combis2.push([allCandidates[i], allCandidates[j]].sort((a,b)=>a-b));
+  const bestAvg = avgStars.slice(0, 4); // top 4 avg sterren
+
+  if (hotStars.length >= 1) {
+    // Primaire strategie: 1 hot + 1 avg (roterend)
+    for(let h=0; h<hotStars.length && combis2.length<6; h++){
+      for(let a=0; a<bestAvg.length && combis2.length<6; a++){
+        combis2.push([hotStars[h], bestAvg[a]].sort((a,b)=>a-b));
       }
     }
   }
+
+  // Fallback als niet genoeg hot sterren
   if(combis2.length < 3) {
-    combis2.push(...[[top3[0],top3[1]],[top3[0],top3[2]],[top3[1],top3[2]]]);
+    const allCandidates = [...hotStars, ...avgStars];
+    for(let i=0; i<allCandidates.length && combis2.length<3; i++){
+      for(let j=i+1; j<allCandidates.length && combis2.length<3; j++){
+        const c = [allCandidates[i], allCandidates[j]].sort((a,b)=>a-b);
+        if(!combis2.some(x => x[0]===c[0] && x[1]===c[1])) combis2.push(c);
+      }
+    }
   }
 
-  // 3-ster combinaties — uit top5 (hot+avg), altijd minstens 1 hot
+  // 3-ster combinaties — altijd minstens 1 hot
   const combis3 = [];
   for(let i=0;i<top5.length;i++)
     for(let j=i+1;j<top5.length;j++)
@@ -161,7 +163,7 @@ function getStarStrategy(){
           combis3.push(combo.sort((a,b)=>a-b));
       }
 
-  // 4-ster combinaties — uit top6 (hot+avg), altijd minstens 1 hot
+  // 4-ster combinaties — altijd minstens 1 hot
   const top6 = [...hotStars, ...avgStars].slice(0, 6);
   const combis4 = [];
   for(let i=0;i<top6.length;i++)
@@ -173,7 +175,7 @@ function getStarStrategy(){
             combis4.push(combo.sort((a,b)=>a-b));
         }
 
-  return {top3, top5, top6, hotStars, avgStars, coldStars, starData, combis:combis2, combis3, combis4, avgFreq};
+  return {top3, top5, top6, hotStars, avgStars, coldStars, starData, combis:combis2, combis3, combis4, avgFreq, hotThresh, coldThresh};
 }
 
 function weightedPick(pool,count){
