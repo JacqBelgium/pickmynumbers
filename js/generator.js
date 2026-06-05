@@ -89,7 +89,11 @@ function getPickDist(){
 }
 
 function getStarStrategy(){
-  const weighted = getWeightedDraws(currentMachine, currentBal);
+  // Gebruik alleen echte M/B trekkingen voor sterren — niet gewogen
+  // (gewogen dataset is te groot en verhoogt de hot drempel kunstmatig)
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+  const weighted = mbDraws.length >= 10 ? mbDraws : getWeightedDraws(currentMachine, currentBal);
+
   const starFreq = {};
   const starLastSeen = {};
   for(let n=1;n<=12;n++) starFreq[n]=0;
@@ -104,7 +108,7 @@ function getStarStrategy(){
   const total = weighted.length;
   const avgFreq = (total * 2) / 12;
 
-  // Strengere hot drempel: 1.5× ipv 1.3× — alleen echt frequente sterren
+  // Hot drempel: 1.5× voor sterren
   const hotThresh = avgFreq * 1.5;
   const coldThresh = avgFreq * 0.7;
 
