@@ -773,8 +773,11 @@ function renderFreqFiltered(field, tier) {
   const sort = document.getElementById('freqSort').value;
   const {freq, maxN, total} = getFreqData(field);
   const avg = field === 'stars' ? (total*2)/12 : (total*5)/50;
-  const lo = Math.round(avg * 0.67);
-  const hi = Math.round(avg * 1.33);
+  // Sterren gebruiken strengere 1.5× drempel (consistent met sterren strategie)
+  const hotMult = field === 'stars' ? 1.5 : 1.33;
+  const coldMult = field === 'stars' ? 0.7 : 0.67;
+  const lo = Math.round(avg * coldMult);
+  const hi = Math.round(avg * hotMult);
 
   // Filter op tier
   let nums = Array.from({length: maxN}, (_, i) => i+1);
