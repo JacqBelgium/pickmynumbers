@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beta Test — PickMyNumbers.eu</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --black: #0f0f0d;
+    --white: #f8f8f6;
+    --gold: #c8a84b;
+    --gold-light: #e8d08a;
+    --green: #2E7D32;
+    --green-light: #f0f8ec;
+    --border: #e0e0da;
+    --text: #1a1a18;
+    --muted: #888;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--black);
+    color: var(--white);
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(200,168,75,0.15) 0%, transparent 70%);
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(200,168,75,0.15);
+    border: 1px solid rgba(200,168,75,0.4);
+    color: var(--gold-light);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .hero h1 span {
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: rgba(248,248,246,0.7);
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+    font-weight: 300;
+  }
+
+  .hero-cta {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 14px 32px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .hero-cta:hover { background: var(--gold-light); }
+
+  .hero-stat {
+    margin-top: 3rem;
+    display: inline-flex;
+    gap: 3rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding-top: 2rem;
+  }
+
+  .hero-stat-item { text-align: center; }
+  .hero-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+    display: block;
+  }
+  .hero-stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* CONTAINER */
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* SECTIONS */
+  .section {
+    padding: 4rem 2rem;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.25;
+  }
+
+  .section p {
+    color: #444;
+    margin-bottom: 1.2rem;
+    font-size: 15px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* INLEIDING */
+  .intro-block {
+    background: var(--black);
+    color: var(--white);
+    padding: 3.5rem 2rem;
+  }
+
+  .intro-block .container p {
+    color: rgba(248,248,246,0.8);
+    font-size: 16px;
+    line-height: 1.8;
+    max-width: 620px;
+  }
+
+  .intro-block .highlight {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  /* WHAT IS */
+  .feature-list {
+    list-style: none;
+    margin-top: 1.5rem;
+  }
+
+  .feature-list li {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+    color: #444;
+  }
+
+  .feature-list li:last-child { border-bottom: none; }
+
+  .feature-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  /* WHAT YOU GET */
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 1.5rem;
+  }
+
+  .benefit-card {
+    background: var(--green-light);
+    border: 1px solid #c8e0b8;
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .benefit-icon { font-size: 22px; margin-bottom: 8px; }
+  .benefit-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .benefit-text { font-size: 12px; color: #666; line-height: 1.5; }
+
+  /* HOW IT WORKS */
+  .steps {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step:last-child { border-bottom: none; }
+
+  .step-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .step-content h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .step-content p { font-size: 13px; color: #666; margin: 0; line-height: 1.5; }
+
+  /* WHAT WE ASK */
+  .ask-list {
+    list-style: none;
+    margin-top: 1.5rem;
+  }
+
+  .ask-list li {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 15px;
+    color: #444;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ask-list li:last-child { border-bottom: none; }
+  .ask-check { color: var(--green); font-size: 16px; flex-shrink: 0; }
+
+  /* REWARD */
+  .reward-box {
+    background: var(--black);
+    color: var(--white);
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 1.5rem;
+    border: 1px solid rgba(200,168,75,0.3);
+  }
+
+  .reward-box p {
+    color: rgba(248,248,246,0.8);
+    font-size: 14px;
+    margin: 0;
+  }
+
+  .reward-box strong { color: var(--gold); }
+
+  /* CTA SECTION */
+  .cta-section {
+    background: var(--black);
+    color: var(--white);
+    padding: 5rem 2rem;
+    text-align: center;
+  }
+
+  .cta-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  .cta-section p {
+    color: rgba(248,248,246,0.6);
+    font-size: 15px;
+    margin-bottom: 2rem;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--black);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 16px 40px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .cta-btn:hover { background: var(--gold-light); }
+
+  .cta-note {
+    margin-top: 1rem;
+    font-size: 12px;
+    color: rgba(248,248,246,0.4);
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  footer a { color: var(--muted); }
+
+  /* RESPONSIVE */
+  @media (max-width: 480px) {
+    .benefits-grid { grid-template-columns: 1fr; }
+    .hero-stat { gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🎰 Beta Test — Beperkt beschikbaar</div>
+  <h1>Speel EuroMillions<br><span>slimmer</span></h1>
+  <p class="hero-sub">De enige tool die optimaliseert op basis van de daadwerkelijk gebruikte trekkmachine en balset.</p>
+  <a href="https://pickmynumbers.eu" class="hero-cta">Registreer als beta tester →</a>
+  <div class="hero-stat">
+    <div class="hero-stat-item">
+      <span class="hero-stat-num">12×</span>
+      <span class="hero-stat-label">Meer kans</span>
+    </div>
+    <div class="hero-stat-item">
+      <span class="hero-stat-num">10</span>
+      <span class="hero-stat-label">Beta plekken</span>
+    </div>
+    <div class="hero-stat-item">
+      <span class="hero-stat-num">€0</span>
+      <span class="hero-stat-label">Kosten</span>
+    </div>
+  </div>
+</div>
+
+<!-- INLEIDING -->
+<div class="intro-block">
+  <div class="container">
+    <p>
+      Door mijn deelname aan onze EuroMillions groep ben ik geïnspireerd geraakt om te onderzoeken hoe je slimmer kunt spelen — met als doel de winstkansen per inzet te vergroten.
+    </p>
+    <br>
+    <p>
+      Het is en blijft een kans- en gokspel. Ook na optimalisatie is en blijft verliezen mogelijk. Maar met de ontwikkelde methodiek vergroot je de statistische kans op een prijs tot <span class="highlight">12× ten opzichte van willekeurig spelen</span>.
+    </p>
+    <br>
+    <p>
+      Dit is gebaseerd op één simpel maar uniek principe: elke EuroMillions trekking gebruikt een specifieke machine en balset. Door alleen te analyseren wat die specifieke combinatie historisch heeft getrokken, spelen we met betere statistieken dan iedereen die gewoon willekeurig kiest.
+    </p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- WAT IS PICKMYNUMBERS -->
+<div class="section">
+  <div class="section-label">Over de tool</div>
+  <h2>Wat is PickMyNumbers.eu?</h2>
+  <p>PickMyNumbers.eu is een online tool die speciaal ontwikkeld is voor bestaande EuroMillions spelers. De tool genereert statistisch onderbouwde tickets op basis van de trekkmachine en balset die op dat moment in gebruik is.</p>
+  <p>Andere tools analyseren 20 jaar algemene trekking data. PickMyNumbers.eu filtert uitsluitend op de specifieke machine en balset van vanavond — want die combinatie heeft zijn eigen statistisch patroon.</p>
+
+  <ul class="feature-list">
+    <li><span class="feature-dot"></span><span>De optimizer berekent welke nummers "hot", "average" of "cold" zijn voor de actieve machine/balset combinatie</span></li>
+    <li><span class="feature-dot"></span><span>Filters zorgen voor statistisch verantwoorde spreiding (odd/even, laag/hoog, som)</span></li>
+    <li><span class="feature-dot"></span><span>Anti-overlap zorgt dat meerdere tickets elkaar zo min mogelijk overlappen</span></li>
+    <li><span class="feature-dot"></span><span>Lucky Stars worden apart geanalyseerd — ook op machine/balset basis</span></li>
+  </ul>
+</div>
+
+<div class="divider"></div>
+
+<!-- UITNODIGING -->
+<div class="section">
+  <div class="section-label">Uitnodiging</div>
+  <h2>Word beta tester</h2>
+  <p>Het bouwen van een programma brengt logische en onlogische oplossingen met zich mee. En om te ontdekken wat er beter kan en waar fouten zitten die opgelost moeten worden, nodig ik je uit om eenmalig een paar minuten van je tijd te besteden aan PickMyNumbers.eu.</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- WAT KRIJG JE -->
+<div class="section">
+  <div class="section-label">Beta voordelen</div>
+  <h2>Wat krijg je als beta tester?</h2>
+
+  <div class="benefits-grid">
+    <div class="benefit-card">
+      <div class="benefit-icon">🎰</div>
+      <div class="benefit-title">1 gratis ticket</div>
+      <div class="benefit-text">Eenmalig 1 geoptimaliseerd ticket — volledig voor mijn rekening. Ik registreer dit in mijn privé EuroMillions account en betaal €2,50.</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📊</div>
+      <div class="benefit-title">Volledige transparantie</div>
+      <div class="benefit-text">De uitslag is voor iedereen zichtbaar. Een eventuele winst wordt gestort in de gezamenlijke WhatsApp groepspot.</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">📧</div>
+      <div class="benefit-title">Persoonlijke analyse</div>
+      <div class="benefit-text">Na elke trekking ontvang je automatisch een email met jouw nummers vs de uitslag en een statistische analyse.</div>
+    </div>
+    <div class="benefit-card">
+      <div class="benefit-icon">⭐</div>
+      <div class="benefit-title">1 jaar Premium(+)</div>
+      <div class="benefit-text">Na de beta periode ontvang je 1 jaar gratis toegang tot Premium+ voor groepsspel of Premium voor individueel spelen.</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOE WERKT HET -->
+<div class="section">
+  <div class="section-label">Stappenplan</div>
+  <h2>Hoe werkt het?</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Registreer je op pickmynumbers.eu</h4>
+        <p>Maak een account aan met je naam en emailadres. Dit duurt minder dan 2 minuten. Je ontvangt een magic link per email — geen wachtwoord nodig.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Kies het Freemium profiel</h4>
+        <p>1 ticket met 5 nummers en 2 Lucky Stars. De optimizer genereert automatisch de statistisch beste nummers op basis van de actieve trekkmachine en balset.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Sla je ticket op</h4>
+        <p>Klik op "Sla ticket op & ontvang analyse". Je ontvangt een bevestigingsmail met jouw nummers.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Ik doe de rest</h4>
+        <p>Ik ontvang jouw nummers en voer die in via mijn privé EuroMillions account. Jij hoeft zelf niets te doen.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <h4>Ontvang je persoonlijke analyse</h4>
+        <p>Na de trekking ontvang je automatisch een email met de uitslag, jouw resultaat en een statistische analyse.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- WAT VRAGEN WE -->
+<div class="section">
+  <div class="section-label">In ruil</div>
+  <h2>Wat vragen we in ruil?</h2>
+  <p>We vragen slechts één ding: jouw eerlijke feedback.</p>
+
+  <ul class="ask-list">
+    <li><span class="ask-check">✓</span><span>Probeer de tool minstens één keer uit — registreer je en genereer een ticket</span></li>
+    <li><span class="ask-check">✓</span><span>Laat ons weten wat goed werkt en wat beter kan</span></li>
+    <li><span class="ask-check">✓</span><span>Meld technische problemen als je die tegenkomt</span></li>
+    <li><span class="ask-check">✓</span><span>Vertel het door aan andere EuroMillions spelers als je enthousiast bent</span></li>
+  </ul>
+
+  <div class="reward-box">
+    <p>Als dank ontvang je 1 jaar gratis toegang tot <strong>Premium+</strong> voor groepsspel — of als je ook onafhankelijk van de groep wilt spelen, 1 jaar gratis toegang tot <strong>Premium</strong>.</p>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Klaar om slimmer<br>te spelen?</h2>
+  <p>Registreer je gratis op pickmynumbers.eu en word één van de 10 beta testers.</p>
+  <a href="https://pickmynumbers.eu" class="cta-btn">Registreer als beta tester →</a>
+  <p class="cta-note">Geen betaling · Geen verplichtingen · Minder dan 2 minuten</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 PickMyNumbers.eu · <a href="https://pickmynumbers.eu">pickmynumbers.eu</a> · 18+ · Speel verantwoord</p>
+</footer>
+
+</body>
+</html>
