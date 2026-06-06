@@ -33,11 +33,14 @@ function fetchUrl(url) {
 function parse(html) {
   const nums = [];
   const stars = [];
-  
+
+  // Nummers
   for (const m of html.matchAll(/class="[^"]*ball[^"]*">(\d+)</gi)) {
     const n = parseInt(m[1]);
     if (n >= 1 && n <= 50 && !nums.includes(n) && nums.length < 5) nums.push(n);
   }
+
+  // Sterren - meerdere patronen
   for (const m of html.matchAll(/class="[^"]*lucky[^"]*">(\d+)</gi)) {
     const s = parseInt(m[1]);
     if (s >= 1 && s <= 12 && !stars.includes(s) && stars.length < 2) stars.push(s);
@@ -49,26 +52,59 @@ function parse(html) {
     }
   }
 
-  const machineM = html.match(/[Mm]achine[:\s#]*(\d+)/);
-  const balM = html.match(/[Bb]all?\s*[Ss]et[:\s]*(\d+)/i);
-  const drawM = html.match(/[Dd]raw[:\s#]*([0-9,]+)/);
+  // Machine - meerdere patronen
+  const machinePatterns = [
+    /Ball Machine[:\s<>\w\/]*?(\d+)/i,
+    /Machine[:\s<>\w\/]*?(\d+)/i,
+    /"machine"[:\s]*(\d+)/i,
+    /machine.*?(\d{1,2})\b/i,
+  ];
+  let machine = 0;
+  for (const p of machinePatterns) {
+    const m = html.match(p);
+    if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 20) {
+      machine = parseInt(m[1]);
+      break;
+    }
+  }
+
+  // Balset - meerdere patronen
+  const balPatterns = [
+    /Ball Set[:\s<>\w\/]*?(\d+)/i,
+    /Set[:\s<>\w\/]*?(\d+)/i,
+    /"ballSet"[:\s]*(\d+)/i,
+    /ball.?set.*?(\d{1,2})\b/i,
+  ];
+  let bal = 0;
+  for (const p of balPatterns) {
+    const m = html.match(p);
+    if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 30) {
+      bal = parseInt(m[1]);
+      break;
+    }
+  }
+
+  // Draw number
+  const drawM = html.match(/Draw Number[:\s<>\w\/]*?([0-9,]+)/i) ||
+                html.match(/"drawNumber"[:\s]*([0-9]+)/i);
+  const drawNum = drawM ? parseInt(drawM[1].replace(',','')) : 0;
 
   return {
     nums: nums.sort((a,b) => a-b),
     stars: stars.sort((a,b) => a-b),
-    machine: machineM ? parseInt(machineM[1]) : 0,
-    bal: balM ? parseInt(balM[1]) : 0,
-    drawNum: drawM ? parseInt(drawM[1].replace(',','')) : 0
+    machine,
+    bal,
+    drawNum
   };
 }
 
 try {
   const url = `https://www.euro-millions.com/results/${dateStr}`;
   console.log(`URL: ${url}`);
-  
+
   const r = await fetchUrl(url);
   console.log(`Status: ${r.status}`);
-  
+
   if (r.status !== 200) {
     console.log('Pagina niet beschikbaar');
     process.exit(0);
@@ -82,8 +118,13 @@ try {
     process.exit(0);
   }
 
+  // Waarschuwing als machine/bal niet gevonden
+  if (d.machine === 0 || d.bal === 0) {
+    console.log('⚠ Machine/bal niet gevonden — handmatig aanpassen nodig!');
+  }
+
   let dataJs = fs.readFileSync('js/data.js', 'utf8');
-  
+
   if (dataJs.includes(`'${nlDate}'`)) {
     console.log(`${nlDate} al aanwezig`);
     process.exit(0);
@@ -92,7 +133,7 @@ try {
   const entry = `  { date:'${nlDate}', draw:${d.drawNum}, nums:[${d.nums}], stars:[${d.stars}], machine:${d.machine}, bal:${d.bal} },`;
   dataJs = dataJs.replace('let ALL_DRAWS = [', `let ALL_DRAWS = [\n${entry}`);
   fs.writeFileSync('js/data.js', dataJs);
-  
+
   const info = JSON.stringify({
     date: nlDate,
     isoDate: `${year}-${month}-${day}`,
@@ -103,7 +144,7 @@ try {
   });
   fs.writeFileSync('/tmp/draw_info.json', info);
   fs.writeFileSync('/tmp/new_draw.txt', 'true');
-  
+
   console.log(`✓ Toegevoegd: ${nlDate} — ${d.nums.join('-')} + ★${d.stars.join('-')} M${d.machine}/B${d.bal}`);
 
 } catch(e) {
