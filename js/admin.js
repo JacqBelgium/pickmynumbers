@@ -76,6 +76,9 @@ function adminRefreshPanel(){
   document.getElementById('ss-total').textContent=ALL_DRAWS.length;
   document.getElementById('ss-machine').textContent=mbCount;
   document.getElementById('ss-storage').textContent=raw?kb:'—';
+  // Update machine label dynamisch
+  const ssLabel = document.getElementById('ss-machine-label');
+  if (ssLabel) ssLabel.textContent = `M${currentMachine}/B${currentBal}`;
   const today=new Date().toISOString().split('T')[0];
   document.getElementById('manDate').value=today;
   document.getElementById('fetchDate').value=today;
