@@ -1,975 +1,651 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PickMyNumbers — EuroMillions Number Optimizer</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
+  :root {
+    --ink:    #0f0f0d;
+    --paper:  #f8f8f6;
+    --gold:   #c8a84b;
+    --gold2:  #e8d08a;
+    --dim:    #888;
+    --border: #e0e0da;
+    --green:  #2E7D32;
+  }
 
-<link rel="stylesheet" href="css/style.css">
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--ink);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-icon { font-size: 22px; }
+  .logo-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .beta-badge {
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.8);
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+
+  .btn-gold {
+    background: var(--gold);
+    border: none;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-gold:hover { background: var(--gold2); }
+
+  .user-bar {
+    display: none;
+    background: rgba(255,255,255,0.08);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    align-items: center;
+    gap: 10px;
+  }
+  .user-bar.visible { display: flex; }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .hero {
+    background: var(--ink);
+    color: #fff;
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(200,168,75,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 4.5vw, 2.4rem);
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+  }
+  .tagline em { font-style: italic; color: var(--gold); }
+
+  .sub {
+    font-size: clamp(12px, 2.5vw, 14px);
+    color: var(--gold2);
+    max-width: 520px;
+    margin: 0 auto 0.35rem;
+    font-weight: 300;
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+  }
+  .sub2 {
+    font-size: clamp(11px, 2vw, 12px);
+    color: rgba(232,208,138,0.85);
+    max-width: 500px;
+    margin: 0 auto;
+    font-weight: 300;
+    font-style: italic;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card-wrap {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1.5rem 3rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--ink);
+    color: #fff;
+    padding: 0.9rem 1.5rem;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-body { padding: 1.5rem; }
+
+  .controls { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .ctrl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .ctrl-label { font-size: 13px; font-weight: 500; color: var(--ink); min-width: 90px; }
+  .ctrl-label span { display: block; font-size: 11px; color: var(--dim); font-weight: 400; margin-top: 1px; }
+
+  .stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .stepper button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 20px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.1s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .stepper button:hover:not(:disabled) { background: #ebebeb; }
+  .stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .stepper-val {
+    min-width: 44px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    background: #fff;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    padding: 0 4px;
+    height: 38px;
+    line-height: 38px;
+  }
+
+  .cost-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--dim);
+    margin-top: 0.5rem;
+  }
+  .cost-val { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+  .btn-generate {
+    width: 100%;
+    padding: 14px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+    margin-top: 0.75rem;
+  }
+  .btn-generate:hover { background: #2a2a26; }
+
+  .login-prompt {
+    display: none;
+    background: #fff8e6;
+    border: 1px solid #fde8a0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    text-align: center;
+    font-size: 13px;
+    color: #7a5c1e;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+  .login-prompt a { color: var(--ink); font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+  .tickets-out { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 10px; }
+
+  .ticket {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: var(--paper);
+  }
+  .ticket-hdr {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .balls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+  .ball {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .ball-hot  { background: #E6F1FB; color: #0C447C; border: 1.5px solid #378ADD; }
+  .ball-avg  { background: #fdf8ec; color: #7a5c1e; border: 1px solid #d4a840; }
+  .ball-star { background: #fff4e6; color: #8a4510; border: 1.5px solid #e8922a; }
+  .ball-empty { background: #f0f0ec; color: #bbb; border: 1px solid #e0e0da; }
+  .sep { color: var(--border); font-size: 18px; padding: 0 2px; }
+
+  .ticket-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .ttag { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #f0efea; color: #888; }
+  .ttag-g { background: #f0f8ec; color: #3B6D11; }
+  .ttag-b { background: #e8f0fb; color: #0C447C; }
+  .ttag-o { background: #fff4e6; color: #8a4510; }
+  .ttag-p { background: #f5f0fb; color: #5B1FAD; }
+  .ttag-w { background: #fff8e6; color: #7a5c1e; }
+
+  .save-bar {
+    display: none;
+    border-top: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    background: var(--paper);
+  }
+  .btn-save {
+    width: 100%;
+    padding: 12px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s;
+  }
+  .btn-save:hover { background: #256227; }
+  .save-note { font-size: 11px; color: var(--dim); text-align: center; margin-top: 6px; }
+
+  .optimizer-link {
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 12px;
+    color: var(--dim);
+    border-top: 1px solid var(--border);
+    background: #fff;
+  }
+  .optimizer-link a { color: var(--ink); font-weight: 500; text-decoration: underline; }
+
+  footer {
+    background: var(--ink);
+    color: rgba(255,255,255,0.75);
+    text-align: center;
+    padding: 1.5rem 2rem;
+    font-size: 11px;
+    line-height: 1.8;
+  }
+  footer a { color: #fff; text-decoration: none; font-weight: 600; }
+  footer a:hover { color: rgba(255,255,255,0.8); }
+
+  @media (max-width: 480px) {
+    header { padding: 0.75rem 1rem; }
+    .hero { padding: 2.5rem 1rem 2rem; }
+    .card-wrap { padding: 1.25rem 1rem 2rem; }
+    .card-body { padding: 1.25rem; }
+    .ball { width: 30px; height: 30px; font-size: 11px; }
+    .stepper button { width: 34px; height: 34px; font-size: 18px; }
+    .stepper-val { height: 34px; line-height: 34px; min-width: 38px; }
+  }
+</style>
 </head>
 <body>
 
-<!-- ===================== LOGIN MODAL ===================== -->
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-modal">
-    <div class="login-header">
-      <div class="login-header-icon">🎰</div>
-      <div class="login-header-title">PickMyNumbers</div>
-      <div class="login-header-sub" id="loginHeaderSub">Gratis account aanmaken</div>
+<header>
+  <a class="logo" href="#">
+    <span class="logo-icon">🎰</span>
+    <span class="logo-name">PickMyNumbers<span class="beta-badge">BETA</span></span>
+  </a>
+  <div class="header-actions">
+    <div class="user-bar" id="userBar">
+      <span id="userBarName">—</span>
+      <button class="btn-logout" onclick="doLogout()">Sign out</button>
     </div>
-    <div class="login-body">
-
-      <!-- STAP 1A: REGISTRATIE (eerste bezoek) -->
-      <div class="login-step active" id="loginStepSignup">
-        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Maak een gratis account aan om tickets op te slaan en na elke trekking een <strong>persoonlijke analyse</strong> per email te ontvangen.
-        </div>
-
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">JOUW NAAM</span>
-          <input type="text" class="login-input" id="loginName" placeholder="Bijv. Jacq">
-        </div>
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="login-input" id="loginEmail" placeholder="jouw@email.com">
-        </div>
-
-        <!-- PROFIEL KEUZE -->
-        <div class="admin-input-group" style="margin-bottom:8px;">
-          <span class="admin-input-label">SPEEL PROFIEL</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-          <label class="profile-card active" id="lpc-standard" onclick="selectLoginProfile('standard')">
-            <div class="profile-card-check" id="lpck-standard">✓</div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Standaard <span class="profile-card-badge">Aanbevolen</span></div>
-              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-system" onclick="selectLoginProfile('system')">
-            <div class="profile-card-check" id="lpck-system"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Systeem</div>
-              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-extended" onclick="selectLoginProfile('extended')">
-            <div class="profile-card-check" id="lpck-extended"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Uitgebreid</div>
-              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-custom" onclick="selectLoginProfile('custom')">
-            <div class="profile-card-check" id="lpck-custom"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Eigen keuze</div>
-              <div class="profile-card-sub">Stel zelf in</div>
-            </div>
-          </label>
-        </div>
-
-        <!-- EIGEN KEUZE -->
-        <div id="loginCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:12px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <div class="admin-input-group">
-              <span class="admin-input-label">TICKETS</span>
-              <input type="number" class="admin-input" id="loginCustomTickets" value="3" min="1" max="10">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">NUMMERS</span>
-              <input type="number" class="admin-input" id="loginCustomNums" value="5" min="5" max="8">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">STERREN</span>
-              <input type="number" class="admin-input" id="loginCustomStars" value="2" min="2" max="3">
-            </div>
-          </div>
-        </div>
-
-        <button class="login-btn" onclick="sendMagicLink('signup')" id="magicLinkBtn">
-          ✉ Maak account aan
-        </button>
-        <div class="login-msg" id="loginMsg"></div>
-        <div class="login-divider">Al een account?</div>
-        <button class="login-btn" onclick="showSignin()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
-          🔑 Inloggen
-        </button>
-        <div class="login-note">
-          Geen wachtwoord nodig — je ontvangt een magic link per email.<br>
-          Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacyverklaring</a>.
-        </div>
-      </div>
-
-      <!-- STAP 1B: INLOGGEN (terugkerende gebruiker) -->
-      <div class="login-step" id="loginStepSignin">
-        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Voer je emailadres in — je ontvangt een <strong>magic link</strong> om direct in te loggen.
-        </div>
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="login-input" id="signinEmail" placeholder="jouw@email.com">
-        </div>
-        <button class="login-btn" onclick="sendMagicLink('signin')" id="signinBtn">
-          ✉ Stuur magic link
-        </button>
-        <div class="login-msg" id="signinMsg"></div>
-        <div class="login-divider">Nog geen account?</div>
-        <button class="login-btn" onclick="showSignup()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
-          ✨ Gratis aanmelden
-        </button>
-      </div>
-
-      <!-- STAP 2: EMAIL VERSTUURD -->
-      <div class="login-step" id="loginStepSent">
-        <div style="text-align:center;padding:1rem 0;">
-          <div style="font-size:40px;margin-bottom:12px;">📬</div>
-          <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check je email!</div>
-          <div style="font-size:13px;color:#555;line-height:1.6;" id="loginSentMsg">
-            We hebben een magic link gestuurd.<br>
-            Klik op de link in de email om direct in te loggen.
-          </div>
-          <div style="font-size:11px;color:#aaa;margin-top:16px;">
-            Geen email? Check je spam map of
-            <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
-          </div>
-        </div>
-      </div>
-
-    </div>
+    <a href="register.html" class="btn-ghost" id="btnRegister">Register</a>
+    <button class="btn-gold" onclick="doLogin()" id="btnLogin">Sign in</button>
   </div>
+</header>
+
+<div class="hero">
+  <h1 class="tagline">The only tool that <em>optimizes</em><br>your EuroMillions numbers.</h1>
+  <p class="sub">Based on actual use of draw machine and ball set.</p>
+  <p class="sub2">While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.</p>
 </div>
 
-<!-- USER BAR (zichtbaar als ingelogd) -->
-<div id="userBar" style="display:none;" class="user-bar">
-  <div>
-    <div class="user-bar-name" id="userBarName">—</div>
-    <div class="user-bar-email" id="userBarEmail">—</div>
-  </div>
-  <button class="user-bar-logout" onclick="logoutUser()">Uitloggen</button>
-</div>
-<div class="disclaimer-overlay" id="discOverlay">
-  <div class="disclaimer-modal">
+<div class="card-wrap">
+  <div class="card">
 
-    <!-- HEADER -->
-    <div class="disc-header">
-      <div class="disc-logo">
-        <div class="disc-logo-icon">🎰</div>
-        <div>
-          <div class="disc-logo-text">EuroMillions Number Optimizer</div>
-          <div class="disc-logo-sub">The only tool that optimizes numbers based on actual use of draw machine and ball set.</div>
-        </div>
-      </div>
-
-      <!-- LANGUAGE TABS -->
-      <div class="disc-lang-tabs">
-        <button class="disc-lang-tab active" onclick="discLang('en')">🇬🇧 EN</button>
-        <button class="disc-lang-tab" onclick="discLang('nl')">🇳🇱 NL</button>
-        <button class="disc-lang-tab" onclick="discLang('fr')">🇫🇷 FR</button>
-        <button class="disc-lang-tab" onclick="discLang('de')">🇩🇪 DE</button>
-        <button class="disc-lang-tab" onclick="discLang('es')">🇪🇸 ES</button>
-        <button class="disc-lang-tab" onclick="discLang('pt')">🇵🇹 PT</button>
-      </div>
-
-      <!-- 18+ BANNER -->
-      <div class="disc-age-banner">
-        <div class="disc-age-badge">18+</div>
-        <div class="disc-age-text">
-          <strong id="disc-age-title">Age Restriction — Adults Only</strong>
-          <span id="disc-age-body">This tool is intended for persons aged 18 or over. If you are under 18, please leave this page immediately.</span>
-        </div>
-      </div>
+    <div class="card-header">
+      <span>🎯</span>
+      <span>Configure your tickets</span>
     </div>
 
-    <!-- BODY -->
-    <div class="disc-body">
+    <div class="card-body">
+      <div class="controls">
 
-      <!-- PARTICIPATING COUNTRIES -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-countries-title">EuroMillions Participating Countries</div>
-        <div class="disc-flags">
-          <span class="disc-flag">🇳🇱 Netherlands</span>
-          <span class="disc-flag">🇧🇪 Belgium</span>
-          <span class="disc-flag">🇫🇷 France</span>
-          <span class="disc-flag">🇩🇪 Germany</span>
-          <span class="disc-flag">🇦🇹 Austria</span>
-          <span class="disc-flag">🇨🇭 Switzerland</span>
-          <span class="disc-flag">🇪🇸 Spain</span>
-          <span class="disc-flag">🇵🇹 Portugal</span>
-          <span class="disc-flag">🇮🇪 Ireland</span>
-          <span class="disc-flag">🇬🇧 United Kingdom</span>
-          <span class="disc-flag">🇱🇺 Luxembourg</span>
-        </div>
-      </div>
-
-      <!-- WHAT THIS IS -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-what-title">What This Tool Is</div>
-        <div class="disc-text" id="disc-what-body">
-          EuroMillions Number Optimizer is a <strong>free statistical analysis and number generation tool</strong>. It uses historical draw data to identify frequency patterns, hot/cold numbers, and statistical distributions. It does <strong>not</strong> sell lottery tickets, accept bets, or handle any monetary transactions. It is an entertainment and informational service only.
-        </div>
-      </div>
-
-      <!-- NO GUARANTEE -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-nog-title">No Guarantee of Winnings</div>
-        <div class="disc-text warn" id="disc-nog-body">
-          <strong>EuroMillions is a game of pure chance.</strong> No statistical method, algorithm, machine learning model, or prediction system can predict or influence lottery outcomes. Past draw patterns do not guarantee future results. Any numbers generated by this tool have <strong>exactly the same probability of winning</strong> as any other combination.
-        </div>
-      </div>
-
-      <!-- NO LIABILITY -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-liab-title">Limitation of Liability</div>
-        <div class="disc-text danger" id="disc-liab-body">
-          The operators of EuroMillions Number Optimizer accept <strong>no responsibility or liability</strong> for any financial loss, damages, or harm arising from the use of this tool or from participation in EuroMillions or any other lottery. Use of this tool is entirely at your own risk. This tool does not constitute financial, legal, or investment advice.
-        </div>
-      </div>
-
-      <!-- RESPONSIBLE GAMBLING -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-resp-title">Responsible Gambling</div>
-        <div class="disc-text warn" id="disc-resp-body">
-          Gambling can be addictive and harmful. <strong>Only spend what you can afford to lose.</strong> If you or someone you know has a gambling problem, seek help immediately:
-          <br><br>
-          🇳🇱 <strong>NL:</strong> <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 0900-2178710<br>
-          🇧🇪 <strong>BE:</strong> <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a><br>
-          🇫🇷 <strong>FR:</strong> <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a> · 09 74 75 13 13<br>
-          🇩🇪 <strong>DE:</strong> <a href="https://www.bzga.de" target="_blank">bzga.de</a> · 0800 137 2700<br>
-          🇪🇸 <strong>ES:</strong> <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a><br>
-          🇵🇹 <strong>PT:</strong> <a href="https://www.sicad.pt" target="_blank">sicad.pt</a><br>
-          🇬🇧 <strong>UK:</strong> <a href="https://www.gamcare.org.uk" target="_blank">gamcare.org.uk</a> · 0808 8020 133<br>
-          🇮🇪 <strong>IE:</strong> <a href="https://www.problemgambling.ie" target="_blank">problemgambling.ie</a><br>
-          🇦🇹 <strong>AT:</strong> <a href="https://www.spielsuchthilfe.at" target="_blank">spielsuchthilfe.at</a><br>
-          🇨🇭 <strong>CH:</strong> <a href="https://www.sos-spielsucht.ch" target="_blank">sos-spielsucht.ch</a>
-        </div>
-      </div>
-
-      <!-- GDPR -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-gdpr-title">Privacy & GDPR</div>
-        <div class="disc-text" id="disc-gdpr-body">
-          This tool stores your settings locally in your browser (localStorage). If you choose to save tickets and receive draw analysis by email, your email address will be stored securely and used solely for that purpose. You may request deletion at any time. We do not sell or share personal data with third parties. This service complies with the EU General Data Protection Regulation (GDPR).
-        </div>
-      </div>
-
-      <!-- PARAMETER CHANGES -->
-      <div class="disc-section">
-        <div class="disc-section-title" id="disc-param-title">Custom Parameters</div>
-        <div class="disc-text" id="disc-param-body">
-          This tool allows you to adjust statistical parameters (hot/cold thresholds, filters, sum ranges). Our default settings are based on historical data analysis. <strong>Any modification is your own choice and responsibility.</strong> Modified parameters may produce results that deviate from our statistical recommendations. We are not liable for outcomes resulting from custom configurations.
-        </div>
-      </div>
-
-      <!-- CHECKBOXES -->
-      <div class="disc-checks">
-        <label class="disc-check" id="check1-el" onclick="toggleCheck('check1')">
-          <div class="disc-checkmark" id="check1-mark">✓</div>
-          <div class="disc-check-text" id="disc-check1">
-            I confirm that I am <strong>18 years of age or older</strong> and legally permitted to participate in lotteries in my country of residence.
+        <div class="ctrl-row">
+          <div class="ctrl-label">Tickets <span>per draw</span></div>
+          <div class="stepper">
+            <button onclick="adj('tickets',-1)" id="btn-tickets-min">−</button>
+            <span class="stepper-val" id="val-tickets">3</span>
+            <button onclick="adj('tickets',1)" id="btn-tickets-plus">+</button>
           </div>
-        </label>
-        <label class="disc-check" id="check2-el" onclick="toggleCheck('check2')">
-          <div class="disc-checkmark" id="check2-mark">✓</div>
-          <div class="disc-check-text" id="disc-check2">
-            I understand that <strong>EuroMillions is a game of chance</strong> and that no tool or system can guarantee or predict winning numbers. I use this tool for entertainment purposes only.
+        </div>
+
+        <div class="ctrl-row">
+          <div class="ctrl-label">Nummers <span>per ticket (5–8)</span></div>
+          <div class="stepper">
+            <button onclick="adj('nums',-1)" id="btn-nums-min">−</button>
+            <span class="stepper-val" id="val-nums">5</span>
+            <button onclick="adj('nums',1)" id="btn-nums-plus">+</button>
           </div>
-        </label>
-        <label class="disc-check" id="check3-el" onclick="toggleCheck('check3')">
-          <div class="disc-checkmark" id="check3-mark">✓</div>
-          <div class="disc-check-text" id="disc-check3">
-            I acknowledge that the operators of this tool accept <strong>no liability</strong> for any financial loss or harm resulting from use of this service, and I accept the full Terms & Disclaimer stated above.
+        </div>
+
+        <div class="ctrl-row">
+          <div class="ctrl-label">Lucky Stars <span>per ticket (2–4)</span></div>
+          <div class="stepper">
+            <button onclick="adj('stars',-1)" id="btn-stars-min">−</button>
+            <span class="stepper-val" id="val-stars">2</span>
+            <button onclick="adj('stars',1)" id="btn-stars-plus">+</button>
           </div>
-        </label>
+        </div>
+
       </div>
 
-    </div>
+      
+        <div class="ctrl-row">
+          <div class="ctrl-label">Draw date <span>next available</span></div>
+          <div id="drawDatePicker" style="display:flex;gap:6px;"></div>
+        </div>
 
-    <!-- FOOTER / ACCEPT BUTTON -->
-    <div class="disc-footer">
-      <button class="disc-btn-accept" id="discAcceptBtn" onclick="discAccept()" disabled>
-        <span id="discAcceptLabel">☐ Accept all & Enter — please check all boxes above</span>
+<div class="cost-bar">
+        <span style="font-size:12px;">Next draw: <strong id="nextDrawLabel">—</strong></span>
+        <span>Stake: <span class="cost-val" id="costVal">€7,50</span></span>
+      </div>
+
+      <button class="btn-generate" onclick="handleGenerate()" id="genBtn">
+        Generate 3 tickets
       </button>
-      <div class="disc-legal-note" id="disc-legal-note">
-        By proceeding you confirm you have read and accepted the full disclaimer. Last updated: May 2026.<br>
-        This service is operated as an informational tool and is not a licensed gambling operator.
-      </div>
-    </div>
 
-  </div>
-</div>
-
-<h1>EuroMillions Number Optimizer <span class="machine-badge" id="machineBadge">M13/B21</span></h1>
-
-<!-- TAGLINE + AUTH -->
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-  <div style="flex:1;min-width:200px;">
-    <div style="font-size:12px;font-weight:500;color:#1a1a18;margin-bottom:2px;" id="taglineTitle">The only tool that optimizes numbers based on actual use of draw machine and ball set.</div>
-    <div style="font-size:11px;color:#aaa;line-height:1.5;" id="taglineSub">While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.</div>
-  </div>
-  <div id="authButtons" style="flex-shrink:0;">
-    <button onclick="openSignup()" id="signupBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:none;background:#1a1a18;color:#fff;cursor:pointer;margin-right:6px;">✨ Aanmelden</button>
-    <button onclick="openSignin()" id="signinBtn2" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Inloggen</button>
-  </div>
-</div>
-
-<!-- META + DISCLAIMER -->
-<div class="meta" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-  <span style="font-size:11px;"><strong id="totalDraws"></strong> trekkingen · Laatste: <strong id="lastDraw">—</strong></span>
-  <span style="font-size:10px;color:#aaa;">18+ · <a href="#" onclick="showDisclaimer()" style="color:#aaa;">Disclaimer</a></span>
-</div>
-
-<!-- OPTIMIZER PRESTATIE BADGE -->
-<div id="performanceBadge" style="background:#f0f8ec;border:1px solid #c8e0b8;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-  <div style="display:flex;align-items:center;gap:8px;">
-    <span style="font-size:16px;">📊</span>
-    <div>
-      <div style="font-size:12px;font-weight:500;color:#2E7D32;">Optimizer prestatie <span id="perfMachine" style="font-weight:400;color:#555;"></span></div>
-      <div style="font-size:11px;color:#555;">Gem. <strong id="perfPct">—</strong> pool dekking · <span id="perfDraws">—</span> trekkingen geanalyseerd</div>
-    </div>
-  </div>
-  <div style="font-size:10px;color:#888;font-style:italic;" id="perfDetail"></div>
-</div>
-
-<div class="tabs">
-  <button class="tab active" id="tab-rand" onclick="showTab('rand')">Optimizer</button>
-  <button class="tab" id="tab-result" onclick="showTab('result')" style="display:none;">Resultaat invoeren</button>
-  <button class="tab" id="tab-freq" onclick="showTab('freq')">Analyse</button>
-  <button class="tab" id="tab-score" onclick="showTab('score')">Scores</button>
-</div>
-
-<!-- GENERATOR -->
-<div id="pane-rand" class="pane active">
-
-  <!-- DEEL 1: ANALYSE PARAMETERS -->
-
-  <!-- Machine badge -->
-  <div class="strategy-row">
-    <span class="sb sb-amber" id="machineTag">M13/B21 · 33 trekkingen</span>
-    <span class="sb sb-green">✓ 50% Regel</span>
-    <span class="sb sb-blue">✓ 2D Filter</span>
-    <span class="sb sb-green">✓ Som + Consecutive</span>
-    <span class="sb sb-new">★ Anti-overlap</span>
-  </div>
-
-  <!-- Hot/Average/Cold grenzen -->
-  <div class="box">
-    <div class="box-title gray">
-      <span>Grenzen hot / average / cold</span>
-      <span class="box-stat">Gem: <strong id="avgDisp"></strong>× · <span id="machineLabel">M13/B21</span></span>
-    </div>
-    <div class="slider-row">
-      <span class="slider-label">Ondergrens average</span>
-      <input type="range" id="sliderLow" min="0" max="10" step="1" oninput="updateAll()">
-      <span class="slider-val" id="valLow"></span>
-    </div>
-    <div class="slider-row">
-      <span class="slider-label">Bovengrens average</span>
-      <input type="range" id="sliderHigh" min="1" max="15" step="1" oninput="updateAll()">
-      <span class="slider-val" id="valHigh"></span>
-    </div>
-    <div class="pool-pills" id="poolPills"></div>
-    <div class="param-warn" id="paramWarnSlider">⚠ You have modified the default thresholds — results deviate from our statistical recommendation.</div>
-  </div>
-
-  <!-- Rule summary: Hot/Avg/Cold/Star pools -->
-  <div class="stats-row">
-    <div class="stat"><div class="stat-label">Hot pool</div><div class="stat-val" id="s-hot">—</div></div>
-    <div class="stat"><div class="stat-label">Avg pool</div><div class="stat-val" id="s-avg">—</div></div>
-    <div class="stat"><div class="stat-label">Star pool</div><div class="stat-val" id="s-star">—</div></div>
-    <div class="stat"><div class="stat-label">Cold (uit)</div><div class="stat-val" id="s-cold">—</div></div>
-  </div>
-
-  <!-- Sterren strategie -->
-  <div class="star-box">
-    <div class="star-title" id="starStratTitle">2-Sterren strategie — hot/cold analyse M/B specifiek</div>
-    <div style="font-size:11px;color:#bbb;margin-bottom:8px;line-height:1.6;" id="starSub">—</div>
-    <div class="star-combis" id="starCombis"></div>
-  </div>
-
-  <!-- 2D Matrix -->
-  <div class="box box-green">
-    <div class="box-title green">
-      <span>2D Combinatie filter — Odd/Even × Laag/Hoog</span>
-      <span class="box-stat" id="matrixCoverage"></span>
-    </div>
-    <div class="matrix-legend">
-      <span>Rijen = Odd/Even · Kolommen = Laag(1-25)/Hoog(26-50)</span>
-    </div>
-    <div class="matrix-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-      <div class="matrix-grid" id="matrixGrid"></div>
-    </div>
-    <div class="filter-detail" id="matrixDetail"></div>
-  </div>
-
-  <!-- Som + Consecutive -->
-  <div class="box box-blue">
-    <div class="box-title blue">
-      <span>Som filter + Consecutive</span>
-      <span class="box-stat"><span id="somStatLabel"></span></span>
-    </div>
-    <div class="som-row">
-      <span class="som-label">Min som</span>
-      <input type="range" id="somMin" min="50" max="160" step="5" value="90" oninput="updateSom()">
-      <span class="som-val" id="somMinVal">90</span>
-    </div>
-    <div class="som-row">
-      <span class="som-label">Max som</span>
-      <input type="range" id="somMax" min="110" max="230" step="5" value="180" oninput="updateSom()">
-      <span class="som-val" id="somMaxVal">180</span>
-    </div>
-    <div class="filter-detail" id="somDetail" style="margin-bottom:10px;"></div>
-    <div class="consec-row">
-      <label class="toggle-switch">
-        <input type="checkbox" id="consecToggle" checked onchange="updateConsec()">
-        <span class="toggle-slider"></span>
-      </label>
-      <span class="toggle-label" id="consecLabel">Consecutive filter actief — geen 3+ opeenvolgend</span>
-    </div>
-  </div>
-
-  <!-- Anti-overlap -->
-  <div class="box box-purple">
-    <div class="box-title purple">
-      <span>Anti-overlap — max overlappende nummers tussen tickets</span>
-      <span class="box-stat" id="overlapStat"></span>
-    </div>
-    <div class="overlap-row">
-      <span class="overlap-label">Max overlap:</span>
-      <div class="overlap-btns" id="overlapBtns">
-        <button class="overlap-btn active" onclick="setOverlap(0)">0</button>
-        <button class="overlap-btn" onclick="setOverlap(1)">1</button>
-        <button class="overlap-btn" onclick="setOverlap(2)">2</button>
-        <button class="overlap-btn" onclick="setOverlap(3)">3</button>
-        <button class="overlap-btn" onclick="setOverlap(99)">∞</button>
-      </div>
-      <span class="toggle-label" id="overlapLabel">Geen overlappende nummers toegestaan</span>
-    </div>
-  </div>
-
-  <!-- DEEL 2: SPEEL PROFIEL -->
-
-  <!-- Profiel keuze -->
-  <div class="selector-label" style="margin-top:1.5rem;padding-top:1rem;border-top:2px solid #f0efea;">Speel profiel</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
-    <button class="profile-main-btn active" id="pmb-standard" onclick="selectProfileMain('standard')">
-      <div style="font-size:13px;font-weight:600;">Freemium</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">Gratis · max 3 tickets · 5+2</div>
-    </button>
-    <button class="profile-main-btn" id="pmb-custom" onclick="selectProfileMain('custom')">
-      <div style="font-size:13px;font-weight:600;">Premium ⭐</div>
-      <div style="font-size:10px;color:#aaa;margin-top:2px;">Volledig instelbaar</div>
-    </button>
-  </div>
-
-  <!-- Instellingen — min/plus knoppen -->
-  <div id="profileControls" style="background:#f8f8f6;border:1px solid #e8e8e4;border-radius:10px;padding:14px;margin-bottom:1rem;">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-
-      <!-- Tickets -->
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">TICKETS</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-          <button onclick="adjustProfile('tickets',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">−</button>
-          <span id="profileTicketsVal" style="font-size:18px;font-weight:600;min-width:24px;text-align:center;">3</span>
-          <button onclick="adjustProfile('tickets',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">+</button>
-        </div>
+      <div class="login-prompt" id="loginPrompt">
+        To generate tickets, please <a onclick="doLogin()">sign in</a> of je
+        <a href="register.html">register as a new user</a>.
       </div>
 
-      <!-- Nummers -->
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">NUMMERS</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-          <button onclick="adjustProfile('nums',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">−</button>
-          <span id="profileNumsVal" style="font-size:18px;font-weight:600;min-width:24px;text-align:center;">5</span>
-          <button onclick="adjustProfile('nums',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">+</button>
-        </div>
-      </div>
-
-      <!-- Sterren -->
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.05em;margin-bottom:6px;">STERREN</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-          <button onclick="adjustProfile('stars',-1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">−</button>
-          <span id="profileStarsVal" style="font-size:18px;font-weight:600;min-width:24px;text-align:center;">2</span>
-          <button onclick="adjustProfile('stars',1)" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:16px;cursor:pointer;line-height:1;">+</button>
-        </div>
-      </div>
-
+      <div class="tickets-out" id="ticketsOut"></div>
     </div>
-    <div id="profileLimitNote" style="font-size:10px;color:#aaa;text-align:center;margin-top:10px;">
-      Freemium: max 3 tickets · 5 nummers · 4 sterren
-    </div>
-  </div>
 
-  <!-- Aantal tickets selector — verborgen, wordt gestuurd via profiel controls -->
-  <div class="selector-label" style="display:none;">Aantal tickets</div>
-  <div class="selector-btns" style="display:none;">
-    <button class="sel-btn" onclick="selectTickets(1)">1</button>
-    <button class="sel-btn" onclick="selectTickets(2)">2</button>
-    <button class="sel-btn active" onclick="selectTickets(3)">3</button>
-    <button class="sel-btn" onclick="selectTickets(4)">4</button>
-    <button class="sel-btn" onclick="selectTickets(5)">5</button>
-    <button class="sel-btn" onclick="selectTickets(6)">6</button>
-  </div>
-
-  <!-- Genereer knop -->
-  <button class="btn" onclick="generateAll()" id="genBtn" style="margin-top:1rem;">Genereer 3 tickets</button>
-  <div id="loginPrompt" style="display:none;background:#f8f8f6;border:1.5px solid #e0e0dc;border-radius:10px;padding:14px 16px;text-align:center;margin-top:8px;">
-    <div style="font-size:14px;font-weight:500;margin-bottom:6px;">🔒 Aanmelden vereist</div>
-    <div style="font-size:12px;color:#888;margin-bottom:12px;">Meld je gratis aan om tickets te genereren en analyses te ontvangen.</div>
-    <button onclick="openSignup()" style="padding:8px 20px;background:#1a1a18;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;margin-right:8px;">✨ Aanmelden</button>
-    <button onclick="openSignin()" style="padding:8px 20px;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;">🔑 Inloggen</button>
-  </div>
-  <div class="attempt-info" id="attemptInfo"></div>
-
-  <!-- Legenda -->
-  <div class="legend" style="margin-top:0.5rem;">
-    <span class="lbl"><span class="ldot" style="background:#378ADD;"></span>Hot</span>
-    <span class="lbl"><span class="ldot" style="background:#d4a840;"></span>Average</span>
-    <span class="lbl"><span class="ldot" style="background:#e8922a;"></span>Lucky Star</span>
-  </div>
-
-  <!-- Gegenereerde tickets -->
-  <div class="tickets-grid" id="ticketsGrid"></div>
-
-  <!-- Inzet + volgende trekking -->
-  <div class="inzet-box" style="margin-top:0.75rem;">
-    <span>Volgende trekking: <strong id="nextDraw"></strong></span>
-    <span id="inzetInfo">3 tickets · <strong>€7,50</strong></span>
-  </div>
-
-  <!-- Opslaan & analyse -->
-  <div id="saveTicketsArea" style="display:none;margin-top:0.75rem;">
-    <div style="border-top:1px solid #f0efea;padding-top:1rem;display:flex;flex-direction:column;gap:8px;">
-      <button class="btn btn-save" onclick="openSaveProfile()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <span>📧</span> Sla tickets op & ontvang analyse na trekking
+    <div class="save-bar" id="saveBar">
+      <button class="btn-save" onclick="openSaveProfile()">
+        <span>📧</span> Save tickets &amp; receive analysis
       </button>
-      <div style="font-size:11px;color:#aaa;text-align:center;">Je ontvangt na elke trekking een persoonlijke analyse per email</div>
+      <p class="save-note">After each draw you receive a personal analysis by email</p>
     </div>
-  </div>
 
-  <!-- Rule summary -->
-  <div class="rule-box" style="margin-top:1rem;">
-    <div class="rule-item">
-      <div class="rule-label">VERDELING</div>
-      <div class="rule-val" id="ruleMain">—</div>
-      <div class="rule-sub">50% regel</div>
+    <div class="optimizer-link">
+      Want to know more? <a href="optimizer.html">Open the advanced optimizer →</a>
     </div>
-    <div class="rule-item">
-      <div class="rule-label">2D FILTER</div>
-      <div class="rule-val" id="rule2D" style="font-size:11px;color:#3B6D11;">—</div>
-      <div class="rule-sub">patronen</div>
-    </div>
-    <div class="rule-item">
-      <div class="rule-label">SOM</div>
-      <div class="rule-val" id="ruleSom" style="color:#0C447C;font-size:12px;">90–180</div>
-      <div class="rule-sub">bereik</div>
-    </div>
-    <div class="rule-item">
-      <div class="rule-label">OVERLAP</div>
-      <div class="rule-val" id="ruleOverlap" style="color:#5B1FAD;font-size:12px;">max 1</div>
-      <div class="rule-sub">per ticket</div>
-    </div>
-    <div class="rule-item">
-      <div class="rule-label">STERREN</div>
-      <div class="rule-val" style="color:#8a4510;" id="ruleStarCount">Top 3</div>
-      <div class="rule-sub">hot/avg</div>
-    </div>
-  </div>
 
-</div>
-
-<!-- GEBRUIKERSPROFIEL MODAL -->
-<div class="disclaimer-overlay" id="profileOverlay" onclick="profileOverlayClick(event)">
-  <div class="disclaimer-modal" style="max-width:400px;">
-    <div class="disc-header" style="padding-bottom:1.25rem;">
-      <div class="disc-logo">
-        <div class="disc-logo-icon">📧</div>
-        <div>
-          <div class="disc-logo-text">Tickets opslaan</div>
-          <div class="disc-logo-sub" id="profileModalSub">Ontvang analyse na elke trekking</div>
-        </div>
-      </div>
-    </div>
-    <div class="disc-body" style="padding-top:0;">
-      <div id="profileFormArea">
-        <!-- PROFIEL SAMENVATTING -->
-        <div style="background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:12px;font-weight:500;" id="profileSummaryLabel">Standaard profiel</div>
-            <div style="font-size:11px;color:#aaa;" id="profileSummaryDetail">3 tickets · 5 nummers + 2 sterren</div>
-          </div>
-          <span style="font-size:18px;">✓</span>
-        </div>
-
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">JOUW NAAM</span>
-          <input type="text" class="admin-input" id="profileName" placeholder="Bijv. Jacq" style="width:100%;">
-        </div>
-        <div class="admin-input-group" style="margin-bottom:16px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="admin-input" id="profileEmail" placeholder="jouw@email.com" style="width:100%;">
-        </div>
-        <div style="font-size:11px;color:#aaa;margin-bottom:16px;line-height:1.6;">
-          Je email wordt alleen gebruikt voor de trekking analyse. Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;text-decoration:underline;cursor:pointer;">privacyverklaring</a>.
-        </div>
-        <button class="disc-btn-accept" onclick="saveUserTickets()" id="saveProfileBtn">
-          ✓ Opslaan & analyse activeren
-        </button>
-        <div class="admin-msg" id="profileMsg" style="margin-top:10px;"></div>
-      </div>
-
-      <div id="profileSuccessArea" style="display:none;text-align:center;padding:1rem 0;">
-        <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Tickets opgeslagen!</div>
-        <div style="font-size:12px;color:#aaa;line-height:1.6;" id="profileSuccessMsg"></div>
-        <button class="btn" style="margin-top:1rem;" onclick="closeProfile()">Sluiten</button>
-      </div>
-    </div>
   </div>
 </div>
 
-<!-- RESULTAAT INVOEREN -->
-<div id="pane-result" class="pane">
-  <div class="box">
-    <div class="box-title gray">Trekking resultaat invoeren</div>
-
-    <div class="input-grid">
-      <div class="input-group">
-        <label class="input-label">Datum</label>
-        <input type="date" id="resDate" class="input-field">
-      </div>
-      <div class="input-group">
-        <label class="input-label">Machine / Balset</label>
-        <div style="display:flex;gap:6px;">
-          <input type="number" id="resMachine" placeholder="Machine" class="input-field" style="width:50%;" min="1" max="20">
-          <input type="number" id="resBal" placeholder="Balset" class="input-field" style="width:50%;" min="1" max="30">
-        </div>
-      </div>
-    </div>
-
-    <div class="input-group" style="margin-bottom:10px;">
-      <label class="input-label">Getrokken nummers (5 nummers)</label>
-      <div class="num-input-row">
-        <input type="number" class="num-input res-num" placeholder="1" min="1" max="50">
-        <input type="number" class="num-input res-num" placeholder="2" min="1" max="50">
-        <input type="number" class="num-input res-num" placeholder="3" min="1" max="50">
-        <input type="number" class="num-input res-num" placeholder="4" min="1" max="50">
-        <input type="number" class="num-input res-num" placeholder="5" min="1" max="50">
-      </div>
-    </div>
-
-    <div class="input-group" style="margin-bottom:16px;">
-      <label class="input-label">Lucky Stars (2 sterren)</label>
-      <div class="num-input-row">
-        <input type="number" class="num-input res-star" placeholder="★1" min="1" max="12">
-        <input type="number" class="num-input res-star" placeholder="★2" min="1" max="12">
-      </div>
-    </div>
-
-    <div class="input-group" style="margin-bottom:16px;">
-      <label class="input-label">Gespeelde tickets (optioneel — voor rendement berekening)</label>
-      <div id="ticketInputs" style="display:flex;flex-direction:column;gap:8px;"></div>
-      <button class="btn" style="margin-top:8px;margin-bottom:0;font-size:12px;padding:7px;" onclick="addTicketInput()">+ Ticket toevoegen</button>
-    </div>
-
-    <button class="btn btn-save" onclick="saveResult()">Opslaan & dataset updaten</button>
-    <div id="saveMsg" style="font-size:12px;color:#3B6D11;margin-top:8px;text-align:center;"></div>
-  </div>
-
-  <div id="machineAlert" style="display:none;" class="box" style="background:#fff4e6;border-color:#f0dfc0;">
-    <div style="font-size:13px;font-weight:500;color:#854F0B;margin-bottom:8px;">⚡ Machine/Balset gewijzigd!</div>
-    <div id="machineAlertText" style="font-size:12px;color:#a07830;line-height:1.7;"></div>
-  </div>
-</div>
-
-<!-- RENDEMENT -->
-<div id="pane-rendement" class="pane">
-  <div class="rendement-cards">
-    <div class="rcard">
-      <div class="rcard-label">TOTALE INZET</div>
-      <div class="rcard-val rcard-red" id="r-inzet">€0</div>
-    </div>
-    <div class="rcard">
-      <div class="rcard-label">TOTALE OPBRENGST</div>
-      <div class="rcard-val rcard-green" id="r-opbrengst">€0</div>
-    </div>
-    <div class="rcard">
-      <div class="rcard-label">RENDEMENT</div>
-      <div class="rcard-val rcard-blue" id="r-rendement">—%</div>
-    </div>
-  </div>
-
-  <div class="history-table">
-    <table>
-      <thead>
-        <tr><th>Datum</th><th>Trekking</th><th>Jouw ticket</th><th>Hits</th><th>Prijs</th></tr>
-      </thead>
-      <tbody id="historyBody">
-        <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px;">Nog geen resultaten ingevoerd</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- FREQUENTIE -->
-<div id="pane-freq" class="pane">
-  <div class="score-tabs">
-    <button class="stab active" id="atab-hot" onclick="showAnalyseTab('hot')">🔥 Hot</button>
-    <button class="stab" id="atab-avg" onclick="showAnalyseTab('avg')">📊 Average</button>
-    <button class="stab" id="atab-cold" onclick="showAnalyseTab('cold')">❄️ Cold</button>
-    <button class="stab" id="atab-star" onclick="showAnalyseTab('star')">★ Lucky Stars</button>
-  </div>
-  <div class="freq-controls" style="margin-top:10px;">
-    <label>Sortering:</label>
-    <select id="freqSort" onchange="showAnalyseTab(currentAnalyseTab)">
-      <option value="num">Op nummer</option>
-      <option value="desc">Meest getrokken</option>
-      <option value="asc">Minst getrokken</option>
-    </select>
-  </div>
-  <div class="freq-legend" id="freqLegend"></div>
-  <div id="freqChart"></div>
-</div>
-
-<!-- SCORES -->
-<div id="pane-score" class="pane">
-  <div class="score-tabs">
-    <button class="stab active" onclick="showScoreTab('hot')">🔥 Hot</button>
-    <button class="stab" onclick="showScoreTab('avg')">📊 Average</button>
-    <button class="stab" onclick="showScoreTab('cold')">❄️ Cold</button>
-    <button class="stab" onclick="showScoreTab('star')">★ Lucky Stars</button>
-  </div>
-  <div style="font-size:11px;color:#bbb;margin-bottom:1rem;">Score = trekkingen afwezig ÷ verwacht interval. Hoe hoger de score hoe langer afwezig.</div>
-  <div id="scoreTable"></div>
-</div>
-
-<!-- FOOTER DISCLAIMER BAR -->
-<div class="disc-footer-bar">
-  <div class="disc-footer-bar-icon">⚖️</div>
-  <div>
-    <strong style="color:#555;display:block;margin-bottom:2px;">Disclaimer & Responsible Gambling</strong>
-    EuroMillions Number Optimizer is a statistical entertainment tool only. No winnings guaranteed. EuroMillions is a game of pure chance. Must be 18+. We accept no liability for financial loss. 
-    <a onclick="showDisclaimer()">Full disclaimer</a> · 
-    🇳🇱 <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 
-    🇧🇪 <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a> · 
-    🇫🇷 <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a> · 
-    🇩🇪 <a href="https://www.bzga.de" target="_blank">bzga.de</a> · 
-    🇪🇸 <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a> · 
-    🇬🇧 <a href="https://www.gamcare.org.uk" target="_blank">gamcare.org.uk</a>
-  </div>
-</div>
-
-
-
-<!-- ===================== ADMIN PANEL ===================== -->
-
-<!-- ADMIN LOCK BUTTON -->
-<div class="admin-lock" id="adminLockBtn" onclick="adminToggleLock()" title="Admin">🔒</div>
-
-<!-- ADMIN OVERLAY -->
-<div class="admin-overlay" id="adminOverlay" onclick="adminOverlayClick(event)">
-  <div class="admin-modal" id="adminModal">
-
-    <!-- PIN SCREEN -->
-    <div id="adminPinScreen">
-      <button class="admin-close" onclick="closeAdmin()">✕</button>
-      <h2>🔐 Admin toegang</h2>
-      <p class="admin-sub">Voer je 4-cijferige PIN in</p>
-      <div class="pin-dots">
-        <div class="pin-dot" id="pd0"></div>
-        <div class="pin-dot" id="pd1"></div>
-        <div class="pin-dot" id="pd2"></div>
-        <div class="pin-dot" id="pd3"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:210px;margin:16px auto 0;">
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('1')">1</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('2')">2</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('3')">3</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('4')">4</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('5')">5</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('6')">6</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('7')">7</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('8')">8</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('9')">9</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;color:#bbb;" onclick="">·</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('0')">0</button>
-        <button class="btn-admin" style="padding:12px;font-size:16px;" onclick="pinPress('DEL')">⌫</button>
-      </div>
-      <div class="admin-msg" id="pinMsg" style="color:#A32D2D;"></div>
-      <p style="font-size:10px;color:#ccc;text-align:center;margin-top:16px;">Eerste keer? Standaard PIN: 1234</p>
-    </div>
-
-    <!-- ADMIN PANEL (na inloggen) -->
-    <div id="adminPanel" style="display:none;">
-      <button class="admin-close" onclick="closeAdmin()">✕</button>
-      <h2>⚙️ Admin Panel</h2>
-      <p class="admin-sub">Privé dataset beheer · Niet zichtbaar voor eindgebruikers</p>
-
-      <!-- STORAGE STATS -->
-      <div class="storage-stats">
-        <div class="ss-card"><div class="ss-val" id="ss-total">—</div><div class="ss-lbl">Trekkingen totaal</div></div>
-        <div class="ss-card"><div class="ss-val" id="ss-machine">—</div><div class="ss-lbl" id="ss-machine-label">M13/B21</div></div>
-        <div class="ss-card"><div class="ss-val" id="ss-storage">—</div><div class="ss-lbl">Opgeslagen</div></div>
-      </div>
-
-      <!-- AUTO FETCH -->
-      <div class="admin-section">
-        <div class="admin-section-title">🌐 Trekking ophalen via BeatLottery</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Haalt nummers, sterren, <strong style="color:#854F0B;">machine én balset</strong> automatisch op van beatlottery.co.uk.</p>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-          <div class="admin-input-group" style="flex:1;">
-            <span class="admin-input-label">DATUM (di of vr)</span>
-            <input type="date" class="admin-input" id="fetchDate">
-          </div>
-          <div style="padding-top:16px;">
-            <button class="btn-admin btn-admin-primary" onclick="adminFetchBeatLottery()" id="fetchBtn">↓ Ophalen</button>
-          </div>
-        </div>
-        <div id="fetchResult" style="display:none;" class="fetch-result">
-          <div style="font-size:11px;color:#888;margin-bottom:6px;" id="fetchDateLabel"></div>
-          <div class="fr-nums" id="fetchBalls"></div>
-          <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div class="admin-input-group">
-              <span class="admin-input-label">MACHINE (auto)</span>
-              <input type="number" class="admin-input" id="fetchMachine" placeholder="—" min="1" max="20">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">BALSET (auto)</span>
-              <input type="number" class="admin-input" id="fetchBal" placeholder="—" min="1" max="30">
-            </div>
-          </div>
-          <div style="font-size:10px;color:#aaa;margin-top:4px;">Controleer en pas evt. aan vóór opslaan</div>
-          <div style="margin-top:10px;display:flex;gap:8px;">
-            <button class="btn-admin btn-admin-green" onclick="adminSaveFetched()" style="flex:1;">✓ Opslaan in dataset</button>
-            <button class="btn-admin" onclick="document.getElementById('fetchResult').style.display='none'">✕</button>
-          </div>
-        </div>
-        <div class="admin-msg" id="fetchMsg"></div>
-      </div>
-
-      <!-- HANDMATIG TOEVOEGEN -->
-      <div class="admin-section">
-        <div class="admin-section-title">✏️ Handmatig trekking toevoegen</div>
-        <div class="admin-input-row">
-          <div class="admin-input-group">
-            <span class="admin-input-label">DATUM</span>
-            <input type="date" class="admin-input" id="manDate">
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div class="admin-input-group">
-              <span class="admin-input-label">MACHINE</span>
-              <input type="number" class="admin-input" id="manMachine" placeholder="13" min="1" max="20" value="13">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">BALSET</span>
-              <input type="number" class="admin-input" id="manBal" placeholder="21" min="1" max="30" value="21">
-            </div>
-          </div>
-        </div>
-        <div style="font-size:10px;color:#aaa;margin-bottom:4px;font-weight:500;letter-spacing:0.03em;">NUMMERS (5) + STERREN (2)</div>
-        <div class="admin-nums-row">
-          <input type="number" class="admin-num-input man-num" placeholder="1" min="1" max="50">
-          <input type="number" class="admin-num-input man-num" placeholder="2" min="1" max="50">
-          <input type="number" class="admin-num-input man-num" placeholder="3" min="1" max="50">
-          <input type="number" class="admin-num-input man-num" placeholder="4" min="1" max="50">
-          <input type="number" class="admin-num-input man-num" placeholder="5" min="1" max="50">
-          <span style="font-size:18px;color:#ddd;padding:0 4px;line-height:34px;">+</span>
-          <input type="number" class="admin-num-input man-star" placeholder="★1" min="1" max="12">
-          <input type="number" class="admin-num-input man-star" placeholder="★2" min="1" max="12">
-        </div>
-        <button class="btn-admin btn-admin-primary" onclick="adminAddManual()" style="width:100%;">+ Toevoegen aan dataset</button>
-        <div class="admin-msg" id="manMsg"></div>
-      </div>
-
-      <!-- DATASET BEHEREN -->
-      <div class="admin-section">
-        <div class="admin-section-title">📋 Dataset (laatste 30 trekkingen)</div>
-        <div class="admin-draw-list" id="adminDrawList"></div>
-      </div>
-
-      <!-- POOL DEKKING ANALYSE -->
-      <div class="admin-section">
-        <div class="admin-section-title">📊 Pool dekking analyse</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Hoeveel uitslag nummers vielen binnen de optimizer pool per trekking.</p>
-        <button class="btn-admin btn-admin-primary" onclick="adminLoadPoolAnalysis()" style="margin-bottom:10px;">↓ Laad analyse</button>
-        <div id="adminPoolAnalysis" style="font-size:12px;color:#aaa;"></div>
-      </div>
-
-      <!-- GEBRUIKERS OVERZICHT -->
-      <div class="admin-section">
-        <div class="admin-section-title">👥 Gebruikers & tickets</div>
-        <button class="btn-admin btn-admin-primary" onclick="adminLoadUsers()" style="margin-bottom:10px;">↓ Laad gebruikers</button>
-        <div id="adminUsersList" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;"></div>
-      </div>
-
-      <!-- ANALYSE EMAILS -->
-      <div class="admin-section">
-        <div class="admin-section-title">📧 Analyse emails sturen</div>
-
-        <!-- KIES TREKKING UIT DATASET -->
-        <div class="admin-input-group" style="margin-bottom:10px;">
-          <span class="admin-input-label">KIES TREKKING</span>
-          <select class="admin-input" id="analysisDraw" onchange="adminSelectDraw()" style="width:100%;">
-            <option value="">— Selecteer trekking —</option>
-          </select>
-        </div>
-
-        <!-- UITSLAG PREVIEW -->
-        <div id="analysisDrawPreview" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
-          <div style="font-size:11px;color:#aaa;margin-bottom:6px;">Uitslag:</div>
-          <div id="analysisDrawBalls"></div>
-        </div>
-
-        <div id="analysisTicketInfo" style="font-size:11px;color:#aaa;margin-bottom:10px;min-height:16px;"></div>
-        <button class="btn-admin btn-admin-green" onclick="adminSendAnalysis()" id="sendAnalysisBtn" style="width:100%;">📧 Stuur analyse emails</button>
-        <div class="admin-msg" id="analysisMsg" style="margin-top:8px;"></div>
-      </div>
-
-      <!-- ACTIEVE MACHINE/BAL -->
-      <div class="admin-section">
-        <div class="admin-section-title">⚙️ Actieve machine/bal combinatie</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Dit bepaalt welke combinatie de generator gebruikt voor alle gebruikers.</p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="adminMbSelector"></div>
-        <div style="font-size:11px;color:#aaa;margin-top:8px;">Gewicht: <strong id="adminWeightDisplay">—</strong> · Trekkingen: <strong id="adminMbCount">—</strong></div>
-      </div>
-
-      <!-- OPSLAG & INSTELLINGEN -->
-      <div class="admin-section">
-        <div class="admin-section-title">💾 Opslag & instellingen</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn-admin btn-admin-green" onclick="adminExport()">↑ Exporteer JSON</button>
-          <button class="btn-admin" onclick="adminImport()">↓ Importeer JSON</button>
-          <button class="btn-admin btn-admin-danger" onclick="adminClearStorage()">🗑 Reset opslag</button>
-        </div>
-        <input type="file" id="importFile" accept=".json" style="display:none;" onchange="adminDoImport(event)">
-        <div style="margin-top:14px;">
-          <div class="admin-section-title" style="margin-bottom:8px;">🔑 PIN wijzigen</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="password" class="admin-input" id="newPin" placeholder="Nieuwe 4-cijferige PIN" maxlength="4" style="flex:1;">
-            <button class="btn-admin btn-admin-primary" onclick="adminChangePin()">Wijzigen</button>
-          </div>
-          <div class="admin-msg" id="pinChangeMsg"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- ===================== DISCLAIMER JS ===================== -->
-
+<footer>
+  <p>© 2026 PickMyNumbers.eu &nbsp;·&nbsp;
+    <a href="optimizer.html">Advanced optimizer</a> &nbsp;·&nbsp;
+    <a href="register.html">Register</a>
+  </p>
+  <p style="margin-top:4px;">18+ · EuroMillions is a game of chance · No winnings guaranteed</p>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/generator.js"></script>
-<script src="js/admin.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/email.js"></script>
+<script>
+
+const LIMITS = { tickets:[1,10], nums:[5,8], stars:[2,4] };
+const COSTS  = { 5:2.5, 6:5, 7:14, 8:35 };
+const vals   = { tickets:3, nums:5, stars:2 };
+let selectedDrawDate = null;
+
+function getNextDrawDates() {
+  const dates = [];
+  const now = new Date();
+  const d = new Date(now);
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  for (let i = 0; i <= 7 && dates.length < 2; i++) {
+    const wd = d.getDay();
+    const isPast = i === 0 && d.getHours() >= 21;
+    if ((wd === 2 || wd === 5) && !isPast) {
+      const label = `${days[wd]} ${d.getDate()} ${months[d.getMonth()]}`;
+      const iso = d.toISOString().split('T')[0];
+      dates.push({ label, iso });
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return dates;
+}
+
+function renderDrawDates() {
+  const picker = document.getElementById('drawDatePicker');
+  if (!picker) return;
+  const dates = getNextDrawDates();
+  if (!selectedDrawDate && dates.length) selectedDrawDate = dates[0].iso;
+  picker.innerHTML = dates.map(d => `
+    <button onclick="selectDrawDate('${d.iso}')" style="
+      padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;
+      border:1px solid ${selectedDrawDate===d.iso?'#0f0f0d':'#e0e0da'};
+      background:${selectedDrawDate===d.iso?'#0f0f0d':'#fff'};
+      color:${selectedDrawDate===d.iso?'#fff':'#888'};
+      cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">
+      ${d.label}
+    </button>`).join('');
+}
+
+function selectDrawDate(iso) {
+  selectedDrawDate = iso;
+  renderDrawDates();
+}
+
+function adj(type, delta) {
+  const [min, max] = LIMITS[type];
+  vals[type] = Math.max(min, Math.min(max, vals[type] + delta));
+  renderControls();
+}
+
+function renderControls() {
+  ['tickets','nums','stars'].forEach(t => {
+    document.getElementById('val-'+t).textContent = vals[t];
+    document.getElementById('btn-'+t+'-min').disabled = vals[t] <= LIMITS[t][0];
+    document.getElementById('btn-'+t+'-plus').disabled = vals[t] >= LIMITS[t][1];
+  });
+  const cost = (vals.tickets * (COSTS[vals.nums] || 2.5)).toFixed(2).replace('.',',');
+  document.getElementById('costVal').textContent = '€' + cost;
+  document.getElementById('genBtn').textContent = `Generate ${vals.tickets} ticket${vals.tickets>1?'s':''}`;
+  const sel = document.getElementById('drawDateSel'); if(sel && sel.options[0]) document.getElementById('nextDrawLabel').textContent = sel.options[0].label.replace('Next draw — ','');
+}
+
+function handleGenerate() {
+  if (!window._pmSession) {
+    document.getElementById('loginPrompt').style.display = 'block';
+    return;
+  }
+  document.getElementById('loginPrompt').style.display = 'none';
+
+  // Sync naar generator
+  if (window.profileValues) {
+    window.profileValues.tickets = vals.tickets;
+    window.profileValues.nums    = vals.nums;
+    window.profileValues.stars   = vals.stars;
+  }
+  numTickets = vals.tickets;
+
+  generateAll();
+
+  setTimeout(() => {
+    const grid = document.getElementById('ticketsGrid');
+    const out  = document.getElementById('ticketsOut');
+    if (grid && out) {
+      out.innerHTML = grid.innerHTML;
+      document.getElementById('saveBar').style.display = 'block';
+    }
+  }, 150);
+}
+
+function doLogin()  { if (typeof openSignin  === 'function') openSignin();  }
+function doLogout() { if (typeof logoutUser  === 'function') logoutUser();  }
+
+function showUserBar(user) {
+  document.getElementById('userBar').classList.add('visible');
+  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'Gebruiker';
+  document.getElementById('btnLogin').style.display    = 'none';
+  document.getElementById('btnRegister').style.display = 'none';
+}
+function hideUserBar() {
+  document.getElementById('userBar').classList.remove('visible');
+  document.getElementById('btnLogin').style.display    = '';
+  document.getElementById('btnRegister').style.display = '';
+}
+
+
+function getNextDrawDates(count) {
+  const dates = [];
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  while (dates.length < count) {
+    d.setDate(d.getDate() + 1);
+    const wd = d.getDay();
+    if (wd === 2 || wd === 5) {
+      const day   = String(d.getDate()).padStart(2,'0');
+      const month = String(d.getMonth()+1).padStart(2,'0');
+      const year  = d.getFullYear();
+      const label = d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+      dates.push({ label, iso: `${year}-${month}-${day}` });
+    }
+  }
+  return dates;
+}
+
+function populateDrawDates() {
+  const sel = document.getElementById('drawDateSel');
+  if (!sel) return;
+  const dates = getNextDrawDates(6);
+  sel.innerHTML = dates.map((d,i) =>
+    `<option value="${d.iso}">${i===0?'Next draw — ':i===1?'Following — ':''}${d.label}</option>`
+  ).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  populateDrawDates();
+  renderControls();
+  renderDrawDates();
+  if (typeof supabaseClient !== 'undefined') {
+    supabaseClient.auth.getSession().then(({ data:{ session }}) => {
+      window._pmSession = session;
+      if (session) showUserBar(session.user);
+    });
+    supabaseClient.auth.onAuthStateChange((_, session) => {
+      window._pmSession = session;
+      session ? showUserBar(session.user) : hideUserBar();
+    });
+  }
+});
+</script>
 </body>
 </html>
