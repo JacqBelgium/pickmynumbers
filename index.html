@@ -142,7 +142,7 @@
   .tagline em { font-style: italic; color: var(--gold); }
 
   .sub {
-    font-size: clamp(12px, 2.5vw, 14px);
+    font-size: clamp(13px, 2.5vw, 15px);
     color: var(--gold2);
     max-width: 520px;
     margin: 0 auto 0.35rem;
@@ -152,7 +152,7 @@
     z-index: 1;
   }
   .sub2 {
-    font-size: clamp(11px, 2vw, 12px);
+    font-size: clamp(12px, 2vw, 14px);
     color: rgba(232,208,138,0.85);
     max-width: 500px;
     margin: 0 auto;
@@ -486,7 +486,8 @@
 <footer>
   <p>© 2026 PickMyNumbers.eu &nbsp;·&nbsp;
     <a href="optimizer.html">Advanced optimizer</a> &nbsp;·&nbsp;
-    <a href="register.html">Register</a>
+    <a href="disclaimer.html">Disclaimer</a> &nbsp;·&nbsp;
+    <a href="contact.html">Contact</a>
   </p>
   <p style="margin-top:4px;">18+ · EuroMillions is a game of chance · No winnings guaranteed</p>
 </footer>
@@ -606,10 +607,15 @@ function hideUserBar() {
 
 function getNextDrawDates(count) {
   const dates = [];
+  const now = new Date();
   const d = new Date();
   d.setHours(0,0,0,0);
+  // Check of vandaag een trekking is en het nog voor 21:00 is
+  const todayIsDrawDay = (d.getDay() === 2 || d.getDay() === 5);
+  const beforeDraw = now.getHours() < 21;
+  if (!todayIsDrawDay || !beforeDraw) d.setDate(d.getDate() + 1);
+  
   while (dates.length < count) {
-    d.setDate(d.getDate() + 1);
     const wd = d.getDay();
     if (wd === 2 || wd === 5) {
       const day   = String(d.getDate()).padStart(2,'0');
@@ -618,6 +624,7 @@ function getNextDrawDates(count) {
       const label = d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
       dates.push({ label, iso: `${year}-${month}-${day}` });
     }
+    d.setDate(d.getDate() + 1);
   }
   return dates;
 }
