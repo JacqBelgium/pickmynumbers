@@ -27,6 +27,7 @@ let currentMachine = 0;
 let currentBal = 0;
 
 // Globale staat
+const USER_KEY = 'em_user_profile';
 let currentUser = null;
 let currentSession = null;
 let pendingTickets = [];

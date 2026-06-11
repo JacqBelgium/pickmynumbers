@@ -884,7 +884,6 @@ updateAll();
 
 // ===================== SUPABASE + AUTH + GEBRUIKERSPROFIEL =====================
 
-const USER_KEY = 'em_user_profile';
 
 const PROFILES = {
   standard: { label:'Freemium', tickets:3, nums:5, stars:2 },
