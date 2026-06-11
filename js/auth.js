@@ -374,6 +374,13 @@ async function getOrCreateUser(name, email, profile) {
 }
 
 async function saveTicketsToDb(userId, tickets, drawDate, drawNumber, machine, bal) {
+  // Verwijder eerst bestaande tickets voor deze gebruiker+datum (1x per trekking)
+  await supabaseClient
+    .from('tickets')
+    .delete()
+    .eq('user_id', userId)
+    .eq('draw_date', drawDate);
+
   const rows = tickets.map((t, i) => ({
     user_id: userId,
     draw_date: drawDate,

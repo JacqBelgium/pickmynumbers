@@ -865,10 +865,21 @@ adminLoadFromStorage();
 try {
   const saved = JSON.parse(localStorage.getItem('em_active_mb'));
   if (saved && saved.machine && saved.bal) {
+    // Gebruik opgeslagen instelling van admin
     currentMachine = saved.machine;
     currentBal = saved.bal;
+  } else {
+    // Geen opgeslagen instelling — gebruik machine/bal van laatste trekking
+    const lastWithMB = ALL_DRAWS.find(d => d.machine > 0 && d.bal > 0);
+    currentMachine = lastWithMB?.machine || 15;
+    currentBal = lastWithMB?.bal || 19;
+    localStorage.setItem('em_active_mb', JSON.stringify({ machine: currentMachine, bal: currentBal }));
   }
-} catch(e) {}
+} catch(e) {
+  const lastWithMB = ALL_DRAWS.find(d => d.machine > 0 && d.bal > 0);
+  currentMachine = lastWithMB?.machine || 15;
+  currentBal = lastWithMB?.bal || 19;
+}
 updateAll();
 
 // ===================== SUPABASE + AUTH + GEBRUIKERSPROFIEL =====================

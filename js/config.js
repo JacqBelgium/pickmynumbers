@@ -22,6 +22,10 @@ let threshLow_v  = 2;
 let numTickets = 3;
 let maxOverlap = 1;
 
+// Actieve machine/bal — wordt dynamisch ingesteld door admin.js na laden dataset
+let currentMachine = 0;
+let currentBal = 0;
+
 // 2D MATRIX
 const MATRIX_DATA = {
   '3_3':{count:14,pct:13.5},'2_3':{count:10,pct:9.6},
