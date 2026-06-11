@@ -885,11 +885,6 @@ updateAll();
 // ===================== SUPABASE + AUTH + GEBRUIKERSPROFIEL =====================
 
 const USER_KEY = 'em_user_profile';
-let currentUser = null;
-let currentSession = null;
-let pendingTickets = [];
-let selectedProfile = 'standard';
-let loginSelectedProfile = 'standard';
 
 const PROFILES = {
   standard: { label:'Freemium', tickets:3, nums:5, stars:2 },

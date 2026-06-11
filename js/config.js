@@ -26,6 +26,13 @@ let maxOverlap = 1;
 let currentMachine = 0;
 let currentBal = 0;
 
+// Globale staat
+let currentUser = null;
+let currentSession = null;
+let pendingTickets = [];
+let selectedProfile = 'standard';
+let loginSelectedProfile = 'standard';
+
 // 2D MATRIX
 const MATRIX_DATA = {
   '3_3':{count:14,pct:13.5},'2_3':{count:10,pct:9.6},
