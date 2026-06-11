@@ -368,8 +368,6 @@ let ALL_DRAWS = [
   { date:'3 jan 2023', draw:1595, nums:[20,21,29,45,46], stars:[3,10], machine:0, bal:0 },
 ];
 
-let currentMachine = 13;
-let currentBal = 21;
 let playedTickets = [];
 let rendementHistory = [];
 
