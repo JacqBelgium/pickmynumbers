@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — PickMyNumbers</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: #0f0f0d;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .reg-wrap {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .reg-logo {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .reg-logo-icon { font-size: 32px; }
+
+  .reg-logo-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 6px;
+  }
+
+  .reg-logo-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+  }
+
+  .reg-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .reg-header {
+    background: #1a1a18;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+
+  .reg-header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  .reg-header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 3px;
+  }
+
+  .reg-body {
+    padding: 1.5rem;
+  }
+
+  .reg-desc {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1.25rem;
+  }
+
+  .field-group {
+    margin-bottom: 14px;
+  }
+
+  .field-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: #aaa;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+
+  .field-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #e0e0da;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1a1a18;
+    background: #fff;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  .field-input:focus { border-color: #1a1a18; }
+
+  .reg-btn {
+    width: 100%;
+    padding: 13px;
+    background: #1a1a18;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    margin-top: 4px;
+  }
+
+  .reg-btn:hover { background: #2a2a26; }
+  .reg-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .reg-msg {
+    font-size: 12px;
+    color: #A32D2D;
+    margin-top: 8px;
+    min-height: 18px;
+    text-align: center;
+  }
+
+  .reg-divider {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+    margin: 14px 0;
+    position: relative;
+  }
+
+  .reg-divider::before, .reg-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 35%;
+    height: 1px;
+    background: #e0e0da;
+  }
+
+  .reg-divider::before { left: 0; }
+  .reg-divider::after { right: 0; }
+
+  .reg-btn-ghost {
+    width: 100%;
+    padding: 11px;
+    background: #f8f8f6;
+    color: #1a1a18;
+    border: 1.5px solid #e0e0da;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .reg-btn-ghost:hover { background: #efefeb; }
+
+  .reg-note {
+    font-size: 11px;
+    color: #bbb;
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  .reg-note a { color: #aaa; }
+
+  /* SUCCESS STATE */
+  .reg-success {
+    display: none;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  .reg-success-icon { font-size: 48px; margin-bottom: 12px; }
+  .reg-success-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+  .reg-success-sub { font-size: 13px; color: #555; line-height: 1.6; }
+
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-decoration: none;
+  }
+
+  .back-link:hover { color: rgba(255,255,255,0.7); }
+</style>
+</head>
+<body>
+
+<div class="reg-wrap">
+
+  <div class="reg-logo">
+    <div class="reg-logo-icon">🎰</div>
+    <div class="reg-logo-name">PickMyNumbers</div>
+    <div class="reg-logo-sub">EuroMillions Number Optimizer</div>
+  </div>
+
+  <div class="reg-card">
+
+    <div class="reg-header">
+      <div class="reg-header-title">Create your free account</div>
+      <div class="reg-header-sub">No password needed — magic link login</div>
+    </div>
+
+    <div class="reg-body">
+
+      <!-- FORM -->
+      <div id="regForm">
+        <p class="reg-desc">
+          Create a free account to save your tickets and receive a
+          <strong>personal analysis</strong> after every draw.
+        </p>
+
+        <div class="field-group">
+          <label class="field-label" for="regName">Your name</label>
+          <input type="text" class="field-input" id="regName" placeholder="e.g. John">
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="regEmail">Email address</label>
+          <input type="email" class="field-input" id="regEmail" placeholder="your@email.com">
+        </div>
+
+        <button class="reg-btn" onclick="doRegister()" id="regBtn">
+          ✉ Create account
+        </button>
+
+        <div class="reg-msg" id="regMsg"></div>
+
+        <div class="reg-divider">Already have an account?</div>
+
+        <button class="reg-btn-ghost" onclick="doSignin()">
+          🔑 Sign in
+        </button>
+
+        <p class="reg-note">
+          No spam. Your email is only used for magic link login and draw analysis.<br>
+          <a href="optimizer.html">View disclaimer</a>
+        </p>
+      </div>
+
+      <!-- SUCCESS -->
+      <div id="regSuccess" class="reg-success">
+        <div class="reg-success-icon">📬</div>
+        <div class="reg-success-title">Check your email!</div>
+        <div class="reg-success-sub" id="regSuccessMsg">
+          We sent a magic link to your email.<br>
+          Click the link to sign in immediately.
+        </div>
+      </div>
+
+      <!-- SIGNIN FORM -->
+      <div id="signinForm" style="display:none;">
+        <p class="reg-desc">
+          Enter your email address — you will receive a <strong>magic link</strong> to sign in directly.
+        </p>
+
+        <div class="field-group">
+          <label class="field-label" for="siEmail">Email address</label>
+          <input type="email" class="field-input" id="siEmail" placeholder="your@email.com">
+        </div>
+
+        <button class="reg-btn" onclick="doSendMagicLink()" id="siBtn">
+          ✉ Send magic link
+        </button>
+
+        <div class="reg-msg" id="siMsg"></div>
+
+        <div class="reg-divider">No account yet?</div>
+
+        <button class="reg-btn-ghost" onclick="showRegister()">
+          ✨ Create free account
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <a href="index.html" class="back-link">← Back to PickMyNumbers</a>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script>
+
+function showRegister() {
+  document.getElementById('regForm').style.display = 'block';
+  document.getElementById('signinForm').style.display = 'none';
+  document.getElementById('regSuccess').style.display = 'none';
+}
+
+function doSignin() {
+  document.getElementById('regForm').style.display = 'none';
+  document.getElementById('signinForm').style.display = 'block';
+  document.getElementById('regSuccess').style.display = 'none';
+}
+
+async function doRegister() {
+  const name  = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const msg   = document.getElementById('regMsg');
+  const btn   = document.getElementById('regBtn');
+
+  if (!name)  { msg.textContent = '⚠ Please enter your name'; return; }
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { msg.textContent = '⚠ Please enter a valid email'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  msg.textContent = '';
+
+  try {
+    localStorage.setItem('em_pending_name', name);
+    localStorage.setItem('em_pending_profile', 'standard');
+
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: 'https://pickmynumbers.eu',
+        data: { name, profile: 'standard' }
+      }
+    });
+
+    if (error) throw error;
+
+    document.getElementById('regForm').style.display = 'none';
+    document.getElementById('regSuccess').style.display = 'block';
+    document.getElementById('regSuccessMsg').innerHTML =
+      `We sent a magic link to <strong>${email}</strong>.<br>
+       Click the link in the email to sign in immediately.`;
+
+  } catch(e) {
+    msg.textContent = '⚠ ' + (e.message || 'Error — please try again');
+    btn.disabled = false;
+    btn.textContent = '✉ Create account';
+  }
+}
+
+async function doSendMagicLink() {
+  const email = document.getElementById('siEmail').value.trim();
+  const msg   = document.getElementById('siMsg');
+  const btn   = document.getElementById('siBtn');
+
+  if (!email || !/\S+@\S+\.\S+/.test(email)) { msg.textContent = '⚠ Please enter a valid email'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  msg.textContent = '';
+
+  try {
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: 'https://pickmynumbers.eu' }
+    });
+
+    if (error) throw error;
+
+    document.getElementById('signinForm').style.display = 'none';
+    document.getElementById('regSuccess').style.display = 'block';
+    document.getElementById('regSuccessMsg').innerHTML =
+      `We sent a magic link to <strong>${email}</strong>.<br>
+       Click the link in the email to sign in immediately.`;
+
+  } catch(e) {
+    msg.textContent = '⚠ ' + (e.message || 'Error — please try again');
+    btn.disabled = false;
+    btn.textContent = '✉ Send magic link';
+  }
+}
+
+// Als al ingelogd — redirect naar homepage
+supabaseClient.auth.getSession().then(({ data: { session } }) => {
+  if (session) window.location.href = 'index.html';
+});
+
+</script>
+</body>
+</html>
