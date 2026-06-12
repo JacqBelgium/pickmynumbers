@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PickMyNumbers — EuroMillions Number Optimizer</title>
-<link rel="stylesheet" href="css/style.css" id="mainStyle">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
@@ -93,7 +92,7 @@
   .btn-gold:hover { background: var(--gold2); }
 
   .user-bar {
-    display: none !important;
+    display: none;
     background: rgba(255,255,255,0.08);
     border-radius: 6px;
     padding: 5px 10px;
@@ -102,7 +101,7 @@
     align-items: center;
     gap: 10px;
   }
-  .user-bar.visible { display: flex !important; }
+  .user-bar.visible { display: flex; }
 
   .btn-logout {
     background: transparent;
@@ -469,6 +468,10 @@
       <div class="tickets-out" id="ticketsOut"></div>
     </div>
 
+    <!-- Verborgen div voor generator output -->
+    <div id="ticketsGrid" style="display:none;"></div>
+    <div id="attemptInfo" style="display:none;"></div>
+
     <div class="save-bar" id="saveBar">
       <button class="btn-save" onclick="openSaveProfile()">
         <span>📧</span> Save tickets &amp; receive analysis
@@ -495,7 +498,6 @@
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
 <script src="js/generator.js"></script>
-<script src="js/admin.js"></script>
 <script src="js/auth.js"></script>
 <script>
 
@@ -568,41 +570,45 @@ function handleGenerate() {
   }
   document.getElementById('loginPrompt').style.display = 'none';
 
-  // Sync naar generator
-  if (window.profileValues) {
-    window.profileValues.tickets = vals.tickets;
-    window.profileValues.nums    = vals.nums;
-    window.profileValues.stars   = vals.stars;
-  }
+  // Sync waarden naar generator
+  window.profileValues = window.profileValues || {};
+  window.profileValues.tickets = vals.tickets;
+  window.profileValues.nums    = vals.nums;
+  window.profileValues.stars   = vals.stars;
   numTickets = vals.tickets;
 
+  // Genereer tickets via de generator
   generateAll();
 
-  setTimeout(() => {
+  // Wacht tot generator klaar is en kopieer output
+  const checkReady = (attempts) => {
     const grid = document.getElementById('ticketsGrid');
     const out  = document.getElementById('ticketsOut');
-    if (grid && out) {
+    if (!grid || !out) return;
+
+    // Check of er echte ballen zijn (niet vraagtekens)
+    const balls = grid.querySelectorAll('.ball-hot, .ball-avg, .ball-star');
+    if (balls.length > 0 || attempts > 20) {
       out.innerHTML = grid.innerHTML;
       document.getElementById('saveBar').style.display = 'block';
+    } else {
+      setTimeout(() => checkReady(attempts + 1), 100);
     }
-  }, 150);
+  };
+  setTimeout(() => checkReady(0), 100);
 }
 
-function doLogin()  { if (typeof openSignin === 'function') openSignin(); else if (typeof openSignup === 'function') openSignup(); }
-async function doLogout() { await supabaseClient.auth.signOut(); hideUserBar(); }
+function doLogin()  { if (typeof openSignin  === 'function') openSignin();  }
+function doLogout() { if (typeof logoutUser  === 'function') logoutUser();  }
 
 function showUserBar(user) {
-  const bar = document.getElementById('userBar');
-  bar.classList.add('visible');
-  bar.style.display = 'flex';
-  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'User';
+  document.getElementById('userBar').classList.add('visible');
+  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'Gebruiker';
   document.getElementById('btnLogin').style.display    = 'none';
   document.getElementById('btnRegister').style.display = 'none';
 }
 function hideUserBar() {
-  const bar = document.getElementById('userBar');
-  bar.classList.remove('visible');
-  bar.style.display = 'none';
+  document.getElementById('userBar').classList.remove('visible');
   document.getElementById('btnLogin').style.display    = '';
   document.getElementById('btnRegister').style.display = '';
 }
@@ -657,136 +663,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 </script>
-<div class="login-overlay" id="loginOverlay">
-  <div class="login-modal">
-    <div class="login-header">
-      <div class="login-header-icon">🎰</div>
-      <div class="login-header-title">PickMyNumbers</div>
-      <div class="login-header-sub" id="loginHeaderSub">Gratis account aanmaken</div>
-    </div>
-    <div class="login-body">
-
-      <!-- STAP 1A: REGISTRATIE (eerste bezoek) -->
-      <div class="login-step active" id="loginStepSignup">
-        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Maak een gratis account aan om tickets op te slaan en na elke trekking een <strong>persoonlijke analyse</strong> per email te ontvangen.
-        </div>
-
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">JOUW NAAM</span>
-          <input type="text" class="login-input" id="loginName" placeholder="Bijv. Jacq">
-        </div>
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="login-input" id="loginEmail" placeholder="jouw@email.com">
-        </div>
-
-        <!-- PROFIEL KEUZE -->
-        <div class="admin-input-group" style="margin-bottom:8px;">
-          <span class="admin-input-label">SPEEL PROFIEL</span>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
-          <label class="profile-card active" id="lpc-standard" onclick="selectLoginProfile('standard')">
-            <div class="profile-card-check" id="lpck-standard">✓</div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Standaard <span class="profile-card-badge">Aanbevolen</span></div>
-              <div class="profile-card-sub">3 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-system" onclick="selectLoginProfile('system')">
-            <div class="profile-card-check" id="lpck-system"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Systeem</div>
-              <div class="profile-card-sub">6 tickets · 6 nummers + 3 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-extended" onclick="selectLoginProfile('extended')">
-            <div class="profile-card-check" id="lpck-extended"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Uitgebreid</div>
-              <div class="profile-card-sub">5 tickets · 5 nummers + 2 sterren</div>
-            </div>
-          </label>
-          <label class="profile-card" id="lpc-custom" onclick="selectLoginProfile('custom')">
-            <div class="profile-card-check" id="lpck-custom"></div>
-            <div class="profile-card-content">
-              <div class="profile-card-title">Eigen keuze</div>
-              <div class="profile-card-sub">Stel zelf in</div>
-            </div>
-          </label>
-        </div>
-
-        <!-- EIGEN KEUZE -->
-        <div id="loginCustomOptions" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:12px;margin-bottom:12px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <div class="admin-input-group">
-              <span class="admin-input-label">TICKETS</span>
-              <input type="number" class="admin-input" id="loginCustomTickets" value="3" min="1" max="10">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">NUMMERS</span>
-              <input type="number" class="admin-input" id="loginCustomNums" value="5" min="5" max="8">
-            </div>
-            <div class="admin-input-group">
-              <span class="admin-input-label">STERREN</span>
-              <input type="number" class="admin-input" id="loginCustomStars" value="2" min="2" max="3">
-            </div>
-          </div>
-        </div>
-
-        <button class="login-btn" onclick="sendMagicLink('signup')" id="magicLinkBtn">
-          ✉ Maak account aan
-        </button>
-        <div class="login-msg" id="loginMsg"></div>
-        <div class="login-divider">Al een account?</div>
-        <button class="login-btn" onclick="showSignin()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
-          🔑 Inloggen
-        </button>
-        <div class="login-note">
-          Geen wachtwoord nodig — je ontvangt een magic link per email.<br>
-          Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacyverklaring</a>.
-        </div>
-      </div>
-
-      <!-- STAP 1B: INLOGGEN (terugkerende gebruiker) -->
-      <div class="login-step" id="loginStepSignin">
-        <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Voer je emailadres in — je ontvangt een <strong>magic link</strong> om direct in te loggen.
-        </div>
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="login-input" id="signinEmail" placeholder="jouw@email.com">
-        </div>
-        <button class="login-btn" onclick="sendMagicLink('signin')" id="signinBtn">
-          ✉ Stuur magic link
-        </button>
-        <div class="login-msg" id="signinMsg"></div>
-        <div class="login-divider">Nog geen account?</div>
-        <button class="login-btn" onclick="showSignup()" style="background:#f8f8f6;color:#1a1a18;border:1.5px solid #e0e0dc;">
-          ✨ Gratis aanmelden
-        </button>
-      </div>
-
-      <!-- STAP 2: EMAIL VERSTUURD -->
-      <div class="login-step" id="loginStepSent">
-        <div style="text-align:center;padding:1rem 0;">
-          <div style="font-size:40px;margin-bottom:12px;">📬</div>
-          <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check je email!</div>
-          <div style="font-size:13px;color:#555;line-height:1.6;" id="loginSentMsg">
-            We hebben een magic link gestuurd.<br>
-            Klik op de link in de email om direct in te loggen.
-          </div>
-          <div style="font-size:11px;color:#aaa;margin-top:16px;">
-            Geen email? Check je spam map of
-            <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-
 </body>
 </html>
