@@ -93,7 +93,7 @@
   .btn-gold:hover { background: var(--gold2); }
 
   .user-bar {
-    display: none;
+    display: none !important;
     background: rgba(255,255,255,0.08);
     border-radius: 6px;
     padding: 5px 10px;
@@ -102,7 +102,7 @@
     align-items: center;
     gap: 10px;
   }
-  .user-bar.visible { display: flex; }
+  .user-bar.visible { display: flex !important; }
 
   .btn-logout {
     background: transparent;
@@ -592,13 +592,17 @@ function doLogin()  { if (typeof openSignin === 'function') openSignin(); else i
 async function doLogout() { await supabaseClient.auth.signOut(); hideUserBar(); }
 
 function showUserBar(user) {
-  document.getElementById('userBar').classList.add('visible');
-  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'Gebruiker';
+  const bar = document.getElementById('userBar');
+  bar.classList.add('visible');
+  bar.style.display = 'flex';
+  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'User';
   document.getElementById('btnLogin').style.display    = 'none';
   document.getElementById('btnRegister').style.display = 'none';
 }
 function hideUserBar() {
-  document.getElementById('userBar').classList.remove('visible');
+  const bar = document.getElementById('userBar');
+  bar.classList.remove('visible');
+  bar.style.display = 'none';
   document.getElementById('btnLogin').style.display    = '';
   document.getElementById('btnRegister').style.display = '';
 }
