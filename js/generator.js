@@ -371,7 +371,7 @@ function updateAll(){
   // Dynamische stat label voor som/consecutive
   const somLabel = document.getElementById('somStatLabel');
   if(somLabel) somLabel.textContent = `${weighted.length} gewogen trekkingen · M${currentMachine}/B${currentBal} ×${weight}`;
-  setElHTML('ruleMain', `<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`;
+  setElHTML('ruleMain', `<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`);
   setElText('s-hot', hp.length);
   setElText('s-avg', ap.length);
   setElText('s-star', sp.length);
@@ -414,8 +414,8 @@ function updateAll(){
       <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#C0392B;display:inline-block;"></span>Hot</span>
       <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#E67E22;display:inline-block;"></span>Avg</span>
       <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:50%;background:#fff4e6;border:1px solid #e8922a;display:inline-block;"></span>Cold</span>
-    </div>`;
-  if(document.getElementById('pane-freq').classList.contains('active')) renderFreq();
+    </div>`);
+  if(document.getElementById('pane-freq') && document.getElementById('pane-freq').classList.contains('active')) renderFreq();
   updatePerformanceBadge();
 }
 
