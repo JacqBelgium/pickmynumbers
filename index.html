@@ -476,7 +476,7 @@
       </button>
 
       <div class="login-prompt" id="loginPrompt">
-        To generate tickets, please <a href="register.html">sign in</a> or
+        To generate tickets, please <a href="register.html?mode=signin">sign in</a> or
         <a href="register.html">register as a new user</a>.
       </div>
 
@@ -620,7 +620,7 @@ function handleGenerate() {
 }
 
 function doLogin() {
-  window.location.href = 'register.html';
+  window.location.href = 'register.html?mode=signin';
 }
 async function doLogout() {
   await supabaseClient.auth.signOut();
