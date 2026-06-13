@@ -332,12 +332,23 @@ function selectMachineBal(machine, bal, btn) {
 // =====================
 // UPDATE UI
 // =====================
+
+// Helper voor veilige element updates
+function setEl(id, prop, val) {
+  const el = document.getElementById(id);
+  if (el) el[prop] = val;
+}
+function setElText(id, val) { setEl(id, 'textContent', val); }
+function setElHTML(id, val) { setEl(id, 'innerHTML', val); }
+
 function updateAll(){
-  threshLow_v=parseInt(document.getElementById('sliderLow').value);
-  threshHigh_v=parseInt(document.getElementById('sliderHigh').value);
-  if(threshLow_v>threshHigh_v){threshHigh_v=threshLow_v+1;document.getElementById('sliderHigh').value=threshHigh_v;}
-  document.getElementById('valLow').textContent=threshLow_v;
-  document.getElementById('valHigh').textContent=threshHigh_v;
+  const sliderLow = document.getElementById('sliderLow');
+  const sliderHigh = document.getElementById('sliderHigh');
+  if(sliderLow) threshLow_v=parseInt(sliderLow.value);
+  if(sliderHigh) threshHigh_v=parseInt(sliderHigh.value);
+  if(threshLow_v>threshHigh_v){threshHigh_v=threshLow_v+1; if(sliderHigh) sliderHigh.value=threshHigh_v;}
+  if(document.getElementById('valLow')) document.getElementById('valLow').textContent=threshLow_v;
+  if(document.getElementById('valHigh')) document.getElementById('valHigh').textContent=threshHigh_v;
 
   // Show warning if user has changed defaults
   if(typeof defaultThreshLow!=='undefined' && typeof defaultThreshHigh!=='undefined'){
@@ -352,19 +363,19 @@ function updateAll(){
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg'),cp=buildPool('nums','cold'),sp=buildPool('stars','star');
   const dist=getPickDist();
   const avg=(draws.length*5/50).toFixed(1);
-  document.getElementById('avgDisp').textContent=avg;
-  document.getElementById('totalDraws').textContent=`${ALL_DRAWS.length} totaal, ${draws.length} M${currentMachine}/B${currentBal} · gewicht ×${weight}`;
-  document.getElementById('machineLabel').textContent='M'+currentMachine+'/B'+currentBal;
-  document.getElementById('machineBadge').textContent='M'+currentMachine+'/B'+currentBal;
-  document.getElementById('machineTag').textContent='M'+currentMachine+'/B'+currentBal+' · '+draws.length+' trekkingen · ×'+weight;
+  setElText('avgDisp', avg);
+  setElText('totalDraws', `${ALL_DRAWS.length} totaal, ${draws.length} M${currentMachine}/B${currentBal} · gewicht ×${weight}`);
+  setElText('machineLabel', 'M'+currentMachine+'/B'+currentBal);
+  setElText('machineBadge', 'M'+currentMachine+'/B'+currentBal);
+  setElText('machineTag', 'M'+currentMachine+'/B'+currentBal+' · '+draws.length+' trekkingen · ×'+weight);
   // Dynamische stat label voor som/consecutive
   const somLabel = document.getElementById('somStatLabel');
   if(somLabel) somLabel.textContent = `${weighted.length} gewogen trekkingen · M${currentMachine}/B${currentBal} ×${weight}`;
-  document.getElementById('ruleMain').innerHTML=`<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`;
-  document.getElementById('s-hot').textContent=hp.length;
-  document.getElementById('s-avg').textContent=ap.length;
-  document.getElementById('s-star').textContent=sp.length;
-  document.getElementById('s-cold').textContent=cp.length;
+  setElHTML('ruleMain', `<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`;
+  setElText('s-hot', hp.length);
+  setElText('s-avg', ap.length);
+  setElText('s-star', sp.length);
+  setElText('s-cold', cp.length);
   document.getElementById('poolPills').innerHTML=
     `<span class="pill pill-hot">Hot ${hp.length} (&gt;${threshHigh_v}×)</span>`+
     `<span class="pill pill-avg">Avg ${ap.length} (${threshLow_v}–${threshHigh_v}×)</span>`+
@@ -389,7 +400,7 @@ function updateAll(){
     `<span style="color:#888;">❄️ Cold: ${coldStars.join(' ')||'—'}</span>`;
   if(ruleStarCount) ruleStarCount.textContent = starsInProfile >= 4 ? 'Top 6' : starsInProfile >= 3 ? 'Top 5' : 'Top 3';
 
-  document.getElementById('starCombis').innerHTML=displayCombis.map((c,i)=>`
+  setElHTML('starCombis', displayCombis.map((c,i)=>`
     <div class="star-combi"><span class="star-combi-label">Combi ${i+1}:</span>
     ${c.map(s=>{
       const isHot = hotStars.includes(s);
@@ -514,8 +525,21 @@ function generateAll(){
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
   const dist=getPickDist();
   const{combis,combis3,combis4}=getStarStrategy();
-  if(hp.length<dist.hot){alert('Hot pool te klein — pas grenzen aan.');return;}
-  if(ap.length<dist.avg){alert('Average pool te klein — pas grenzen aan.');return;}
+
+  // Als hot pool te klein — gebruik combined pool zonder alert
+  let effectiveHp = hp;
+  let effectiveAp = ap;
+  let effectiveHot = dist.hot;
+  let effectiveAvg = dist.avg;
+
+  if(hp.length < dist.hot || ap.length < dist.avg) {
+    // Combineer hot + avg als één pool
+    const combined = [...hp, ...ap];
+    effectiveHp = combined.slice(0, Math.ceil(combined.length/2));
+    effectiveAp = combined.slice(Math.ceil(combined.length/2));
+    effectiveHot = Math.min(dist.hot, effectiveHp.length);
+    effectiveAvg = Math.min(dist.avg, effectiveAp.length);
+  }
 
   // Haal profiel op
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {nums:5,stars:2,tickets:numTickets};
@@ -532,7 +556,7 @@ function generateAll(){
 
   for(let t=1;t<=numTickets;t++){
     const extraNums = numsCount - 5;
-    const r=pickWithFilters(hp,ap,dist.hot,dist.avg,pickedNums,extraNums);
+    const r=pickWithFilters(effectiveHp,effectiveAp,effectiveHot,effectiveAvg,pickedNums,extraNums);
     const allNums=r.nums.sort((a,b)=>a-b),hotNums=r.h.map(x=>x.num);
 
     // Roteer door ster combinaties — elke ticket een andere

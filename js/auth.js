@@ -759,7 +759,8 @@ function showDisclaimer() {
     const t = DISC_TRANSLATIONS[lang];
     if (t) Object.keys(t).forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = t[id]; });
   }
-  document.getElementById('discOverlay').classList.add('open');
+  const discEl = document.getElementById('discOverlay');
+  if (discEl) discEl.classList.add('open');
 })();
 
 
