@@ -40,7 +40,7 @@ function parse(html) {
     if (n >= 1 && n <= 50 && !nums.includes(n) && nums.length < 5) nums.push(n);
   }
 
-  // Sterren - meerdere patronen
+  // Sterren
   for (const m of html.matchAll(/class="[^"]*lucky[^"]*">(\d+)</gi)) {
     const s = parseInt(m[1]);
     if (s >= 1 && s <= 12 && !stars.includes(s) && stars.length < 2) stars.push(s);
@@ -52,41 +52,46 @@ function parse(html) {
     }
   }
 
-  // Machine - meerdere patronen
-  const machinePatterns = [
-    /Ball Machine[:\s<>\w\/]*?(\d+)/i,
-    /Machine[:\s<>\w\/]*?(\d+)/i,
-    /"machine"[:\s]*(\d+)/i,
-    /machine.*?(\d{1,2})\b/i,
-  ];
+  // Machine — euro-millions.com toont "Ball Machine: 15" als plain text
   let machine = 0;
+  const machinePatterns = [
+    /Ball Machine:\s*(\d+)/i,
+    /Ball Machine<\/[^>]+>\s*(\d+)/i,
+    /Ball Machine[^0-9]*(\d{1,2})/i,
+    /"ballMachine"\s*:\s*(\d+)/i,
+    /machine["\s:>]+(\d{1,2})\b/i,
+  ];
   for (const p of machinePatterns) {
     const m = html.match(p);
     if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 20) {
       machine = parseInt(m[1]);
+      console.log(`Machine gevonden met patroon: ${p} → ${machine}`);
       break;
     }
   }
 
-  // Balset - meerdere patronen
-  const balPatterns = [
-    /Ball Set[:\s<>\w\/]*?(\d+)/i,
-    /Set[:\s<>\w\/]*?(\d+)/i,
-    /"ballSet"[:\s]*(\d+)/i,
-    /ball.?set.*?(\d{1,2})\b/i,
-  ];
+  // Balset — euro-millions.com toont "Ball Set: 19" als plain text
   let bal = 0;
+  const balPatterns = [
+    /Ball Set:\s*(\d+)/i,
+    /Ball Set<\/[^>]+>\s*(\d+)/i,
+    /Ball Set[^0-9]*(\d{1,2})/i,
+    /"ballSet"\s*:\s*(\d+)/i,
+    /ball.?set["\s:>]+(\d{1,2})\b/i,
+  ];
   for (const p of balPatterns) {
     const m = html.match(p);
     if (m && parseInt(m[1]) >= 1 && parseInt(m[1]) <= 30) {
       bal = parseInt(m[1]);
+      console.log(`Balset gevonden met patroon: ${p} → ${bal}`);
       break;
     }
   }
 
   // Draw number
   const drawM = html.match(/Draw Number[:\s<>\w\/]*?([0-9,]+)/i) ||
-                html.match(/"drawNumber"[:\s]*([0-9]+)/i);
+                html.match(/"drawNumber"[:\s]*([0-9]+)/i) ||
+                html.match(/Draw Number:\s*([0-9,]+)/i);
   const drawNum = drawM ? parseInt(drawM[1].replace(',','')) : 0;
 
   return {
@@ -110,17 +115,24 @@ try {
     process.exit(0);
   }
 
+  // Debug: toon machine/bal context
+  const machineIdx = r.body.toLowerCase().indexOf('ball machine');
+  if (machineIdx > 0) {
+    console.log('Machine context:', r.body.substring(machineIdx, machineIdx + 50));
+  } else {
+    console.log('⚠ "Ball Machine" niet gevonden in pagina');
+  }
+
   const d = parse(r.body);
   console.log('Gevonden:', JSON.stringify(d));
 
   if (d.nums.length !== 5 || d.stars.length !== 2) {
-    console.log(`Onvoldoende data (${d.nums.length} nrs, ${d.stars.length} sterren) — overslaan`);
+    console.log(`Onvoldoende data — overslaan`);
     process.exit(0);
   }
 
-  // Waarschuwing als machine/bal niet gevonden
   if (d.machine === 0 || d.bal === 0) {
-    console.log('⚠ Machine/bal niet gevonden — handmatig aanpassen nodig!');
+    console.log('⚠ Machine/bal niet gevonden — wordt 0 opgeslagen, handmatig aanpassen!');
   }
 
   let dataJs = fs.readFileSync('js/data.js', 'utf8');
