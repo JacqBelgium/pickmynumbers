@@ -381,6 +381,21 @@
     .stepper button { width: 34px; height: 34px; font-size: 18px; }
     .stepper-val { height: 34px; line-height: 34px; min-width: 38px; }
   }
+  /* Overlays */
+  .login-overlay, .disclaimer-overlay {
+    display: none !important;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+  .login-overlay.open, .disclaimer-overlay.open {
+    display: flex !important;
+  }
 </style>
 </head>
 <body>
@@ -684,7 +699,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<div class="login-overlay" id="loginOverlay">
+<div class="login-overlay" id="loginOverlay" style="display:none;">
   <div class="login-modal">
     <div class="login-header">
       <div class="login-header-icon">🎰</div>
@@ -816,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<div class="disclaimer-overlay" id="profileOverlay" onclick="profileOverlayClick(event)">
+<div class="disclaimer-overlay" id="profileOverlay" style="display:none;" onclick="profileOverlayClick(event)">
   <div class="disclaimer-modal" style="max-width:400px;">
     <div class="disc-header" style="padding-bottom:1.25rem;">
       <div class="disc-logo">
