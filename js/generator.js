@@ -376,10 +376,10 @@ function updateAll(){
   setElText('s-avg', ap.length);
   setElText('s-star', sp.length);
   setElText('s-cold', cp.length);
-  document.getElementById('poolPills').innerHTML=
+  setElHTML('poolPills',
     `<span class="pill pill-hot">Hot ${hp.length} (&gt;${threshHigh_v}×)</span>`+
     `<span class="pill pill-avg">Avg ${ap.length} (${threshLow_v}–${threshHigh_v}×)</span>`+
-    `<span class="pill pill-cold">Cold ${cp.length} (&lt;${threshLow_v}×)</span>`;
+    `<span class="pill pill-cold">Cold ${cp.length} (&lt;${threshLow_v}×)</span>`);
   const{top3,top5,top6,hotStars,avgStars,coldStars,starData,combis,combis3,combis4,avgFreq}=getStarStrategy();
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {stars:2};
   const starsInProfile = profile.stars || 2;
