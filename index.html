@@ -577,19 +577,25 @@ function handleGenerate() {
   window.profileValues.stars   = vals.stars;
   numTickets = vals.tickets;
 
-  // Genereer tickets via de generator
+  // Genereer tickets
   generateAll();
 
-  // Wacht tot generator klaar is en kopieer output
+  // Wacht tot generator klaar is
   const checkReady = (attempts) => {
     const grid = document.getElementById('ticketsGrid');
     const out  = document.getElementById('ticketsOut');
     if (!grid || !out) return;
 
-    // Check of er echte ballen zijn (niet vraagtekens)
     const balls = grid.querySelectorAll('.ball-hot, .ball-avg, .ball-star');
     if (balls.length > 0 || attempts > 20) {
       out.innerHTML = grid.innerHTML;
+      // Voeg regenerate knop toe
+      out.innerHTML += `<button onclick="handleGenerate()" style="
+        width:100%;padding:10px;margin-top:8px;
+        background:transparent;border:1.5px solid var(--border);
+        border-radius:8px;font-size:13px;color:var(--dim);
+        cursor:pointer;font-family:inherit;
+      ">↺ Generate new tickets</button>`;
       document.getElementById('saveBar').style.display = 'block';
     } else {
       setTimeout(() => checkReady(attempts + 1), 100);
@@ -599,18 +605,29 @@ function handleGenerate() {
 }
 
 function doLogin()  { if (typeof openSignin  === 'function') openSignin();  }
-function doLogout() { if (typeof logoutUser  === 'function') logoutUser();  }
+async function doLogout() {
+  await supabaseClient.auth.signOut();
+  hideUserBar();
+}
 
 function showUserBar(user) {
-  document.getElementById('userBar').classList.add('visible');
-  document.getElementById('userBarName').textContent = user.email?.split('@')[0] || 'Gebruiker';
-  document.getElementById('btnLogin').style.display    = 'none';
-  document.getElementById('btnRegister').style.display = 'none';
+  const bar = document.getElementById('userBar');
+  if (bar) { bar.classList.add('visible'); bar.style.display = 'flex'; }
+  const name = document.getElementById('userBarName');
+  if (name) name.textContent = user.email?.split('@')[0] || 'User';
+  const btnLogin = document.getElementById('btnLogin');
+  const btnReg = document.getElementById('btnRegister');
+  if (btnLogin) btnLogin.style.display = 'none';
+  if (btnReg) btnReg.style.display = 'none';
 }
+
 function hideUserBar() {
-  document.getElementById('userBar').classList.remove('visible');
-  document.getElementById('btnLogin').style.display    = '';
-  document.getElementById('btnRegister').style.display = '';
+  const bar = document.getElementById('userBar');
+  if (bar) { bar.classList.remove('visible'); bar.style.display = 'none'; }
+  const btnLogin = document.getElementById('btnLogin');
+  const btnReg = document.getElementById('btnRegister');
+  if (btnLogin) btnLogin.style.display = '';
+  if (btnReg) btnReg.style.display = '';
 }
 
 
