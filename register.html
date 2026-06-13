@@ -390,8 +390,17 @@ async function doSendMagicLink() {
 }
 
 // Als al ingelogd — redirect naar homepage
+// Check URL parameter — toon direct signin als mode=signin
 supabaseClient.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = 'index.html';
+  if (session) {
+    window.location.href = 'index.html';
+    return;
+  }
+  // Toon juiste formulier op basis van URL parameter
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('mode') === 'signin') {
+    doSignin();
+  }
 });
 
 </script>
