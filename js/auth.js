@@ -81,8 +81,8 @@ function updateUserBar(user) {
 
   if (user && user.email) {
     bar.style.display = 'flex';
-    document.getElementById('userBarName').textContent = user.name || 'Welkom!';
-    document.getElementById('userBarEmail').textContent = user.email;
+    const unEl = document.getElementById('userBarName'); if(unEl) unEl.textContent = user.name || 'Welkom!';
+    const ueEl = document.getElementById('userBarEmail'); if(ueEl) ueEl.textContent = user.email;
     if (authBtns) authBtns.style.display = 'none';
     // Toon genereer knop
     if (genBtn) genBtn.style.display = '';

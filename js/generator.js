@@ -207,7 +207,7 @@ function check2D(nums){
 function checkSom(nums){
   // Som van eerste 5 nummers
   const n5 = nums.slice(0,5);
-  const min=parseInt(document.getElementById('somMin').value),max=parseInt(document.getElementById('somMax').value);
+  const somMinEl=document.getElementById('somMin'),somMaxEl=document.getElementById('somMax'); const min=somMinEl?parseInt(somMinEl.value):90,max=somMaxEl?parseInt(somMaxEl.value):180;
   const s=n5.reduce((a,b)=>a+b,0);return s>=min&&s<=max;
 }
 function checkConsec(nums){
@@ -282,8 +282,8 @@ function renderMatrix(){
   });
   grid.innerHTML=html;
   const cov=Array.from(selectedMatrix).reduce((s,k)=>s+(MATRIX_DATA[k]?.count||0),0);
-  document.getElementById('matrixCoverage').textContent=`Dekking: ${(cov/104*100).toFixed(0)}%`;
-  document.getElementById('matrixDetail').textContent=`${selectedMatrix.size} patronen actief · 104 trekkingen 2025`;
+  setElText('matrixCoverage', `Dekking: ${(cov/104*100).toFixed(0)}%`);
+  setElText('matrixDetail', `${selectedMatrix.size} patronen actief · 104 trekkingen 2025`);
   document.getElementById('rule2D').textContent=selectedMatrix.size+' van 16';
 }
 function toggleMatrix(key){
@@ -499,8 +499,8 @@ function selectTickets(n){
   const costs = {5:2.5, 6:5, 7:14, 8:35};
   const costPerTicket = costs[profile.nums] || 2.5;
   const total = (n * costPerTicket).toFixed(2).replace('.',',');
-  document.getElementById('inzetInfo').innerHTML=`${n} ticket${n>1?'s':''} · <strong>€${total}</strong>${profile.nums>5?' (systeem spel)':''}`;
-  document.getElementById('genBtn').textContent=`Genereer ${n} ticket${n>1?'s':''}`;
+  setElHTML('inzetInfo', `${n} ticket${n>1?'s':''} · <strong>€${total}</strong>${profile.nums>5?' (systeem spel)':''}`);
+  setElText('genBtn', `Genereer ${n} ticket${n>1?'s':''}`);
   renderEmpty(n);
 }
 
