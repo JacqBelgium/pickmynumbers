@@ -6,7 +6,7 @@
 // =====================
 const SUPABASE_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_12OtIWelNKVROgLr6WULUQ_8PcTVPuN';
-const RESEND_KEY   = 're_i81eQ4t7_8mrprcfWwaNWCn1hnQH6BqiU';
+const RESEND_KEY   = 're_kGkTnHhe_9DwCxTZu1ZkcSqX3LGTv8nKg';
 const EDGE_EMAIL_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/smooth-responder';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
