@@ -108,8 +108,8 @@ function getStarStrategy(){
   const total = weighted.length;
   const avgFreq = (total * 2) / 12;
 
-  // Hot drempel: 1.5× voor sterren
-  const hotThresh = avgFreq * 1.5;
+  // Hot drempel: 1.3× voor sterren
+  const hotThresh = avgFreq * 1.3;
   const coldThresh = avgFreq * 0.7;
 
   const starData = [];
