@@ -889,14 +889,17 @@ function showTab(t) {
 // INITIALISATIE bij opstarten
 // =====================
 document.addEventListener('DOMContentLoaded', function() {
-  updateAll();
-  renderMatrix();
-  updateSom();
-  updateConsec();
-  setOverlap(1);
-  selectTickets(3);
-  document.getElementById('nextDraw').textContent = nextDrawDate();
-  if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
-  // Init analyse tab
-  showAnalyseTab('hot');
+  // Kleine delay zodat admin.js currentMachine/currentBal kan instellen
+  setTimeout(function() {
+    updateAll();
+    renderMatrix();
+    updateSom();
+    updateConsec();
+    setOverlap(1);
+    selectTickets(3);
+    const nd = document.getElementById('nextDraw');
+    if (nd) nd.textContent = nextDrawDate();
+    if (typeof updateProfileDisplay === 'function') updateProfileDisplay();
+    if (typeof showAnalyseTab === 'function') showAnalyseTab('hot');
+  }, 100);
 });
