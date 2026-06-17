@@ -389,15 +389,11 @@ function updateAll(){
   const starTitle = document.getElementById('starStratTitle');
   const starSub = document.getElementById('starSub');
   const ruleStarCount = document.getElementById('ruleStarCount');
-  if(starTitle) starTitle.textContent = starsInProfile >= 4
-    ? '4-Sterren strategie — hot/cold analyse M/B specifiek'
-    : starsInProfile >= 3
-    ? '3-Sterren strategie — hot/cold analyse M/B specifiek'
-    : '2-Sterren strategie — hot/cold analyse M/B specifiek';
+  if(starTitle) starTitle.textContent = 'Sterren Strategie — hot/cold analyse M/B specifiek';
   if(starSub) starSub.innerHTML =
-    `<span style="color:#A32D2D;">🔥 Hot: ${hotStars.join(' ')||'—'}</span> &nbsp;` +
-    `<span style="color:#7a5c1e;">📊 Avg: ${avgStars.join(' ')||'—'}</span> &nbsp;` +
-    `<span style="color:#888;">❄️ Cold: ${coldStars.join(' ')||'—'}</span>`;
+    `<span style="color:#C0392B;font-weight:500;">🔥 Hot: ${hotStars.length > 0 ? hotStars.map(s=>'★'+s).join(' · ') : '—'}</span><br>` +
+    `<span style="color:#E67E22;font-weight:500;">📊 Average: ${avgStars.length > 0 ? avgStars.map(s=>'★'+s).join(' · ') : '—'}</span><br>` +
+    `<span style="color:#888;font-weight:500;">❄️ Cold: ${coldStars.length > 0 ? coldStars.map(s=>'★'+s).join(' · ') : '—'}</span>`;
   if(ruleStarCount) ruleStarCount.textContent = starsInProfile >= 4 ? 'Top 6' : starsInProfile >= 3 ? 'Top 5' : 'Top 3';
 
   setElHTML('starCombis', displayCombis.map((c,i)=>`
