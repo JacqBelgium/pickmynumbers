@@ -6,13 +6,14 @@
 // =====================
 const SUPABASE_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_12OtIWelNKVROgLr6WULUQ_8PcTVPuN';
+const EDGE_EMAIL_URL = 'https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/smooth-responder';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
 // =====================
 // SETTINGS
 // =====================
-const TOTAL_FN = () => ALL_DRAWS.length;
+const TOTAL_FN = () => (typeof ALL_DRAWS !== 'undefined' ? ALL_DRAWS.length : 0);
 const AVG_FN   = () => (TOTAL_FN()*5)/50;
 let threshLow  = () => Math.round(AVG_FN()*0.67);
 let threshHigh_v = 4;
