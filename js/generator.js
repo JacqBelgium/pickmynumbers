@@ -133,20 +133,35 @@ function getStarStrategy(){
   const top5 = [...hotStars, ...avgStars].slice(0, 5);
   const top3 = top5.slice(0, 3);
 
-  // 2-ster combinaties: altijd 1 hot + 1 avg (of beste beschikbare)
+  // 2-ster combinaties — betere spreiding:
+  // Combi 1: hot1 + hot2 (als 2 hot sterren beschikbaar)
+  // Combi 2: hot1 + beste avg
+  // Combi 3: hot2 + 2e beste avg
+  // Combi 4+: hot1/hot2 roterend + volgende avg
   const combis2 = [];
-  const bestAvg = avgStars.slice(0, 4); // top 4 avg sterren
+  const bestAvg = avgStars.slice(0, 6); // top 6 avg sterren
 
-  if (hotStars.length >= 1) {
-    // Primaire strategie: 1 hot + 1 avg (roterend)
-    for(let h=0; h<hotStars.length && combis2.length<6; h++){
-      for(let a=0; a<bestAvg.length && combis2.length<6; a++){
-        combis2.push([hotStars[h], bestAvg[a]].sort((a,b)=>a-b));
-      }
+  if (hotStars.length >= 2) {
+    // Combi 1: beide hot sterren samen
+    combis2.push([hotStars[0], hotStars[1]].sort((a,b)=>a-b));
+    // Combi 2: hot1 + beste avg
+    if (bestAvg.length > 0) combis2.push([hotStars[0], bestAvg[0]].sort((a,b)=>a-b));
+    // Combi 3: hot2 + 2e beste avg
+    if (bestAvg.length > 1) combis2.push([hotStars[1], bestAvg[1]].sort((a,b)=>a-b));
+    // Combi 4: hot1 + 3e avg
+    if (bestAvg.length > 2) combis2.push([hotStars[0], bestAvg[2]].sort((a,b)=>a-b));
+    // Combi 5: hot2 + 4e avg
+    if (bestAvg.length > 3) combis2.push([hotStars[1], bestAvg[3]].sort((a,b)=>a-b));
+    // Combi 6: hot1 + 5e avg
+    if (bestAvg.length > 4) combis2.push([hotStars[0], bestAvg[4]].sort((a,b)=>a-b));
+  } else if (hotStars.length === 1) {
+    // 1 hot ster — combineer met elke avg ster
+    for(let a=0; a<bestAvg.length && combis2.length<6; a++){
+      combis2.push([hotStars[0], bestAvg[a]].sort((a,b)=>a-b));
     }
   }
 
-  // Fallback als niet genoeg hot sterren
+  // Fallback als niet genoeg combis
   if(combis2.length < 3) {
     const allCandidates = [...hotStars, ...avgStars];
     for(let i=0; i<allCandidates.length && combis2.length<3; i++){
