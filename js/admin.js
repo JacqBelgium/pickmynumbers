@@ -13,6 +13,18 @@ let fetchedDrawData = null;
 function getStoredPin(){ return localStorage.getItem(ADMIN_PIN_KEY)||'1234'; }
 
 
+// Helper: berekent hot sterren voor een specifieke M/B combinatie
+function getHotStarsForMB(machine, bal) {
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal);
+  if (mbDraws.length < 5) return [];
+  const freq = {};
+  for(let n=1;n<=12;n++) freq[n]=0;
+  mbDraws.forEach(d => d.stars.forEach(s => freq[s]++));
+  const avg = (mbDraws.length * 2) / 12;
+  const hotThresh = avg * 1.3;
+  return Object.keys(freq).map(Number).filter(n => freq[n] >= hotThresh);
+}
+
 // =====================
 // ADMIN — LOCK BUTTON
 // =====================
@@ -721,28 +733,26 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     const ticketLow = t.nums.filter(n => n<=25).length;
 
     return `
-      <div style="background:${hasPrize?'#f0f8ec':'#f8f8f6'};border:1px solid ${hasPrize?'#c8e0b8':'#e8e8e4'};border-radius:10px;padding:12px 14px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <span style="font-size:12px;font-weight:500;color:#555;">Ticket ${t.ticket_number}</span>
-          <span style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</span>
-        </div>
-        <div style="margin-bottom:8px;">
+      <div style="background:${hasPrize?'#f0f8ec':'#f8f8f6'};border:1px solid ${hasPrize?'#c8e0b8':'#e8e8e4'};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
+          <tr>
+            <td style="font-size:12px;font-weight:500;color:#555;">Ticket ${t.ticket_number}</td>
+            <td align="right" style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</td>
+          </tr>
+        </table>
+        <div style="margin-bottom:6px;">
           ${t.nums.map(n => {
             const hit = actualNums.includes(n);
-            return `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">${n}</span>`;
+            return `<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:10px;font-weight:600;margin:1px;line-height:28px;text-align:center;">${n}</span>`;
           }).join('')}
-          <span style="margin:0 4px;color:#ddd;font-size:16px;">+</span>
+          <span style="margin:0 3px;color:#ddd;">+</span>
           ${t.stars.map(s => {
             const hit = actualStars.includes(s);
-            return `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">★${s}</span>`;
+            return `<span style="display:inline-block;width:28px;height:28px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:10px;font-weight:600;margin:1px;line-height:28px;text-align:center;">★${s}</span>`;
           }).join('')}
         </div>
-        <div style="font-size:10px;color:#aaa;display:flex;gap:12px;">
-          <span>Som: ${ticketSum}</span>
-          <span>${ticketOdd} oneven · ${t.nums.length - ticketOdd} even</span>
-          <span>${ticketLow} laag · ${t.nums.length - ticketLow} hoog</span>
-          <span style="color:${numHits.length>0?'#0C447C':'#aaa'};">${numHits.length} nrs raak</span>
-          <span style="color:${starHits.length>0?'#8a4510':'#aaa'};">${starHits.length} ★ raak</span>
+        <div style="font-size:10px;color:#aaa;">
+          Som: ${ticketSum} &nbsp;·&nbsp; ${numHits.length} nrs raak &nbsp;·&nbsp; ${starHits.length} ★ raak
         </div>
       </div>`;
   }).join('');
@@ -786,9 +796,9 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
         <div style="background:#f8f8f6;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;">
           <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.06em;margin-bottom:10px;text-transform:uppercase;">Officiële uitslag</div>
           <div style="margin-bottom:4px;">
-            ${actualNums.map(n => `<span style="display:inline-block;width:38px;height:38px;border-radius:50%;background:#1a1a18;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:38px;text-align:center;vertical-align:middle;">${n}</span>`).join('')}
+            ${actualNums.map(n => `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:#1a1a18;color:#fff;font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">${n}</span>`).join('')}
             <span style="margin:0 8px;color:#ddd;font-size:20px;vertical-align:middle;">+</span>
-            ${actualStars.map(s => `<span style="display:inline-block;width:38px;height:38px;border-radius:50%;background:#e8922a;color:#fff;font-size:13px;font-weight:600;margin:2px;line-height:38px;text-align:center;vertical-align:middle;">★${s}</span>`).join('')}
+            ${actualStars.map(s => `<span style="display:inline-block;width:32px;height:32px;border-radius:50%;background:#e8922a;color:#fff;font-size:11px;font-weight:600;margin:2px;line-height:32px;text-align:center;vertical-align:middle;">★${s}</span>`).join('')}
           </div>
         </div>
 
@@ -813,9 +823,14 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
             <div>• Verdeling: <strong>${actualOdd} oneven + ${actualEven} even</strong> — ${oddEvenAnalysis}</div>
             <div>• Bereik: <strong>${actualLow} laag (≤25) + ${actualHigh} hoog (>25)</strong> — ${lowHighAnalysis}</div>
             <div>• Lucky Stars <strong>★${actualStars[0]} & ★${actualStars[1]}</strong> — ${
-              actualStars.every(s => [6,5,9].includes(s)) ? '🔥 beide zijn hot sterren voor M13/B21' :
-              actualStars.some(s => [6,5,9].includes(s)) ? '📊 1 hot ster gevallen' :
-              '❄️ beide zijn avg/cold sterren deze ronde'
+              (() => {
+                const hotStars = getHotStarsForMB(draw.machine, draw.bal);
+                const bothHot = actualStars.every(s => hotStars.includes(s));
+                const oneHot = actualStars.some(s => hotStars.includes(s));
+                return bothHot ? `🔥 beide zijn hot sterren voor M${draw.machine}/B${draw.bal}` :
+                       oneHot  ? `📊 1 hot ster gevallen` :
+                                 `❄️ beide zijn avg/cold sterren deze ronde`;
+              })()
             }</div>
           </div>
         </div>
