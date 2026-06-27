@@ -740,17 +740,23 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
             <td align="right" style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</td>
           </tr>
         </table>
-        <div style="margin-bottom:6px;">
-          ${t.nums.map(n => {
-            const hit = actualNums.includes(n);
-            return `<span style="display:inline-table;width:26px;height:26px;border-radius:50%;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;margin:1px;text-align:center;vertical-align:middle;line-height:26px;overflow:hidden;white-space:nowrap;">${n}</span>`;
-          }).join('')}
-          <span style="margin:0 3px;color:#ddd;">+</span>
-          ${t.stars.map(s => {
-            const hit = actualStars.includes(s);
-            return `<span style="display:inline-table;width:26px;height:26px;border-radius:50%;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;margin:1px;text-align:center;vertical-align:middle;line-height:26px;overflow:hidden;white-space:nowrap;">★${s}</span>`;
-          }).join('')}
-        </div>
+        <table cellpadding="0" cellspacing="0" style="margin-bottom:6px;">
+          <tr>
+            ${t.nums.map(n => {
+              const hit = actualNums.includes(n);
+              return `<td width="30" height="30" style="text-align:center;vertical-align:middle;padding:1px;">
+                <div style="width:26px;height:26px;border-radius:13px;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;text-align:center;line-height:26px;margin:0 auto;">${n}</div>
+              </td>`;
+            }).join('')}
+            <td style="padding:0 4px;color:#ddd;vertical-align:middle;">+</td>
+            ${t.stars.map(s => {
+              const hit = actualStars.includes(s);
+              return `<td width="30" height="30" style="text-align:center;vertical-align:middle;padding:1px;">
+                <div style="width:26px;height:26px;border-radius:13px;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;text-align:center;line-height:26px;margin:0 auto;">&#9733;${s}</div>
+              </td>`;
+            }).join('')}
+          </tr>
+        </table>
         <div style="font-size:10px;color:#aaa;">
           Som: ${ticketSum} &nbsp;·&nbsp; ${numHits.length} nrs raak &nbsp;·&nbsp; ${starHits.length} ★ raak
         </div>
@@ -795,11 +801,17 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
         <div style="background:#f8f8f6;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;">
           <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.06em;margin-bottom:10px;text-transform:uppercase;">Officiële uitslag</div>
-          <div style="margin-bottom:4px;">
-            ${actualNums.map(n => `<span style="display:inline-table;width:30px;height:30px;border-radius:50%;background:#1a1a18;color:#fff;font-size:10px;font-weight:700;margin:2px;text-align:center;line-height:30px;overflow:hidden;white-space:nowrap;">${n}</span>`).join('')}
-            <span style="margin:0 8px;color:#ddd;font-size:20px;vertical-align:middle;">+</span>
-            ${actualStars.map(s => `<span style="display:inline-table;width:30px;height:30px;border-radius:50%;background:#e8922a;color:#fff;font-size:10px;font-weight:700;margin:2px;text-align:center;line-height:30px;overflow:hidden;white-space:nowrap;">★${s}</span>`).join('')}
-          </div>
+          <table cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+            <tr>
+              ${actualNums.map(n => `<td width="34" height="34" style="text-align:center;vertical-align:middle;padding:2px;">
+                <div style="width:30px;height:30px;border-radius:15px;background:#1a1a18;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:30px;margin:0 auto;">${n}</div>
+              </td>`).join('')}
+              <td style="padding:0 6px;color:#ddd;font-size:18px;vertical-align:middle;">+</td>
+              ${actualStars.map(s => `<td width="34" height="34" style="text-align:center;vertical-align:middle;padding:2px;">
+                <div style="width:30px;height:30px;border-radius:15px;background:#e8922a;color:#fff;font-size:10px;font-weight:700;text-align:center;line-height:30px;margin:0 auto;">&#9733;${s}</div>
+              </td>`).join('')}
+            </tr>
+          </table>
         </div>
 
 
