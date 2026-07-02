@@ -5,6 +5,9 @@ on:
     - cron: '30 20 * * 2,5'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   fetch-and-update:
     runs-on: ubuntu-latest
@@ -12,8 +15,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}
           persist-credentials: true
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,7 +26,7 @@ jobs:
       - name: Fetch latest draw
         run: node scripts/fetch-draw.mjs
 
-      - name: Commit and push dataset
+      - name: Commit dataset
         run: |
           git config user.name 'PickMyNumbers Bot'
           git config user.email 'bot@pickmynumbers.eu'
@@ -37,12 +40,14 @@ jobs:
 
       - name: Send analysis emails
         run: |
-          if [ -f /tmp/new_draw.txt ]; then
+          if [ -f /tmp/new_draw.txt ] && [ -f /tmp/draw_info.json ]; then
+            DRAW_INFO=$(cat /tmp/draw_info.json)
+            echo "Emails sturen voor: $DRAW_INFO"
             curl -s -X POST \
               "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/rapid-processor" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
-              -d "$(cat /tmp/draw_info.json)"
+              -d "$DRAW_INFO"
             echo "Emails verstuurd"
           else
             echo "Geen nieuwe trekking"
