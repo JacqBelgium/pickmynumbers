@@ -733,34 +733,25 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     const ticketLow = t.nums.filter(n => n<=25).length;
 
     return `
-      <div style="background:${hasPrize?'#f0f8ec':'#f8f8f6'};border:1px solid ${hasPrize?'#c8e0b8':'#e8e8e4'};border-radius:10px;padding:10px 12px;margin-bottom:8px;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
-          <tr>
-            <td style="font-size:12px;font-weight:500;color:#555;">Ticket ${t.ticket_number}</td>
-            <td align="right" style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</td>
-          </tr>
-        </table>
-        <table cellpadding="0" cellspacing="0" style="margin-bottom:6px;">
-          <tr>
+      <tr>
+        <td style="padding:8px 12px;font-size:13px;color:#888;vertical-align:top;white-space:nowrap;">Ticket ${t.ticket_number}${hasPrize ? '<br><span style="color:'+prize.color+';font-weight:600;font-size:11px;">'+prize.label+'</span>' : ''}</td>
+        <td style="padding:8px 12px;">
+          <span style="font-size:14px;font-weight:600;color:#1a1a18;">
             ${t.nums.map(n => {
               const hit = actualNums.includes(n);
-              return `<td width="30" height="30" style="text-align:center;vertical-align:middle;padding:1px;">
-                <div style="width:26px;height:26px;border-radius:13px;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;text-align:center;line-height:26px;margin:0 auto;">${n}</div>
-              </td>`;
+              return `<span style="display:inline-block;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;font-size:10px;font-weight:700;margin:1px;">${n}</span>`;
             }).join('')}
-            <td style="padding:0 4px;color:#ddd;vertical-align:middle;">+</td>
+          </span>
+          <span style="color:#ddd;margin:0 4px;">+</span>
+          <span style="font-size:14px;font-weight:600;">
             ${t.stars.map(s => {
               const hit = actualStars.includes(s);
-              return `<td width="30" height="30" style="text-align:center;vertical-align:middle;padding:1px;">
-                <div style="width:26px;height:26px;border-radius:13px;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;text-align:center;line-height:26px;margin:0 auto;">&#9733;${s}</div>
-              </td>`;
+              return `<span style="display:inline-block;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;font-size:10px;font-weight:700;margin:1px;">&#9733;${s}</span>`;
             }).join('')}
-          </tr>
-        </table>
-        <div style="font-size:10px;color:#aaa;">
-          Som: ${ticketSum} &nbsp;·&nbsp; ${numHits.length} nrs raak &nbsp;·&nbsp; ${starHits.length} ★ raak
-        </div>
-      </div>`;
+          </span>
+          <br><span style="font-size:10px;color:#aaa;">${numHits.length} nrs raak · ${starHits.length} ★ raak</span>
+        </td>
+      </tr>`;
   }).join('');
 
   // ── Algemene analyse ──
@@ -825,7 +816,9 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
         <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px;">
           Jouw tickets <span style="font-size:11px;font-weight:400;color:#aaa;">(donkerblauw/oranje = raak)</span>
         </div>
-        ${ticketRows}
+        <table style="width:100%;border-collapse:collapse;background:#f8f8f6;border-radius:8px;overflow:hidden;">
+          ${ticketRows}
+        </table>
 
 
         <div style="background:#f0f6ff;border:1px solid #bdd9f5;border-radius:10px;padding:14px 16px;margin-top:1.5rem;">
