@@ -734,22 +734,25 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
     return `
       <tr>
-        <td style="padding:8px 12px;font-size:13px;color:#888;vertical-align:top;white-space:nowrap;">Ticket ${t.ticket_number}${hasPrize ? '<br><span style="color:'+prize.color+';font-weight:600;font-size:11px;">'+prize.label+'</span>' : ''}</td>
-        <td style="padding:8px 12px;">
-          <span style="font-size:14px;font-weight:600;color:#1a1a18;">
+        <td style="padding:10px 12px;border-bottom:1px solid #e8e8e4;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:6px;">
+            <tr>
+              <td style="font-size:12px;font-weight:600;color:#555;">Ticket ${t.ticket_number}</td>
+              <td align="right" style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</td>
+            </tr>
+          </table>
+          <div style="font-size:13px;line-height:1.8;">
             ${t.nums.map(n => {
               const hit = actualNums.includes(n);
               return `<span style="display:inline-block;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;font-size:10px;font-weight:700;margin:1px;">${n}</span>`;
             }).join('')}
-          </span>
-          <span style="color:#ddd;margin:0 4px;">+</span>
-          <span style="font-size:14px;font-weight:600;">
+            <span style="color:#ddd;margin:0 2px;">+</span>
             ${t.stars.map(s => {
               const hit = actualStars.includes(s);
               return `<span style="display:inline-block;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};border-radius:50%;width:28px;height:28px;line-height:28px;text-align:center;font-size:10px;font-weight:700;margin:1px;">&#9733;${s}</span>`;
             }).join('')}
-          </span>
-          <br><span style="font-size:10px;color:#aaa;">${numHits.length} nrs raak · ${starHits.length} ★ raak</span>
+          </div>
+          <div style="font-size:10px;color:#aaa;margin-top:4px;">${numHits.length} nrs raak &nbsp;·&nbsp; ${starHits.length} ★ raak</div>
         </td>
       </tr>`;
   }).join('');
