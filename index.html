@@ -4,750 +4,172 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PickMyNumbers — EuroMillions Number Optimizer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --ink:#0d0d0b; --paper:#f7f7f5; --gold:#c9a84c; --gold2:#e8d08a; --dim:#777; --border:#e2e2dc; }
+body { font-family:'DM Sans',sans-serif; background:var(--paper); color:var(--ink); line-height:1.6; }
 
-  :root {
-    --ink:    #0f0f0d;
-    --paper:  #f8f8f6;
-    --gold:   #c8a84b;
-    --gold2:  #e8d08a;
-    --dim:    #888;
-    --border: #e0e0da;
-    --green:  #2E7D32;
-  }
+nav { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(13,13,11,0.95); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:space-between; padding:0.9rem 2rem; border-bottom:1px solid rgba(201,168,76,0.2); }
+.nav-logo { font-family:'Playfair Display',serif; font-size:17px; font-weight:700; color:#fff; text-decoration:none; display:flex; align-items:center; gap:8px; }
+.beta-pill { font-size:9px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; background:var(--gold); color:var(--ink); padding:2px 7px; border-radius:10px; }
+.nav-actions { display:flex; gap:8px; align-items:center; }
+.btn-ghost { font-size:13px; color:rgba(255,255,255,0.7); background:transparent; border:1px solid rgba(255,255,255,0.2); padding:6px 14px; border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; }
+.btn-ghost:hover { color:#fff; border-color:rgba(255,255,255,0.5); }
+.btn-gold { font-size:13px; font-weight:600; color:var(--ink); background:var(--gold); border:none; padding:6px 16px; border-radius:4px; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; }
+.btn-gold:hover { background:var(--gold2); }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+.hero { background:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8rem 2rem 5rem; position:relative; overflow:hidden; }
+.hero::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 50% at 50% 30%, rgba(201,168,76,0.1) 0%, transparent 70%); pointer-events:none; }
+.hero-eyebrow { font-size:11px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:1.5rem; }
+.hero h1 { font-family:'Playfair Display',serif; font-size:clamp(2.2rem,6vw,4.4rem); font-weight:900; line-height:1.1; color:#fff; max-width:760px; margin-bottom:1.5rem; position:relative; }
+.hero h1 em { font-style:italic; color:var(--gold); }
+.hero-sub { font-size:clamp(14px,2.5vw,16px); color:rgba(255,255,255,0.6); max-width:520px; margin-bottom:0.4rem; font-weight:300; }
+.hero-sub2 { font-size:clamp(12px,2vw,13px); color:rgba(201,168,76,0.55); max-width:500px; margin-bottom:2.5rem; font-style:italic; font-weight:300; }
+.hero-cta { display:inline-block; background:var(--gold); color:var(--ink); font-size:15px; font-weight:700; padding:14px 36px; border-radius:4px; text-decoration:none; margin-bottom:0.75rem; }
+.hero-cta:hover { background:var(--gold2); }
+.hero-cta-sub { font-size:12px; color:rgba(255,255,255,0.3); margin-bottom:3rem; }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+.stats-bar { background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.2); display:flex; border-radius:8px; overflow:hidden; width:100%; max-width:560px; }
+.stat-item { flex:1; text-align:center; padding:1.25rem 0.75rem; border-right:1px solid rgba(201,168,76,0.15); }
+.stat-item:last-child { border-right:none; }
+.stat-num { font-family:'Playfair Display',serif; font-size:clamp(1.5rem,4vw,2rem); font-weight:700; color:var(--gold); display:block; line-height:1; margin-bottom:4px; }
+.stat-label { font-size:10px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.4); }
 
-  header {
-    background: var(--ink);
-    padding: 1rem 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
+.how-dark { background:var(--ink); padding:5rem 2rem; }
+.how-inner { max-width:840px; margin:0 auto; }
+.section-eyebrow { font-size:10px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin-bottom:0.75rem; }
+.how-dark h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.4rem); font-weight:700; color:#fff; margin-bottom:1rem; }
+.how-dark p { font-size:15px; color:rgba(255,255,255,0.55); max-width:580px; }
+.steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:2rem; margin-top:3rem; }
+.step { border-top:2px solid rgba(201,168,76,0.3); padding-top:1.25rem; }
+.step-num { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:rgba(201,168,76,0.35); display:block; margin-bottom:0.5rem; line-height:1; }
+.step-title { font-size:14px; font-weight:600; color:#fff; margin-bottom:0.4rem; }
+.step-body { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.6; }
 
-  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-  .logo-icon { font-size: 22px; }
-  .logo-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: #fff;
-  }
-  .beta-badge {
-    background: var(--gold);
-    color: var(--ink);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 2px 7px;
-    border-radius: 3px;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
+.why-section { max-width:840px; margin:0 auto; padding:5rem 2rem; }
+.why-section h2 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.4rem); font-weight:700; margin-bottom:1rem; }
+.why-section > p { font-size:15px; color:#555; max-width:580px; margin-bottom:2.5rem; }
+.why-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.25rem; }
+.why-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:1.5rem; }
+.why-icon { font-size:22px; margin-bottom:0.75rem; }
+.why-title { font-size:14px; font-weight:600; margin-bottom:0.4rem; }
+.why-body { font-size:13px; color:var(--dim); line-height:1.6; }
 
-  .header-actions { display: flex; gap: 8px; align-items: center; }
+.divider { height:1px; background:var(--border); max-width:840px; margin:0 auto; }
 
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.25);
-    color: rgba(255,255,255,0.8);
-    font-size: 13px;
-    padding: 7px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: border-color 0.15s;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn-ghost:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+.cta-section { background:var(--ink); padding:6rem 2rem; text-align:center; }
+.cta-section h2 { font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,2.8rem); font-weight:700; color:#fff; margin-bottom:1rem; max-width:500px; margin-left:auto; margin-right:auto; }
+.cta-section p { font-size:15px; color:rgba(255,255,255,0.5); max-width:380px; margin:0 auto 2rem; }
+.cta-btn-large { display:inline-block; background:var(--gold); color:var(--ink); font-size:16px; font-weight:700; padding:16px 44px; border-radius:4px; text-decoration:none; }
+.cta-btn-large:hover { background:var(--gold2); }
+.cta-note { margin-top:1rem; font-size:12px; color:rgba(255,255,255,0.3); }
 
-  .btn-gold {
-    background: var(--gold);
-    border: none;
-    color: var(--ink);
-    font-size: 13px;
-    font-weight: 600;
-    padding: 7px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    text-decoration: none;
-    display: inline-block;
-  }
-  .btn-gold:hover { background: var(--gold2); }
+footer { background:#080807; padding:2rem; text-align:center; font-size:12px; color:rgba(255,255,255,0.3); line-height:1.8; }
+footer a { color:rgba(255,255,255,0.4); text-decoration:none; }
+footer a:hover { color:rgba(255,255,255,0.7); }
 
-  .user-bar {
-    display: none;
-    background: rgba(255,255,255,0.08);
-    border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 12px;
-    color: rgba(255,255,255,0.7);
-    align-items: center;
-    gap: 10px;
-  }
-  .user-bar.visible { display: flex; }
-
-  .btn-logout {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: rgba(255,255,255,0.6);
-    font-size: 11px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .hero {
-    background: var(--ink);
-    color: #fff;
-    padding: 3rem 2rem 2.5rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(200,168,75,0.12) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .tagline {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.5rem, 4.5vw, 2.4rem);
-    font-weight: 900;
-    line-height: 1.2;
-    margin-bottom: 0.75rem;
-    position: relative;
-    z-index: 1;
-  }
-  .tagline em { font-style: italic; color: var(--gold); }
-
-  .sub {
-    font-size: clamp(13px, 2.5vw, 15px);
-    color: var(--gold2);
-    max-width: 520px;
-    margin: 0 auto 0.35rem;
-    font-weight: 300;
-    line-height: 1.6;
-    position: relative;
-    z-index: 1;
-  }
-  .sub2 {
-    font-size: clamp(12px, 2vw, 14px);
-    color: rgba(232,208,138,0.85);
-    max-width: 500px;
-    margin: 0 auto;
-    font-weight: 300;
-    font-style: italic;
-    position: relative;
-    z-index: 1;
-  }
-
-  .card-wrap {
-    flex: 1;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 2rem 1.5rem 3rem;
-  }
-
-  .card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    width: 100%;
-    max-width: 480px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    overflow: hidden;
-  }
-
-  .card-header {
-    background: var(--ink);
-    color: #fff;
-    padding: 0.9rem 1.5rem;
-    font-size: 13px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .card-body { padding: 1.5rem; }
-
-  .controls { display: flex; flex-direction: column; gap: 1.25rem; }
-
-  .ctrl-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .ctrl-label { font-size: 13px; font-weight: 500; color: var(--ink); min-width: 90px; }
-  .ctrl-label span { display: block; font-size: 11px; color: var(--dim); font-weight: 400; margin-top: 1px; }
-
-  .stepper {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  .stepper button {
-    width: 38px;
-    height: 38px;
-    border: none;
-    background: var(--paper);
-    color: var(--ink);
-    font-size: 20px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.1s;
-    flex-shrink: 0;
-    line-height: 1;
-  }
-  .stepper button:hover:not(:disabled) { background: #ebebeb; }
-  .stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  .stepper-val {
-    min-width: 44px;
-    text-align: center;
-    font-size: 17px;
-    font-weight: 600;
-    background: #fff;
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    padding: 0 4px;
-    height: 38px;
-    line-height: 38px;
-  }
-
-  .cost-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--paper);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: var(--dim);
-    margin-top: 0.5rem;
-  }
-  .cost-val { font-size: 16px; font-weight: 700; color: var(--ink); }
-
-  .btn-generate {
-    width: 100%;
-    padding: 14px;
-    background: var(--ink);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    transition: background 0.15s;
-    margin-top: 0.75rem;
-  }
-  .btn-generate:hover { background: #2a2a26; }
-
-  .login-prompt {
-    display: none;
-    background: #fff8e6;
-    border: 1px solid #fde8a0;
-    border-radius: 8px;
-    padding: 12px 14px;
-    text-align: center;
-    font-size: 13px;
-    color: #7a5c1e;
-    margin-top: 10px;
-    line-height: 1.6;
-  }
-  .login-prompt a { color: var(--ink); font-weight: 600; text-decoration: underline; cursor: pointer; }
-
-  .tickets-out { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 10px; }
-
-  .ticket {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    background: var(--paper);
-  }
-  .ticket-hdr {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--dim);
-    margin-bottom: 8px;
-  }
-  .balls { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
-  .ball {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1;
-  }
-  .ball-hot  { background: #E6F1FB; color: #0C447C; border: 1.5px solid #378ADD; }
-  .ball-avg  { background: #fdf8ec; color: #7a5c1e; border: 1px solid #d4a840; }
-  .ball-star { background: #fff4e6; color: #8a4510; border: 1.5px solid #e8922a; }
-  .ball-empty { background: #f0f0ec; color: #bbb; border: 1px solid #e0e0da; }
-  .sep { color: var(--border); font-size: 18px; padding: 0 2px; }
-
-  .ticket-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
-  .ttag { font-size: 10px; padding: 2px 7px; border-radius: 10px; background: #f0efea; color: #888; }
-  .ttag-g { background: #f0f8ec; color: #3B6D11; }
-  .ttag-b { background: #e8f0fb; color: #0C447C; }
-  .ttag-o { background: #fff4e6; color: #8a4510; }
-  .ttag-p { background: #f5f0fb; color: #5B1FAD; }
-  .ttag-w { background: #fff8e6; color: #7a5c1e; }
-
-  .save-bar {
-    display: none;
-    border-top: 1px solid var(--border);
-    padding: 1rem 1.5rem;
-    background: var(--paper);
-  }
-  .btn-save {
-    width: 100%;
-    padding: 12px;
-    background: var(--green);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: background 0.15s;
-  }
-  .btn-save:hover { background: #256227; }
-  .save-note { font-size: 11px; color: var(--dim); text-align: center; margin-top: 6px; }
-
-  .optimizer-link {
-    text-align: center;
-    padding: 0.75rem;
-    font-size: 12px;
-    color: var(--dim);
-    border-top: 1px solid var(--border);
-    background: #fff;
-  }
-  .optimizer-link a { color: var(--ink); font-weight: 500; text-decoration: underline; }
-
-  footer {
-    background: var(--ink);
-    color: rgba(255,255,255,0.75);
-    text-align: center;
-    padding: 1.5rem 2rem;
-    font-size: 11px;
-    line-height: 1.8;
-  }
-  footer a { color: #fff; text-decoration: none; font-weight: 600; }
-  footer a:hover { color: rgba(255,255,255,0.8); }
-
-  @media (max-width: 480px) {
-    header { padding: 0.75rem 1rem; }
-    .hero { padding: 2.5rem 1rem 2rem; }
-    .card-wrap { padding: 1.25rem 1rem 2rem; }
-    .card-body { padding: 1.25rem; }
-    .ball { width: 30px; height: 30px; font-size: 11px; }
-    .stepper button { width: 34px; height: 34px; font-size: 18px; }
-    .stepper-val { height: 34px; line-height: 34px; min-width: 38px; }
-  }
-  /* Overlays */
-  body .login-overlay, body .disclaimer-overlay {
-    display: none !important;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    overflow-y: auto;
-  }
-  body .login-overlay.open, body .disclaimer-overlay.open {
-    display: flex !important;
-  }
+@media (max-width:600px) {
+  nav { padding:0.75rem 1rem; }
+  .hero { padding:7rem 1.5rem 4rem; }
+  .stats-bar { flex-direction:column; }
+  .stat-item { border-right:none; border-bottom:1px solid rgba(201,168,76,0.15); }
+  .stat-item:last-child { border-bottom:none; }
+  .how-dark, .why-section { padding:3.5rem 1.5rem; }
+}
 </style>
 </head>
 <body>
 
-<header>
-  <a class="logo" href="#">
-    <span class="logo-icon">🎰</span>
-    <span class="logo-name">PickMyNumbers<span class="beta-badge">BETA</span></span>
-  </a>
-  <div class="header-actions">
-    <div class="user-bar" id="userBar">
-      <span id="userBarName">—</span>
-      <button class="btn-logout" onclick="doLogout()">Sign out</button>
-    </div>
-    <a href="register.html" class="btn-ghost" id="btnRegister">Register</a>
-    <button class="btn-gold" onclick="doLogin()" id="btnLogin">Sign in</button>
+<nav>
+  <a class="nav-logo" href="#">🎰 PickMyNumbers <span class="beta-pill">Beta</span></a>
+  <div class="nav-actions">
+    <a href="register.html?mode=signin" class="btn-ghost">Sign in</a>
+    <a href="register.html" class="btn-gold">Register free</a>
   </div>
-</header>
+</nav>
 
 <div class="hero">
-  <h1 class="tagline">The only tool that <em>optimizes</em><br>your EuroMillions numbers.</h1>
-  <p class="sub">Based on actual use of draw machine and ball set.</p>
-  <p class="sub2">While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.</p>
+  <p class="hero-eyebrow">EuroMillions Number Optimizer</p>
+  <h1>The only tool that plays<br>the <em>machine</em>, not just the odds.</h1>
+  <p class="hero-sub">Based on the actual draw machine and ball set in use tonight — not 20 years of unfiltered history.</p>
+  <p class="hero-sub2">While others analyse every draw ever played, we filter on the specific equipment used for tonight's draw.</p>
+  <a href="optimizer.html" class="hero-cta">Open the optimizer →</a>
+  <p class="hero-cta-sub">Free to use · No credit card required</p>
+  <div class="stats-bar">
+    <div class="stat-item"><span class="stat-num" id="statPct">—</span><span class="stat-label">Avg pool coverage</span></div>
+    <div class="stat-item"><span class="stat-num" id="statDraws">—</span><span class="stat-label">Draws analysed</span></div>
+    <div class="stat-item"><span class="stat-num">12×</span><span class="stat-label">Better odds*</span></div>
+  </div>
 </div>
 
-<div class="card-wrap">
-  <div class="card">
-
-    <div class="card-header">
-      <span>🎯</span>
-      <span>Configure your tickets</span>
+<div class="how-dark">
+  <div class="how-inner">
+    <p class="section-eyebrow">How it works</p>
+    <h2>Statistics that actually match tonight's draw.</h2>
+    <p>Every EuroMillions draw uses a specific machine and ball set. That combination has its own frequency pattern — and that's exactly what we analyse.</p>
+    <div class="steps">
+      <div class="step"><span class="step-num">01</span><div class="step-title">Identify the active equipment</div><div class="step-body">Each draw uses a specific machine and ball set. We track which combination is in use tonight.</div></div>
+      <div class="step"><span class="step-num">02</span><div class="step-title">Filter the historical data</div><div class="step-body">Only draws with the same machine and ball set are used — giving you a statistically clean dataset.</div></div>
+      <div class="step"><span class="step-num">03</span><div class="step-title">Calculate the optimizer pool</div><div class="step-body">Hot, average and cold numbers are identified. Your tickets are generated from the statistically strongest pool.</div></div>
+      <div class="step"><span class="step-num">04</span><div class="step-title">Receive your personal analysis</div><div class="step-body">After every draw, receive an email showing exactly how your tickets performed against the results.</div></div>
     </div>
-
-    <div class="card-body">
-      <div class="controls">
-
-        <div class="ctrl-row">
-          <div class="ctrl-label">Tickets <span>per draw</span></div>
-          <div class="stepper">
-            <button onclick="adj('tickets',-1)" id="btn-tickets-min">−</button>
-            <span class="stepper-val" id="val-tickets">3</span>
-            <button onclick="adj('tickets',1)" id="btn-tickets-plus">+</button>
-          </div>
-        </div>
-
-        <div class="ctrl-row">
-          <div class="ctrl-label">Nummers <span>per ticket (5–8)</span></div>
-          <div class="stepper">
-            <button onclick="adj('nums',-1)" id="btn-nums-min">−</button>
-            <span class="stepper-val" id="val-nums">5</span>
-            <button onclick="adj('nums',1)" id="btn-nums-plus">+</button>
-          </div>
-        </div>
-
-        <div class="ctrl-row">
-          <div class="ctrl-label">Lucky Stars <span>per ticket (2–4)</span></div>
-          <div class="stepper">
-            <button onclick="adj('stars',-1)" id="btn-stars-min">−</button>
-            <span class="stepper-val" id="val-stars">2</span>
-            <button onclick="adj('stars',1)" id="btn-stars-plus">+</button>
-          </div>
-        </div>
-
-      </div>
-
-      
-        <div class="ctrl-row">
-          <div class="ctrl-label">Draw date <span>Tue or Fri</span></div>
-          <select id="drawDateSel" style="border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--ink);background:#fff;cursor:pointer;flex:1;max-width:240px;"></select>
-        </div>
-
-      <div class="cost-bar">
-        <span style="font-size:12px;">Cost: <span class="cost-val" id="costVal">€7,50</span></span>
-      </div>
-
-      <button class="btn-generate" onclick="handleGenerate()" id="genBtn">
-        Generate 3 tickets
-      </button>
-
-      <div class="login-prompt" id="loginPrompt">
-        To generate tickets, please <a href="register.html?mode=signin">sign in</a> or
-        <a href="register.html">register as a new user</a>.
-      </div>
-
-      <div class="tickets-out" id="ticketsOut"></div>
-    </div>
-
-    <!-- Verborgen div voor generator output -->
-    <div id="ticketsGrid" style="display:none;"></div>
-    <div id="attemptInfo" style="display:none;"></div>
-
-    <div class="save-bar" id="saveBar">
-      <button class="btn-save" onclick="openSaveProfile()">
-        <span>📧</span> Save tickets &amp; receive analysis
-      </button>
-      <p class="save-note">After each draw you receive a personal analysis by email</p>
-    </div>
-
-    <div class="optimizer-link">
-      Want to know more? <a href="optimizer.html">Open the advanced optimizer →</a>
-    </div>
-
   </div>
+</div>
+
+<div class="why-section">
+  <p class="section-eyebrow">Why PickMyNumbers</p>
+  <h2>Built for players who think statistically.</h2>
+  <p>EuroMillions remains a game of chance. But playing with a statistically optimized pool is measurably better than picking at random.</p>
+  <div class="why-grid">
+    <div class="why-card"><div class="why-icon">🎯</div><div class="why-title">Machine & ball set filter</div><div class="why-body">The only tool that filters on tonight's specific draw equipment — not 20 years of mixed data.</div></div>
+    <div class="why-card"><div class="why-icon">🔥</div><div class="why-title">Hot / average / cold analysis</div><div class="why-body">Numbers and Lucky Stars are classified by frequency within the active equipment combination.</div></div>
+    <div class="why-card"><div class="why-icon">📊</div><div class="why-title">Statistical filters</div><div class="why-body">Sum filter, odd/even balance, 2D matrix and anti-overlap ensure every ticket is statistically sound.</div></div>
+    <div class="why-card"><div class="why-icon">📧</div><div class="why-title">Personal draw analysis</div><div class="why-body">After every draw, receive a personal report showing your results and statistical insights.</div></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div style="max-width:840px;margin:0 auto;padding:2.5rem 2rem;">
+  <p style="font-size:12px;color:#999;font-style:italic;line-height:1.7;">* Based on statistical probability for a 4+2★ prize vs. random selection. EuroMillions is a game of pure chance. No method guarantees winnings. 18+ only. Play responsibly. <a href="optimizer.html" style="color:#bbb;">Full disclaimer →</a></p>
+</div>
+
+<div class="cta-section">
+  <h2>Ready to play smarter?</h2>
+  <p>Register free and generate your first optimized tickets in under 2 minutes.</p>
+  <a href="optimizer.html" class="cta-btn-large">Open the optimizer →</a>
+  <p class="cta-note">Free · No credit card · 18+ only</p>
 </div>
 
 <footer>
-  <p>© 2026 PickMyNumbers.eu &nbsp;·&nbsp;
-    <a href="disclaimer.html">Disclaimer</a> &nbsp;·&nbsp;
-    <a href="contact.html">Contact</a>
-  </p>
+  <p>© 2026 PickMyNumbers.eu &nbsp;·&nbsp; <a href="optimizer.html">Optimizer</a> &nbsp;·&nbsp; <a href="register.html">Register</a> &nbsp;·&nbsp; <a href="beta.html">Beta program</a> &nbsp;·&nbsp; <a href="contact.html">Contact</a></p>
   <p style="margin-top:4px;">18+ · EuroMillions is a game of chance · No winnings guaranteed</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
-<script src="js/generator.js"></script>
-<script src="js/auth.js"></script>
 <script>
-
-const LIMITS = { tickets:[1,10], nums:[5,8], stars:[2,4] };
-const COSTS  = { 5:2.5, 6:5, 7:14, 8:35 };
-const vals   = { tickets:3, nums:5, stars:2 };
-let selectedDrawDate = null;
-
-function getNextDrawDates() {
-  const dates = [];
-  const now = new Date();
-  const d = new Date(now);
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  for (let i = 0; i <= 7 && dates.length < 2; i++) {
-    const wd = d.getDay();
-    const isPast = i === 0 && d.getHours() >= 21;
-    if ((wd === 2 || wd === 5) && !isPast) {
-      const label = `${days[wd]} ${d.getDate()} ${months[d.getMonth()]}`;
-      const iso = d.toISOString().split('T')[0];
-      dates.push({ label, iso });
-    }
-    d.setDate(d.getDate() + 1);
-  }
-  return dates;
-}
-
-function renderDrawDates() {
-  const picker = document.getElementById('drawDatePicker');
-  if (!picker) return;
-  const dates = getNextDrawDates();
-  if (!selectedDrawDate && dates.length) selectedDrawDate = dates[0].iso;
-  picker.innerHTML = dates.map(d => `
-    <button onclick="selectDrawDate('${d.iso}')" style="
-      padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;
-      border:1px solid ${selectedDrawDate===d.iso?'#0f0f0d':'#e0e0da'};
-      background:${selectedDrawDate===d.iso?'#0f0f0d':'#fff'};
-      color:${selectedDrawDate===d.iso?'#fff':'#888'};
-      cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;">
-      ${d.label}
-    </button>`).join('');
-}
-
-function selectDrawDate(iso) {
-  selectedDrawDate = iso;
-  renderDrawDates();
-}
-
-function adj(type, delta) {
-  const [min, max] = LIMITS[type];
-  vals[type] = Math.max(min, Math.min(max, vals[type] + delta));
-  renderControls();
-}
-
-function renderControls() {
-  ['tickets','nums','stars'].forEach(t => {
-    document.getElementById('val-'+t).textContent = vals[t];
-    document.getElementById('btn-'+t+'-min').disabled = vals[t] <= LIMITS[t][0];
-    document.getElementById('btn-'+t+'-plus').disabled = vals[t] >= LIMITS[t][1];
-  });
-  const cost = (vals.tickets * (COSTS[vals.nums] || 2.5)).toFixed(2).replace('.',',');
-  document.getElementById('costVal').textContent = '€' + cost;
-  document.getElementById('genBtn').textContent = `Generate ${vals.tickets} ticket${vals.tickets>1?'s':''}`;
-}
-
-function handleGenerate() {
-  if (!window._pmSession) {
-    document.getElementById('loginPrompt').style.display = 'block';
-    return;
-  }
-  document.getElementById('loginPrompt').style.display = 'none';
-
-  // Sync waarden naar generator
-  window.profileValues = window.profileValues || {};
-  window.profileValues.tickets = vals.tickets;
-  window.profileValues.nums    = vals.nums;
-  window.profileValues.stars   = vals.stars;
-  numTickets = vals.tickets;
-
-  // Genereer tickets
-  generateAll();
-
-  // Wacht tot generator klaar is
-  const checkReady = (attempts) => {
-    const grid = document.getElementById('ticketsGrid');
-    const out  = document.getElementById('ticketsOut');
-    if (!grid || !out) return;
-
-    const balls = grid.querySelectorAll('.ball-hot, .ball-avg, .ball-star');
-    if (balls.length > 0 || attempts > 20) {
-      out.innerHTML = grid.innerHTML;
-      // Voeg regenerate knop toe
-      out.innerHTML += `<button onclick="handleGenerate()" style="
-        width:100%;padding:10px;margin-top:8px;
-        background:transparent;border:1.5px solid var(--border);
-        border-radius:8px;font-size:13px;color:var(--dim);
-        cursor:pointer;font-family:inherit;
-      ">↺ Generate new tickets</button>`;
-      document.getElementById('saveBar').style.display = 'block';
-    } else {
-      setTimeout(() => checkReady(attempts + 1), 100);
-    }
-  };
-  setTimeout(() => checkReady(0), 100);
-}
-
-function doLogin() {
-  window.location.href = 'register.html?mode=signin';
-}
-async function doLogout() {
-  await supabaseClient.auth.signOut();
-  hideUserBar();
-}
-
-function showUserBar(user) {
-  const bar = document.getElementById('userBar');
-  if (bar) { bar.classList.add('visible'); bar.style.display = 'flex'; }
-  const name = document.getElementById('userBarName');
-  if (name) name.textContent = user.email?.split('@')[0] || 'User';
-  const btnLogin = document.getElementById('btnLogin');
-  const btnReg = document.getElementById('btnRegister');
-  if (btnLogin) btnLogin.style.display = 'none';
-  if (btnReg) btnReg.style.display = 'none';
-}
-
-function hideUserBar() {
-  const bar = document.getElementById('userBar');
-  if (bar) { bar.classList.remove('visible'); bar.style.display = 'none'; }
-  const btnLogin = document.getElementById('btnLogin');
-  const btnReg = document.getElementById('btnRegister');
-  if (btnLogin) btnLogin.style.display = '';
-  if (btnReg) btnReg.style.display = '';
-}
-
-
-function getNextDrawDates(count) {
-  const dates = [];
-  const now = new Date();
-  const d = new Date();
-  d.setHours(0,0,0,0);
-  // Check of vandaag een trekking is en het nog voor 21:00 is
-  const todayIsDrawDay = (d.getDay() === 2 || d.getDay() === 5);
-  const beforeDraw = now.getHours() < 21;
-  if (!todayIsDrawDay || !beforeDraw) d.setDate(d.getDate() + 1);
-  
-  while (dates.length < count) {
-    const wd = d.getDay();
-    if (wd === 2 || wd === 5) {
-      const day   = String(d.getDate()).padStart(2,'0');
-      const month = String(d.getMonth()+1).padStart(2,'0');
-      const year  = d.getFullYear();
-      const label = d.toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
-      dates.push({ label, iso: `${year}-${month}-${day}` });
-    }
-    d.setDate(d.getDate() + 1);
-  }
-  return dates;
-}
-
-function populateDrawDates() {
-  const sel = document.getElementById('drawDateSel');
-  if (!sel) return;
-  const dates = getNextDrawDates(6);
-  sel.innerHTML = dates.map((d,i) =>
-    `<option value="${d.iso}">${i===0?'Next draw — ':i===1?'Following — ':''}${d.label}</option>`
-  ).join('');
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  populateDrawDates();
-  renderControls();
-  renderDrawDates();
-  if (typeof supabaseClient !== 'undefined') {
-    supabaseClient.auth.getSession().then(({ data:{ session }}) => {
-      window._pmSession = session;
-      if (session) showUserBar(session.user);
-    });
-    supabaseClient.auth.onAuthStateChange((_, session) => {
-      window._pmSession = session;
-      session ? showUserBar(session.user) : hideUserBar();
-    });
-  }
+  try {
+    const lastWithMB = ALL_DRAWS.find(d => d.machine > 0 && d.bal > 0);
+    if (!lastWithMB) return;
+    const machine = lastWithMB.machine, bal = lastWithMB.bal;
+    const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    mbDraws.forEach(d => d.nums.forEach(n => freq[n]++));
+    const total = mbDraws.length;
+    const thresh = Math.round((total*5/50)*0.67);
+    const pool = Object.keys(freq).filter(n => freq[n] >= thresh).map(Number);
+    const coverages = mbDraws.map(d => Math.round((d.nums.filter(n => pool.includes(n)).length/5)*100));
+    const avgCov = Math.round(coverages.reduce((a,b)=>a+b,0)/coverages.length);
+    document.getElementById('statPct').textContent = avgCov + '%';
+    document.getElementById('statDraws').textContent = mbDraws.length;
+  } catch(e) {}
 });
 </script>
-
-
-
-
-<div class="disclaimer-overlay" id="profileOverlay" style="display:none;" onclick="profileOverlayClick(event)">
-  <div class="disclaimer-modal" style="max-width:400px;">
-    <div class="disc-header" style="padding-bottom:1.25rem;">
-      <div class="disc-logo">
-        <div class="disc-logo-icon">📧</div>
-        <div>
-          <div class="disc-logo-text">Tickets opslaan</div>
-          <div class="disc-logo-sub" id="profileModalSub">Ontvang analyse na elke trekking</div>
-        </div>
-      </div>
-    </div>
-    <div class="disc-body" style="padding-top:0;">
-      <div id="profileFormArea">
-        <!-- PROFIEL SAMENVATTING -->
-        <div style="background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-size:12px;font-weight:500;" id="profileSummaryLabel">Standaard profiel</div>
-            <div style="font-size:11px;color:#aaa;" id="profileSummaryDetail">3 tickets · 5 nummers + 2 sterren</div>
-          </div>
-          <span style="font-size:18px;">✓</span>
-        </div>
-
-        <div class="admin-input-group" style="margin-bottom:12px;">
-          <span class="admin-input-label">JOUW NAAM</span>
-          <input type="text" class="admin-input" id="profileName" placeholder="Bijv. Jacq" style="width:100%;">
-        </div>
-        <div class="admin-input-group" style="margin-bottom:16px;">
-          <span class="admin-input-label">EMAIL ADRES</span>
-          <input type="email" class="admin-input" id="profileEmail" placeholder="jouw@email.com" style="width:100%;">
-        </div>
-        <div style="font-size:11px;color:#aaa;margin-bottom:16px;line-height:1.6;">
-          Je email wordt alleen gebruikt voor de trekking analyse. Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;text-decoration:underline;cursor:pointer;">privacyverklaring</a>.
-        </div>
-        <button class="disc-btn-accept" onclick="saveUserTickets()" id="saveProfileBtn">
-          ✓ Opslaan & analyse activeren
-        </button>
-        <div class="admin-msg" id="profileMsg" style="margin-top:10px;"></div>
-      </div>
-
-      <div id="profileSuccessArea" style="display:none;text-align:center;padding:1rem 0;">
-        <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Tickets opgeslagen!</div>
-        <div style="font-size:12px;color:#aaa;line-height:1.6;" id="profileSuccessMsg"></div>
-        <button class="btn" style="margin-top:1rem;" onclick="closeProfile()">Sluiten</button>
-      </div>
-    </div>
-  </div>
-</div>
 </body>
 </html>
