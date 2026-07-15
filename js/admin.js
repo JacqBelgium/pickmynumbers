@@ -727,30 +727,34 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
       bestStarHits = starHits.length;
     }
     const prize = getPrize(numHits.length, starHits.length);
-    const hasPrize = prize.label !== 'Geen prijs';
+    const hasPrize = prize.label !== 'No prize';
     const ticketSum = t.nums.reduce((a,b) => a+b, 0);
     const ticketOdd = t.nums.filter(n => n%2!==0).length;
     const ticketLow = t.nums.filter(n => n<=25).length;
 
     return `
-      <tr>
-        <td style="padding:10px 14px;border-bottom:1px solid #e8e8e4;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+      <tr style="border-bottom:1px solid #e8e8e4;">
+        <td style="padding:8px 12px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:5px;">
             <tr>
-              <td style="font-size:12px;font-weight:600;color:#555;">Ticket ${t.ticket_number}</td>
-              <td align="right" style="font-size:12px;font-weight:600;color:${prize.color};">${prize.label}</td>
+              <td style="font-size:11px;font-weight:600;color:#555;">Ticket ${t.ticket_number}</td>
+              <td align="right" style="font-size:11px;font-weight:700;color:${prize.color};">${prize.label}</td>
             </tr>
           </table>
-          <div style="font-size:13px;color:#1a1a18;margin-bottom:2px;">
-            ${t.nums.map(n => {
-              const hit = actualNums.includes(n);
-              return `<span style="font-weight:${hit?'900':'400'};color:${hit?'#0C447C':'#888'};margin-right:6px;">${n}</span>`;
-            }).join('')}&nbsp;+&nbsp;${t.stars.map(s => {
-              const hit = actualStars.includes(s);
-              return `<span style="font-weight:${hit?'900':'400'};color:${hit?'#8a4510':'#888'};margin-right:6px;">&#9733;${s}</span>`;
-            }).join('')}
-          </div>
-          <div style="font-size:10px;color:#aaa;">${numHits.length} nrs raak &nbsp;·&nbsp; ${starHits.length} &#9733; raak</div>
+          <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
+            <tr>
+              ${t.nums.map(n => {
+                const hit = actualNums.includes(n);
+                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`;
+              }).join('')}
+              <td style="padding:0 3px;color:#ccc;font-size:12px;vertical-align:middle;">+</td>
+              ${t.stars.map(s => {
+                const hit = actualStars.includes(s);
+                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`;
+              }).join('')}
+            </tr>
+          </table>
+          <div style="font-size:10px;color:#aaa;">${numHits.length} matched &nbsp;·&nbsp; ${starHits.length} &#9733; matched</div>
         </td>
       </tr>`;
   }).join('');
@@ -772,80 +776,70 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     `${actualLow}+${actualHigh} (${actualLow>3?'overwegend laag':'overwegend hoog'})`;
 
   // Motiverende afsluiting
-  const motivation = bestNumHits >= 3 ? '🔥 Geweldig resultaat! Je zit dicht bij een prijs.' :
-    bestNumHits === 2 ? '👍 Goed begin! De statistieken werken — blijf spelen.' :
-    bestNumHits === 1 ? '📊 Eén nummer raak. De formule bouwt zich op over tijd.' :
-    '🎯 Geen nummers raak deze keer — dat hoort bij het spel. Volgende keer!';
+  const motivation = bestNumHits >= 3 ? '🔥 Great result! You are close to a prize.' :
+    bestNumHits === 2 ? '👍 Good start! The statistics are working — keep playing.' :
+    bestNumHits === 1 ? '📊 One number matched. The formula builds over time.' :
+    '🎯 No numbers matched this time — that is part of the game. Next draw!';
 
   const html = `
-    <!DOCTYPE html><html><body style="font-family:system-ui,sans-serif;background:#f8f8f6;padding:2rem;margin:0;">
-    <div style="max-width:560px;margin:auto;">
+    <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f8f8f6;margin:0;padding:16px;">
+    <div style="max-width:480px;margin:0 auto;">
 
-
-      <div style="background:#1a1a18;border-radius:14px 14px 0 0;padding:1.5rem;color:#fff;text-align:center;">
-        <div style="font-size:22px;margin-bottom:4px;">🎰 PickMyNumbers</div>
-        <div style="font-size:14px;font-weight:500;">Trekking Analyse — ${draw ? draw.date : ''}</div>
-        <div style="font-size:12px;color:#aaa;margin-top:4px;">Persoonlijk rapport voor ${name}</div>
+      <div style="background:#1a1a18;border-radius:12px 12px 0 0;padding:20px 16px;color:#fff;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">🎰 PickMyNumbers</div>
+        <div style="font-size:14px;font-weight:600;">Draw Analysis — ${draw ? draw.date : ''}</div>
+        <div style="font-size:12px;color:#aaa;margin-top:3px;">Personal report for ${name}</div>
       </div>
 
-      <div style="background:#fff;border:1px solid #e8e8e4;border-top:none;border-radius:0 0 14px 14px;padding:1.5rem;">
+      <div style="background:#fff;border:1px solid #e8e8e4;border-top:none;border-radius:0 0 12px 12px;padding:16px;">
 
-
-        <div style="background:#f8f8f6;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;">
-          <div style="font-size:11px;color:#aaa;font-weight:600;letter-spacing:0.06em;margin-bottom:10px;text-transform:uppercase;">Officiële uitslag</div>
-          <table cellpadding="0" cellspacing="0" style="margin-bottom:4px;">
+        <div style="background:#f4f4f2;border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Official Results</div>
+          <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              ${actualNums.map(n => `<td width="34" height="34" style="text-align:center;vertical-align:middle;padding:2px;">
-                <div style="width:30px;height:30px;border-radius:15px;background:#1a1a18;color:#fff;font-size:11px;font-weight:700;text-align:center;line-height:30px;margin:0 auto;">${n}</div>
-              </td>`).join('')}
-              <td style="padding:0 6px;color:#ddd;font-size:18px;vertical-align:middle;">+</td>
-              ${actualStars.map(s => `<td width="34" height="34" style="text-align:center;vertical-align:middle;padding:2px;">
-                <div style="width:30px;height:30px;border-radius:15px;background:#e8922a;color:#fff;font-size:10px;font-weight:700;text-align:center;line-height:30px;margin:0 auto;">&#9733;${s}</div>
-              </td>`).join('')}
+              ${actualNums.map(n => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#1a1a18;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`).join('')}
+              <td style="padding:0 4px;color:#ccc;font-size:14px;vertical-align:middle;">+</td>
+              ${actualStars.map(s => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#e8922a;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`).join('')}
             </tr>
           </table>
         </div>
 
-
-        <div style="background:${bestNumHits>=2?'#f0f8ec':'#fff4e6'};border:1px solid ${bestNumHits>=2?'#c8e0b8':'#fdd'};border-radius:10px;padding:12px 16px;margin-bottom:1.5rem;text-align:center;">
-          <div style="font-size:13px;color:#555;margin-bottom:4px;">Jouw beste resultaat</div>
-          <div style="font-size:20px;font-weight:600;color:${bestPrize.color};">${bestPrize.label}</div>
-          <div style="font-size:12px;color:#888;margin-top:4px;">${bestNumHits} nummers + ${bestStarHits} ster${bestStarHits!==1?'ren':''} raak</div>
+        <div style="background:${bestNumHits>=2?'#f0f8ec':'#fff8ec'};border:1px solid ${bestNumHits>=2?'#c8e0b8':'#fde8b0'};border-radius:8px;padding:10px;margin-bottom:12px;text-align:center;">
+          <div style="font-size:12px;color:#666;margin-bottom:3px;">Your best result</div>
+          <div style="font-size:18px;font-weight:700;color:${bestPrize.color};">${bestPrize.label}</div>
+          <div style="font-size:11px;color:#888;margin-top:3px;">${bestNumHits} numbers + ${bestStarHits} star${bestStarHits!==1?'s':''} matched</div>
         </div>
 
-
-        <div style="font-size:13px;font-weight:600;color:#111;margin-bottom:10px;">
-          Jouw tickets <span style="font-size:11px;font-weight:400;color:#aaa;">(donkerblauw/oranje = raak)</span>
+        <div style="font-size:12px;font-weight:600;color:#333;margin-bottom:6px;">
+          Your tickets <span style="font-weight:400;color:#aaa;font-size:11px;">(dark blue / orange = matched)</span>
         </div>
-        <table style="width:100%;border-collapse:collapse;background:#f8f8f6;border-radius:8px;overflow:hidden;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #e8e8e4;border-radius:8px;overflow:hidden;margin-bottom:12px;">
           ${ticketRows}
         </table>
 
-
-        <div style="background:#f0f6ff;border:1px solid #bdd9f5;border-radius:10px;padding:14px 16px;margin-top:1.5rem;">
-          <div style="font-size:11px;font-weight:600;color:#0C447C;letter-spacing:0.06em;margin-bottom:8px;text-transform:uppercase;">📊 Statistische analyse</div>
-          <div style="font-size:12px;color:#333;line-height:1.8;">
-            <div>• Uitslag som <strong>${actualSum}</strong> — ${somOk?'✓ binnen jouw filter (90-180)':'⚠ buiten het standaard filter (90-180)'}</div>
-            <div>• Verdeling: <strong>${actualOdd} oneven + ${actualEven} even</strong> — ${oddEvenAnalysis}</div>
-            <div>• Bereik: <strong>${actualLow} laag (≤25) + ${actualHigh} hoog (>25)</strong> — ${lowHighAnalysis}</div>
+        <div style="background:#f0f6ff;border:1px solid #c0d8f5;border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:#0C447C;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">📊 Statistical Analysis</div>
+          <div style="font-size:11px;color:#333;line-height:1.9;">
+            <div>• Sum: <strong>${actualSum}</strong> — ${somOk?'✓ within filter (90-180)':'⚠ outside standard filter (90-180)'}</div>
+            <div>• Odd/even: <strong>${actualOdd} odd + ${actualEven} even</strong> — ${actualOdd===3||actualOdd===2?'balanced':'unusual split'}</div>
+            <div>• Low/high: <strong>${actualLow} low (≤25) + ${actualHigh} high (>25)</strong></div>
             <div>• Lucky Stars <strong>★${actualStars[0]} & ★${actualStars[1]}</strong> — ${
               (() => {
                 const hotStars = getHotStarsForMB(draw.machine, draw.bal);
                 const bothHot = actualStars.every(s => hotStars.includes(s));
                 const oneHot = actualStars.some(s => hotStars.includes(s));
-                return bothHot ? `🔥 beide zijn hot sterren voor M${draw.machine}/B${draw.bal}` :
-                       oneHot  ? `📊 1 hot ster gevallen` :
-                                 `❄️ beide zijn avg/cold sterren deze ronde`;
+                return bothHot ? `🔥 both are hot stars for M${draw.machine}/B${draw.bal}` :
+                       oneHot  ? `📊 1 hot star matched` :
+                                 `❄️ both are avg/cold stars this round`;
               })()
             }</div>
           </div>
         </div>
 
-
-        <div style="text-align:center;margin-top:1.5rem;padding:14px;background:#f8f8f6;border-radius:10px;">
-          <div style="font-size:14px;color:#333;margin-bottom:12px;">${motivation}</div>
-          <a href="https://pickmynumbers.eu" style="display:inline-block;background:#1a1a18;color:#fff;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:500;text-decoration:none;">
-            🎰 Genereer tickets voor de volgende trekking
+        <div style="text-align:center;padding:12px;background:#f8f8f6;border-radius:8px;">
+          <div style="font-size:13px;color:#333;margin-bottom:10px;">${motivation}</div>
+          <a href="https://pickmynumbers.eu/optimizer.html" style="display:inline-block;background:#1a1a18;color:#fff;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">
+            🎰 Generate tickets for the next draw
           </a>
         </div>
 
