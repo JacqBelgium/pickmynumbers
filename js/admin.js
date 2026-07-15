@@ -735,25 +735,23 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     return `
       <tr style="border-bottom:1px solid #e8e8e4;">
         <td style="padding:8px 12px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:5px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
             <tr>
               <td style="font-size:11px;font-weight:600;color:#555;">Ticket ${t.ticket_number}</td>
               <td align="right" style="font-size:11px;font-weight:700;color:${prize.color};">${prize.label}</td>
             </tr>
           </table>
-          <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
-            <tr>
-              ${t.nums.map(n => {
-                const hit = actualNums.includes(n);
-                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`;
-              }).join('')}
-              <td style="padding:0 3px;color:#ccc;font-size:12px;vertical-align:middle;">+</td>
-              ${t.stars.map(s => {
-                const hit = actualStars.includes(s);
-                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`;
-              }).join('')}
-            </tr>
-          </table>
+          <div style="font-size:14px;font-weight:600;letter-spacing:0.03em;margin-bottom:3px;">
+            ${t.nums.map(n => {
+              const hit = actualNums.includes(n);
+              return `<span style="color:${hit?'#0C447C':'#aaa'};font-weight:${hit?'900':'400'};">${n}</span>`;
+            }).join('<span style="color:#ddd;"> &nbsp; </span>')}
+            <span style="color:#ddd;margin:0 4px;">+</span>
+            ${t.stars.map(s => {
+              const hit = actualStars.includes(s);
+              return `<span style="color:${hit?'#8a4510':'#bbb'};font-weight:${hit?'900':'400'};">&#9733;${s}</span>`;
+            }).join('<span style="color:#ddd;"> &nbsp; </span>')}
+          </div>
           <div style="font-size:10px;color:#aaa;">${numHits.length} matched &nbsp;·&nbsp; ${starHits.length} &#9733; matched</div>
         </td>
       </tr>`;
