@@ -795,13 +795,11 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
         <div style="background:#f4f4f2;border-radius:8px;padding:12px;margin-bottom:12px;">
           <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Official Results</div>
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr>
-              ${actualNums.map(n => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#1a1a18;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`).join('')}
-              <td style="padding:0 4px;color:#ccc;font-size:14px;vertical-align:middle;">+</td>
-              ${actualStars.map(s => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#e8922a;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`).join('')}
-            </tr>
-          </table>
+          <div style="font-size:16px;font-weight:700;color:#1a1a18;letter-spacing:0.05em;">
+            ${actualNums.join(' &nbsp; ')}
+            <span style="color:#ccc;margin:0 6px;">+</span>
+            <span style="color:#e8922a;">&#9733;${actualStars.join(' &nbsp; &#9733;')}</span>
+          </div>
         </div>
 
         <div style="background:${bestNumHits>=2?'#f0f8ec':'#fff8ec'};border:1px solid ${bestNumHits>=2?'#c8e0b8':'#fde8b0'};border-radius:8px;padding:10px;margin-bottom:12px;text-align:center;">
@@ -844,13 +842,13 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
         </div>
 
 
-        <p style="font-size:11px;color:#888;text-align:center;margin-top:1.5rem;padding:12px;background:#fff8e6;border-radius:8px;line-height:1.6;border:1px solid #fde8a0;">
-          ℹ️ <em>Deze analyse is gebaseerd op je gegenereerde tickets. Indien je niet of gedeeltelijk hebt deelgenomen aan deze trekking, kan de analyse afwijken van je werkelijke resultaat.</em>
+        <p style="font-size:11px;color:#888;text-align:center;margin-top:12px;padding:10px;background:#fff8e6;border-radius:8px;line-height:1.6;border:1px solid #fde8a0;">
+          ℹ️ <em>This analysis is based on your generated tickets. If you did not participate or only partially played, the analysis may differ from your actual result.</em>
         </p>
-        <p style="font-size:10px;color:#bbb;text-align:center;margin-top:1rem;line-height:1.6;">
-          EuroMillions is een kans- en gokspel. Geen enkele methode garandeert winst. 18+.<br>
+        <p style="font-size:10px;color:#bbb;text-align:center;margin-top:10px;line-height:1.6;">
+          EuroMillions is a game of chance. No method guarantees winnings. 18+ only.<br>
           <a href="https://pickmynumbers.eu" style="color:#bbb;">pickmynumbers.eu</a> · 
-          Uitschrijven? Stuur een email naar noreply@pickmynumbers.eu
+          Unsubscribe? Email noreply@pickmynumbers.eu
         </p>
 
       </div>
@@ -865,7 +863,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     },
     body: JSON.stringify({
       to: [email],
-      subject: `🎰 Jouw EuroMillions analyse — ${draw ? draw.date : new Date().toLocaleDateString('nl-NL')}`,
+      subject: `🎰 Your EuroMillions analysis — ${draw ? draw.date : new Date().toLocaleDateString('en-GB')}`,
       html
     })
   });
