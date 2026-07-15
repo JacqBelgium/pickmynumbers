@@ -741,7 +741,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
               <td align="right" style="font-size:11px;font-weight:700;color:${prize.color};">${prize.label}</td>
             </tr>
           </table>
-          <div style="font-size:14px;font-weight:600;letter-spacing:0.03em;margin-bottom:3px;">
+          <div style="font-size:12px;font-weight:600;letter-spacing:0.02em;margin-bottom:3px;">
             ${t.nums.map(n => {
               const hit = actualNums.includes(n);
               return `<span style="color:${hit?'#0C447C':'#aaa'};font-weight:${hit?'900':'400'};">${n}</span>`;
