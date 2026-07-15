@@ -793,10 +793,10 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
         <div style="background:#f4f4f2;border-radius:8px;padding:12px;margin-bottom:12px;">
           <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Official Results</div>
-          <div style="font-size:16px;font-weight:700;color:#1a1a18;letter-spacing:0.05em;">
-            ${actualNums.join(' &nbsp; ')}
-            <span style="color:#ccc;margin:0 6px;">+</span>
-            <span style="color:#e8922a;">&#9733;${actualStars.join(' &nbsp; &#9733;')}</span>
+          <div style="font-size:16px;font-weight:700;letter-spacing:0.05em;">
+            <span style="color:#1a1a18;">${actualNums.join('&nbsp;&nbsp;')}</span>
+            <span style="color:#ccc;margin:0 8px;">+</span>
+            <span style="color:#e8922a;">&#9733;${actualStars.join('&nbsp;&nbsp;&#9733;')}</span>
           </div>
         </div>
 
