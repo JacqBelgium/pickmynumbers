@@ -5,14 +5,14 @@
 // GEWOGEN SCORING
 // =====================
 function getWeight(machine, bal) {
-  // Gewichtsfactor op basis van aantal M/B trekkingen
+  // Gewichtsfactor op basis van aantal M/B draws
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
   if (mbDraws > 80) return 10;
   if (mbDraws > 60) return 8;
   if (mbDraws > 40) return 6;
   if (mbDraws > 20) return 4;
   if (mbDraws >= 10) return 2;
-  return 1; // <10: factor 1, telt mee als gewone trekking
+  return 1; // <10: factor 1, telt mee als gewone draw
 }
 
 function getWeightedDraws(machine, bal) {
@@ -20,8 +20,8 @@ function getWeightedDraws(machine, bal) {
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
   
   // Bepaal welke algemene data te gebruiken
-  // < 100 M/B trekkingen: alleen 2025+ (recente data, minder dilutie)
-  // >= 100 M/B trekkingen: alle jaren (2023-2026)
+  // < 100 M/B draws: alleen 2025+ (recente data, minder dilutie)
+  // >= 100 M/B draws: alle jaren (2023-2026)
   const useAllYears = mbDraws >= 100;
   const cutoffDraw = 1804; // draw 1761 = 3 jan 2025
 
@@ -30,7 +30,7 @@ function getWeightedDraws(machine, bal) {
     if (d.machine === machine && d.bal === bal) {
       for (let i = 0; i < weight; i++) weighted.push(d);
     } else if (d.machine === 0 || d.machine !== machine || d.bal !== bal) {
-      // Algemene data: alleen meenemen als useAllYears of trekking is uit 2025+
+      // Algemene data: alleen meenemen als useAllYears of draw is uit 2025+
       if (useAllYears || (d.draw && d.draw >= cutoffDraw)) {
         weighted.push(d);
       }
@@ -89,8 +89,8 @@ function getPickDist(){
 }
 
 function getStarStrategy(){
-  // Gebruik alleen echte M/B trekkingen voor sterren — niet gewogen
-  // (gewogen dataset is te groot en verhoogt de hot drempel kunstmatig)
+  // Gebruik alleen echte M/B draws voor sterren — niet weighted
+  // (weighted dataset is te groot en verhoogt de hot drempel kunstmatig)
   const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
   const weighted = mbDraws.length >= 10 ? mbDraws : getWeightedDraws(currentMachine, currentBal);
 
@@ -255,7 +255,7 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
     const h=weightedPick(hp,hc),av=weightedPick(ap,ac);
     let nums=[...h,...av].map(x=>x.num);
 
-    // Extra nummers voor systeem spel (6+, 7+, 8+)
+    // Extra nummers voor system play (6+, 7+, 8+)
     if(extraNums>0){
       const allPool=[...hp,...ap].map(x=>x.num).filter(n=>!nums.includes(n));
       for(let e=0;e<extraNums&&allPool.length>0;e++){
@@ -305,8 +305,8 @@ function renderMatrix(){
   });
   grid.innerHTML=html;
   const cov=Array.from(selectedMatrix).reduce((s,k)=>s+(MATRIX_DATA[k]?.count||0),0);
-  setElText('matrixCoverage', `Dekking: ${(cov/104*100).toFixed(0)}%`);
-  setElText('matrixDetail', `${selectedMatrix.size} patronen actief · 104 trekkingen 2025`);
+  setElText('matrixCoverage', `Coverage: ${(cov/104*100).toFixed(0)}%`);
+  setElText('matrixDetail', `${selectedMatrix.size} patterns active · 104 draws 2025`);
   document.getElementById('rule2D').textContent=selectedMatrix.size+' van 16';
 }
 function toggleMatrix(key){
@@ -325,7 +325,7 @@ function setOverlap(n){
     const vals=[0,1,2,3,99];
     b.classList.toggle('active',vals[i]===n);
   });
-  const labels={0:'Geen overlap toegestaan',1:'Max 1 overlappend nummer',2:'Max 2 overlappende nummers',3:'Max 3 overlappende nummers',99:'Geen beperking'};
+  const labels={0:'No overlap allowed',1:'Max 1 overlapping number',2:'Max 2 overlapping numbers',3:'Max 3 overlapping numbers',99:'No restriction'};
   document.getElementById('overlapLabel').textContent=labels[n]||'';
   document.getElementById('ruleOverlap').textContent=n===99?'geen':('max '+n);
   document.getElementById('overlapStat').textContent=n===99?'Uitgeschakeld':'Actief';
@@ -390,10 +390,10 @@ function updateAll(){
   setElText('totalDraws', `${ALL_DRAWS.length} totaal, ${draws.length} M${currentMachine}/B${currentBal} · gewicht ×${weight}`);
   setElText('machineLabel', 'M'+currentMachine+'/B'+currentBal);
   setElText('machineBadge', 'M'+currentMachine+'/B'+currentBal);
-  setElText('machineTag', 'M'+currentMachine+'/B'+currentBal+' · '+draws.length+' trekkingen · ×'+weight);
+  setElText('machineTag', 'M'+currentMachine+'/B'+currentBal+' · '+draws.length+' draws · ×'+weight);
   // Dynamische stat label voor som/consecutive
   const somLabel = document.getElementById('somStatLabel');
-  if(somLabel) somLabel.textContent = `${weighted.length} gewogen trekkingen · M${currentMachine}/B${currentBal} ×${weight}`;
+  if(somLabel) somLabel.textContent = `${weighted.length} weighted draws · M${currentMachine}/B${currentBal} ×${weight}`;
   setElHTML('ruleMain', `<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`);
   setElText('s-hot', hp.length);
   setElText('s-avg', ap.length);
@@ -412,7 +412,7 @@ function updateAll(){
   const starTitle = document.getElementById('starStratTitle');
   const starSub = document.getElementById('starSub');
   const ruleStarCount = document.getElementById('ruleStarCount');
-  if(starTitle) starTitle.textContent = 'Sterren Strategie — hot/cold analyse M/B specifiek';
+  if(starTitle) starTitle.textContent = 'Stars Strategy — hot/cold analysis M/B specific';
   if(starSub) starSub.innerHTML =
     `<span style="color:#C0392B;font-weight:500;">🔥 Hot: ${hotStars.length > 0 ? hotStars.map(s=>'★'+s).join(' · ') : '—'}</span><br>` +
     `<span style="color:#E67E22;font-weight:500;">📊 Average: ${avgStars.length > 0 ? avgStars.map(s=>'★'+s).join(' · ') : '—'}</span><br>` +
@@ -468,7 +468,7 @@ function updatePerformanceBadge() {
   if (perfPct) perfPct.textContent = avgPct + '%';
   if (perfDraws) perfDraws.textContent = mbDraws.length;
   if (perfMachine) perfMachine.textContent = `M${currentMachine}/B${currentBal}`;
-  if (perfDetail) perfDetail.textContent = `${good} van ${mbDraws.length} trekkingen ≥80% · ${perfect}× volledig raak`;
+  if (perfDetail) perfDetail.textContent = `${good} van ${mbDraws.length} draws ≥80% · ${perfect}× volledig raak`;
 }
 
 function updateSom(){
@@ -479,12 +479,12 @@ function updateSom(){
   document.getElementById('ruleSom').textContent=min+'–'+max;
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const fits=draws.filter(d=>{const s=d.nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;}).length;
-  document.getElementById('somDetail').textContent=`${fits} van ${draws.length} trekkingen in bereik (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
+  document.getElementById('somDetail').textContent=`${fits} van ${draws.length} draws in bereik (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
 }
 
 function updateConsec(){
   document.getElementById('consecLabel').textContent=document.getElementById('consecToggle').checked
-    ?'Consecutive filter actief — geen 3+ opeenvolgend':'Consecutive filter uitgeschakeld';
+    ?'Consecutive filter active — no 3+ consecutive':'Consecutive filter disabled';
 }
 
 
@@ -499,7 +499,7 @@ function nextDrawDate(){
 }
 
 function getNextDrawDateISO(){
-  // Geeft de volgende trekkingsdatum als YYYY-MM-DD
+  // Geeft de volgende drawsdatum als YYYY-MM-DD
   const d=new Date();
   let nd=new Date(d);
   for(let i=0;i<=7;i++){
@@ -518,8 +518,8 @@ function selectTickets(n){
   const costs = {5:2.5, 6:5, 7:14, 8:35};
   const costPerTicket = costs[profile.nums] || 2.5;
   const total = (n * costPerTicket).toFixed(2).replace('.',',');
-  setElHTML('inzetInfo', `${n} ticket${n>1?'s':''} · <strong>€${total}</strong>${profile.nums>5?' (systeem spel)':''}`);
-  setElText('genBtn', `Genereer ${n} ticket${n>1?'s':''}`);
+  setElHTML('inzetInfo', `${n} ticket${n>1?'s':''} · <strong>€${total}</strong>${profile.nums>5?' (system play)':''}`);
+  setElText('genBtn', `Generate ${n} ticket${n>1?'s':''}`);
   renderEmpty(n);
 }
 
@@ -625,7 +625,7 @@ function buildTicketInputs(){
     const div=document.createElement('div');
     div.style.cssText='background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:8px 12px;';
     div.innerHTML=`<div style="font-size:11px;color:#888;margin-bottom:4px;">Ticket ${i+1}: ${t.nums.join(' ')} + ${t.stars.join(' ')}</div>
-      <div style="font-size:11px;color:#aaa;">Inzet: €2,50</div>`;
+      <div style="font-size:11px;color:#aaa;">Stake: €2,50</div>`;
     container.appendChild(div);
   });
 }
@@ -697,7 +697,7 @@ function saveResult(){
     machine,bal
   });
 
-  document.getElementById('saveMsg').textContent=`✓ Trekking ${dateStr} opgeslagen! Dataset nu ${ALL_DRAWS.length} trekkingen.`;
+  document.getElementById('saveMsg').textContent=`✓ Trekking ${dateStr} opgeslagen! Dataset nu ${ALL_DRAWS.length} draws.`;
   document.getElementById('saveMsg').style.color='#3B6D11';
   document.getElementById('lastDraw').textContent=`${dateStr} — ${numInputs.join(' ')} + ${starInputs.join(' ')}`;
 
@@ -864,7 +864,7 @@ function renderFreqFiltered(field, tier) {
   }
 
   document.getElementById('freqLegend').innerHTML = legend +
-    `<span style="margin-left:12px;color:#bbb;font-size:11px;">${nums.length} nummers · ${total} trekkingen M${currentMachine}/B${currentBal}</span>`;
+    `<span style="margin-left:12px;color:#bbb;font-size:11px;">${nums.length} nummers · ${total} draws M${currentMachine}/B${currentBal}</span>`;
 
   if (nums.length === 0) {
     document.getElementById('freqChart').innerHTML = '<div style="color:#bbb;padding:1rem;font-size:12px;">Geen nummers in deze categorie.</div>';

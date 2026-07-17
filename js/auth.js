@@ -38,7 +38,7 @@ async function loadUserProfile(authUser) {
     if (data) {
       currentUser = {
         id: data.id, auth_id: authUser.id,
-        name: data.name || pendingName || 'Gebruiker',
+        name: data.name || pendingName || 'User',
         email: authUser.email,
         profile: data.profile || pendingProf,
         ticket_count: data.ticket_count || 3,
@@ -51,7 +51,7 @@ async function loadUserProfile(authUser) {
       const p = PROFILES[pendingProf] || PROFILES.standard;
       const { data: newUser } = await supabaseClient.from('users').insert({
         auth_id: authUser.id,
-        name: pendingName || 'Gebruiker',
+        name: pendingName || 'User',
         email: authUser.email,
         profile: pendingProf,
         ticket_count: p.tickets,
@@ -68,7 +68,7 @@ async function loadUserProfile(authUser) {
     applyProfileToGenerator(selectedProfile);
     updateUserBar(currentUser);
   } catch(e) {
-    console.warn('Profiel laden:', e);
+    console.warn('Loading profile:', e);
     updateUserBar({ email: authUser.email });
   }
 }
@@ -120,7 +120,7 @@ function openSignup() {
 }
 
 function openSignin() {
-  document.getElementById('loginHeaderSub').textContent = 'Inloggen';
+  document.getElementById('loginHeaderSub').textContent = 'Sign in';
   showStep('loginStepSignin');
   document.getElementById('signinMsg').textContent = '';
   document.getElementById('loginOverlay').classList.add('open');
@@ -149,7 +149,7 @@ async function sendMagicLink(mode) {
   if (!email || !/\S+@\S+\.\S+/.test(email)) { msgEl.textContent = '⚠ Vul een geldig emailadres in'; msgEl.style.color='#A32D2D'; return; }
 
   btnEl.disabled = true;
-  btnEl.textContent = 'Bezig…';
+  btnEl.textContent = 'Processing…';
   msgEl.textContent = '';
 
   try {
@@ -232,8 +232,8 @@ function selectProfileMain(profile) {
   const note = document.getElementById('profileLimitNote');
   if (note) {
     note.textContent = profile === 'standard'
-      ? 'Freemium: max 3 tickets · 5 nummers · 4 sterren'
-      : 'Premium: max 10 tickets · 8 nummers · 4 sterren';
+      ? 'Freemium: max 3 tickets · 5 numbers · 4 stars'
+      : 'Premium: max 10 tickets · 8 numbers · 4 stars';
   }
 
   // Sla op
@@ -369,7 +369,7 @@ async function getOrCreateUser(name, email, profile) {
     stars_per_ticket: p.stars
   }).select().single();
 
-  if (error) throw new Error('Gebruiker aanmaken mislukt: ' + error.message);
+  if (error) throw new Error('Failed to create user: ' + error.message);
   return newUser;
 }
 
@@ -392,7 +392,7 @@ async function saveTicketsToDb(userId, tickets, drawDate, drawNumber, machine, b
     bal
   }));
   const { error } = await supabaseClient.from('tickets').insert(rows);
-  if (error) throw new Error('Tickets opslaan mislukt: ' + error.message);
+  if (error) throw new Error('Failed to save tickets: ' + error.message);
 }
 
 
@@ -421,7 +421,7 @@ function openSaveProfile() {
   const lbl = profileLabels[selectedProfile] || 'Standaard';
   document.getElementById('profileSummaryLabel').textContent = lbl + ' profiel';
   document.getElementById('profileSummaryDetail').textContent =
-    `${pendingTickets.length} tickets · ${profile.nums} nummers + ${profile.stars} sterren`;
+    `${pendingTickets.length} tickets · ${profile.nums} numbers + ${profile.stars} stars`;
 
   if (currentUser) {
     document.getElementById('profileName').value = currentUser.name || '';
@@ -453,7 +453,7 @@ async function saveUserTickets() {
   }
 
   const btn = document.getElementById('saveProfileBtn');
-  btn.disabled = true; btn.textContent = 'Bezig…'; msg.textContent = '';
+  btn.disabled = true; btn.textContent = 'Processing…'; msg.textContent = '';
 
   try {
     const nextDraw = document.getElementById('nextDraw').textContent || 'volgende trekking';
@@ -486,7 +486,7 @@ async function saveUserTickets() {
       `Na de trekking ontvang je een persoonlijke analyse op <strong>${email}</strong>.`;
 
   } catch(e) {
-    msg.textContent = '⚠ Fout: ' + e.message;
+    msg.textContent = '⚠ Error: ' + e.message;
     msg.style.color = '#A32D2D';
     btn.disabled = false; btn.textContent = '✓ Opslaan & analyse activeren';
   }
@@ -548,9 +548,9 @@ const DISC_TRANSLATIONS = {
     'disc-age-body': 'Dit hulpmiddel is uitsluitend bestemd voor personen van 18 jaar en ouder. Bent u jonger dan 18? Verlaat deze pagina onmiddellijk.',
     'disc-countries-title': 'EuroMillions deelnemende landen',
     'disc-what-title': 'Wat dit hulpmiddel is',
-    'disc-what-body': 'EuroMillions Number Optimizer is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische trekkingsdata om frequentiepatronen, hete/koude nummers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
+    'disc-what-body': 'EuroMillions Number Optimizer is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische trekkingsdata om frequentiepatronen, hete/koude numbers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
     'disc-nog-title': 'Geen garantie op winst',
-    'disc-nog-body': '<strong>EuroMillions is een kansspel.</strong> Geen enkele statistische methode, algoritme of voorspellingsmodel kan loterijuitslagen voorspellen of beïnvloeden. Historische patronen garanderen geen toekomstige resultaten. Gegenereerde nummers hebben <strong>precies dezelfde winkans</strong> als elke andere combinatie.',
+    'disc-nog-body': '<strong>EuroMillions is een kansspel.</strong> Geen enkele statistische methode, algoritme of voorspellingsmodel kan loterijuitslagen voorspellen of beïnvloeden. Historische patronen garanderen geen toekomstige resultaten. Gegenereerde numbers hebben <strong>precies dezelfde winkans</strong> als elke andere combinatie.',
     'disc-liab-title': 'Beperking van aansprakelijkheid',
     'disc-liab-body': 'De exploitanten van EuroMillions Number Optimizer aanvaarden <strong>geen enkele verantwoordelijkheid of aansprakelijkheid</strong> voor financieel verlies, schade of nadeel voortvloeiend uit het gebruik van dit hulpmiddel of deelname aan EuroMillions of enige andere loterij. Gebruik is volledig op eigen risico. Dit is geen financieel, juridisch of beleggingsadvies.',
     'disc-resp-title': 'Verantwoord gokken',
@@ -560,7 +560,7 @@ const DISC_TRANSLATIONS = {
     'disc-param-title': 'Aangepaste parameters',
     'disc-param-body': 'U kunt statistische parameters aanpassen. Onze standaardinstellingen zijn gebaseerd op historische data-analyse. <strong>Elke wijziging is uw eigen keuze en verantwoordelijkheid.</strong> Wij zijn niet aansprakelijk voor uitkomsten op basis van aangepaste instellingen.',
     'disc-check1': 'Ik bevestig dat ik <strong>18 jaar of ouder</strong> ben en in mijn land wettelijk bevoegd ben deel te nemen aan loterijen.',
-    'disc-check2': 'Ik begrijp dat <strong>EuroMillions een kansspel is</strong> en dat geen enkel hulpmiddel of systeem winnende nummers kan garanderen of voorspellen. Ik gebruik dit hulpmiddel uitsluitend voor entertainment.',
+    'disc-check2': 'Ik begrijp dat <strong>EuroMillions een kansspel is</strong> en dat geen enkel hulpmiddel of systeem winnende numbers kan garanderen of voorspellen. Ik gebruik dit hulpmiddel uitsluitend voor entertainment.',
     'disc-check3': 'Ik erken dat de exploitanten van dit hulpmiddel <strong>geen aansprakelijkheid</strong> aanvaarden voor financieel verlies of schade door gebruik van deze dienst, en ik accepteer de volledige disclaimer hierboven.',
     'disc-legal-note': 'Door verder te gaan bevestigt u de volledige disclaimer te hebben gelezen en geaccepteerd. Laatste update: mei 2026.<br>Deze dienst is een informatietool en geen vergunde kansspeloperator.',
     'discAcceptLabel': '✓ Alles accepteren & Starten',
@@ -681,7 +681,7 @@ function discLang(lang) {
       sub: 'While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.'
     },
     nl: {
-      title: 'De enige tool die nummers optimaliseert op basis van de daadwerkelijk gebruikte trekkmachine en balset.',
+      title: 'De enige tool die numbers optimaliseert op basis van de daadwerkelijk gebruikte trekkmachine en balset.',
       sub: 'Terwijl anderen 20 jaar algemene trekkingen analyseren — filteren wij op de specifieke machine &amp; balset van vanavond.'
     },
     fr: {

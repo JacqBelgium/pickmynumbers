@@ -21,19 +21,19 @@ async function sendConfirmationEmail(name, email, tickets, nextDraw, profile) {
     <div style="max-width:520px;margin:auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e8e8e4;">
       <div style="background:#1a1a18;padding:1.5rem;color:#fff;">
         <div style="font-size:18px;font-weight:500;">🎰 PickMyNumbers</div>
-        <div style="font-size:12px;color:#aaa;margin-top:4px;">Jouw tickets zijn opgeslagen</div>
+        <div style="font-size:12px;color:#aaa;margin-top:4px;">Your tickets have been saved</div>
       </div>
       <div style="padding:1.5rem;">
-        <p style="font-size:15px;margin-bottom:1rem;">Hallo <strong>${name}</strong>! 👋</p>
+        <p style="font-size:15px;margin-bottom:1rem;">Hello <strong>${name}</strong>! 👋</p>
         <p style="font-size:13px;color:#555;margin-bottom:1.5rem;">
-          Je <strong>${profileLabel}</strong> tickets voor de <strong>${nextDraw}</strong> trekking zijn opgeslagen. 
-          Na de trekking ontvang je automatisch een persoonlijke analyse.
+          Your <strong>${profileLabel}</strong> tickets for the <strong>${nextDraw}</strong> draw have been saved. 
+          After the draw you will automatically receive a personal analysis.
         </p>
         <table style="width:100%;border-collapse:collapse;background:#f8f8f6;border-radius:8px;overflow:hidden;">
           ${ticketHtml}
         </table>
         <p style="font-size:11px;color:#aaa;margin-top:1.5rem;line-height:1.6;">
-          EuroMillions is een kans- en gokspel. Geen enkele methode garandeert winst. 18+.<br>
+          EuroMillions is a game of chance. No method guarantees winnings. 18+ only.<br>
           <a href="https://pickmynumbers.eu" style="color:#aaa;">pickmynumbers.eu</a>
         </p>
       </div>
