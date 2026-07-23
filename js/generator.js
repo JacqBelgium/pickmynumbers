@@ -90,7 +90,7 @@ function getPickDist(){
 
 function getStarStrategy(){
   // Gebruik alleen echte M/B draws voor sterren — niet weighted
-  // (weighted dataset is te groot en verhoogt de hot drempel kunstmatig)
+  // (weighted dataset is te groot en verhight de hot drempel kunstmatig)
   const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
   const weighted = mbDraws.length >= 10 ? mbDraws : getWeightedDraws(currentMachine, currentBal);
 
@@ -224,8 +224,8 @@ function weightedPick(pool,count){
 function check2D(nums){
   // Gebruik altijd de eerste 5 nummers voor 2D check
   const n5 = nums.slice(0,5);
-  const odd=n5.filter(n=>n%2!==0).length,laag=n5.filter(n=>n<=25).length;
-  return selectedMatrix.has(odd+'_'+laag);
+  const odd=n5.filter(n=>n%2!==0).length,low=n5.filter(n=>n<=25).length;
+  return selectedMatrix.has(odd+'_'+low);
 }
 function checkSom(nums){
   // Som van eerste 5 nummers
@@ -266,8 +266,8 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
 
     if(check2D(nums.slice(0,5))&&checkSom(nums.slice(0,5))&&checkConsec(nums.slice(0,5))&&checkOverlap(nums,prevTickets)){
       nums.sort((a,b)=>a-b);
-      const odd=nums.filter(n=>n%2!==0).length,laag=nums.filter(n=>n<=25).length;
-      return{h,a:av,nums,odd,even:nums.length-odd,laag,hoog:nums.length-laag,som:nums.reduce((a,b)=>a+b,0),ok:true};
+      const odd=nums.filter(n=>n%2!==0).length,low=nums.filter(n=>n<=25).length;
+      return{h,a:av,nums,odd,even:nums.length-odd,low,high:nums.length-low,som:nums.reduce((a,b)=>a+b,0),ok:true};
     }
   }
   const h=weightedPick(hp,hc),av=weightedPick(ap,ac);
@@ -280,8 +280,8 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
     }
   }
   nums.sort((a,b)=>a-b);
-  const odd=nums.filter(n=>n%2!==0).length,laag=nums.filter(n=>n<=25).length;
-  return{h,a:av,nums,odd,even:nums.length-odd,laag,hoog:nums.length-laag,som:nums.reduce((a,b)=>a+b,0),ok:false,fallback:true};
+  const odd=nums.filter(n=>n%2!==0).length,low=nums.filter(n=>n<=25).length;
+  return{h,a:av,nums,odd,even:nums.length-odd,low,high:nums.length-low,som:nums.reduce((a,b)=>a+b,0),ok:false,fallback:true};
 }
 
 
@@ -479,7 +479,7 @@ function updateSom(){
   document.getElementById('ruleSom').textContent=min+'–'+max;
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const fits=draws.filter(d=>{const s=d.nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;}).length;
-  document.getElementById('somDetail').textContent=`${fits} van ${draws.length} draws in bereik (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
+  document.getElementById('somDetail').textContent=`${fits} van ${draws.length} draws in range (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
 }
 
 function updateConsec(){
@@ -588,7 +588,7 @@ function generateAll(){
     if(t>1){
       const maxOv=pickedNums.slice(0,-1).map(prev=>allNums.filter(n=>prev.includes(n)).length);
       const maxO=Math.max(...maxOv);
-      overlapInfo=maxO===0?'✓ Geen overlap':`~ Max ${maxO} overlap`;
+      overlapInfo=maxO===0?'✓ No overlap':`~ Max ${maxO} overlap`;
     }
 
     const div=document.createElement('div');div.className='ticket ticket-card';
@@ -600,7 +600,7 @@ function generateAll(){
         ${sc.map(s=>`<div class="ball ball-star">${s}</div>`).join('')}
       </div>
       <div class="ticket-tags">
-        <span class="ttag ${r.ok?'ttag-g':'ttag-w'}">${r.ok?'✓':'~'} ${r.odd}o+${r.even}e · ${r.laag}L+${r.hoog}H</span>
+        <span class="ttag ${r.ok?'ttag-g':'ttag-w'}">${r.ok?'✓':'~'} ${r.odd}o+${r.even}e · ${r.low}L+${r.high}H</span>
         <span class="ttag ttag-b">Som: ${r.som}</span>
         <span class="ttag ttag-o">★ ${sc.join('-')}</span>
         ${overlapInfo?`<span class="ttag ${overlapInfo.startsWith('✓')?'ttag-g':'ttag-p'}">${overlapInfo}</span>`:''}
@@ -792,7 +792,7 @@ function renderScoreTable(){
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const maxScore=pool[0]?.score||1,total=pool.length;
   const bc=isStar?'sball-star':isHot?'sball-hot':isCold?'sball-cold':'sball-avg';
-  function qp(i){if(i<Math.ceil(total*.25))return`<span class="q-high">Hoog</span>`;if(i<Math.ceil(total*.5))return`<span class="q-mid">Mid</span>`;if(i<Math.ceil(total*.75))return`<span class="q-low">Laag</span>`;return`<span class="q-rest">Rest</span>`;}
+  function qp(i){if(i<Math.ceil(total*.25))return`<span class="q-high">High</span>`;if(i<Math.ceil(total*.5))return`<span class="q-mid">Mid</span>`;if(i<Math.ceil(total*.75))return`<span class="q-low">Low</span>`;return`<span class="q-rest">Rest</span>`;}
   function ac(s){return s>=1.5?'overdue':s>=0.8?'normal':'fresh';}
   document.getElementById('scoreTable').innerHTML=pool.length===0
     ?`<div style="color:#bbb;font-size:12px;padding:1rem 0;">Geen nummers in deze pool.</div>`
