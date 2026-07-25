@@ -5,7 +5,7 @@
 // GEWOGEN SCORING
 // =====================
 function getWeight(machine, bal) {
-  // Gewichtsfactor op basis van aantal M/B draws
+  // Gewichtsfactor op basis of aantal M/B draws
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
   if (mbDraws > 80) return 10;
   if (mbDraws > 60) return 8;
@@ -228,7 +228,7 @@ function check2D(nums){
   return selectedMatrix.has(odd+'_'+low);
 }
 function checkSom(nums){
-  // Som van eerste 5 nummers
+  // Som of eerste 5 nummers
   const n5 = nums.slice(0,5);
   const somMinEl=document.getElementById('somMin'),somMaxEl=document.getElementById('somMax'); const min=somMinEl?parseInt(somMinEl.value):90,max=somMaxEl?parseInt(somMaxEl.value):180;
   const s=n5.reduce((a,b)=>a+b,0);return s>=min&&s<=max;
@@ -307,7 +307,7 @@ function renderMatrix(){
   const cov=Array.from(selectedMatrix).reduce((s,k)=>s+(MATRIX_DATA[k]?.count||0),0);
   setElText('matrixCoverage', `Coverage: ${(cov/104*100).toFixed(0)}%`);
   setElText('matrixDetail', `${selectedMatrix.size} patterns active · 104 draws 2025`);
-  document.getElementById('rule2D').textContent=selectedMatrix.size+' van 16';
+  document.getElementById('rule2D').textContent=selectedMatrix.size+' of 16';
 }
 function toggleMatrix(key){
   if(selectedMatrix.has(key)){if(selectedMatrix.size>1)selectedMatrix.delete(key);}
@@ -328,7 +328,7 @@ function setOverlap(n){
   const labels={0:'No overlap allowed',1:'Max 1 overlapping number',2:'Max 2 overlapping numbers',3:'Max 3 overlapping numbers',99:'No restriction'};
   document.getElementById('overlapLabel').textContent=labels[n]||'';
   document.getElementById('ruleOverlap').textContent=n===99?'geen':('max '+n);
-  document.getElementById('overlapStat').textContent=n===99?'Uitgeschakeld':'Actief';
+  document.getElementById('overlapStat').textContent=n===99?'Uitgeschakeld':'Active';
 }
 
 
@@ -387,7 +387,7 @@ function updateAll(){
   const dist=getPickDist();
   const avg=(draws.length*5/50).toFixed(1);
   setElText('avgDisp', avg);
-  setElText('totalDraws', `${ALL_DRAWS.length} totaal, ${draws.length} M${currentMachine}/B${currentBal} · gewicht ×${weight}`);
+  setElText('totalDraws', `${ALL_DRAWS.length} totaal, ${draws.length} M${currentMachine}/B${currentBal} · weight ×${weight}`);
   setElText('machineLabel', 'M'+currentMachine+'/B'+currentBal);
   setElText('machineBadge', 'M'+currentMachine+'/B'+currentBal);
   setElText('machineTag', 'M'+currentMachine+'/B'+currentBal+' · '+draws.length+' draws · ×'+weight);
@@ -468,7 +468,7 @@ function updatePerformanceBadge() {
   if (perfPct) perfPct.textContent = avgPct + '%';
   if (perfDraws) perfDraws.textContent = mbDraws.length;
   if (perfMachine) perfMachine.textContent = `M${currentMachine}/B${currentBal}`;
-  if (perfDetail) perfDetail.textContent = `${good} van ${mbDraws.length} draws ≥80% · ${perfect}× volledig raak`;
+  if (perfDetail) perfDetail.textContent = `${good} of ${mbDraws.length} draws ≥80% · ${perfect}× fully matched`;
 }
 
 function updateSom(){
@@ -479,7 +479,7 @@ function updateSom(){
   document.getElementById('ruleSom').textContent=min+'–'+max;
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const fits=draws.filter(d=>{const s=d.nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;}).length;
-  document.getElementById('somDetail').textContent=`${fits} van ${draws.length} draws in range (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
+  document.getElementById('somDetail').textContent=`${fits} of ${draws.length} draws in range (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
 }
 
 function updateConsec(){
@@ -565,7 +565,7 @@ function generateAll(){
   const numsCount = profile.nums || 5;
   const starsCount = profile.stars || 2;
 
-  // Kies juiste ster combinaties op basis van profiel
+  // Kies juiste ster combinaties op basis of profiel
   const starCombis = starsCount >= 4 ? combis4 : starsCount >= 3 ? combis3 : combis;
 
   const nd=nextDrawDate(),g=document.getElementById('ticketsGrid');
@@ -663,8 +663,8 @@ function saveResult(){
   if(machineChanged){
     document.getElementById('machineAlert').style.display='block';
     document.getElementById('machineAlertText').innerHTML=
-      `Machine/Balset gewijzigd van <strong>M${currentMachine}/B${currentBal}</strong> naar <strong>M${machine}/B${bal}</strong>.<br>
-      De generator is automatisch omgeschakeld. Pools en scores worden herberekend op basis van de nieuwe combinatie.`;
+      `Machine/Balset gewijzigd of <strong>M${currentMachine}/B${currentBal}</strong> naar <strong>M${machine}/B${bal}</strong>.<br>
+      De generator is automatisch omgeschakeld. Pools en scores worden herberekend op basis of de nieuwe combinatie.`;
     currentMachine=machine;
     currentBal=bal;
     updateAll();
