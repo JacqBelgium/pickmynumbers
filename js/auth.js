@@ -169,16 +169,16 @@ async function sendMagicLink(mode) {
     if (error) throw error;
 
     document.getElementById('loginSentMsg').innerHTML =
-      `We hebben een magic link gestuurd naar <strong>${email}</strong>.<br>
-       Klik op de link in de email om direct in te ${isSignup ? 'registreren en in' : ''}loggen.`;
+      `We sent a magic link to <strong>${email}</strong>.<br>
+       Click the link in the email to sign in immediately.`;
     showStep('loginStepSent');
 
   } catch(e) {
-    msgEl.textContent = '⚠ ' + (e.message || 'Fout — probeer opnieuw');
+    msgEl.textContent = '⚠ ' + (e.message || 'Error — please try again');
     msgEl.style.color = '#A32D2D';
   }
   btnEl.disabled = false;
-  btnEl.textContent = isSignup ? '✉ Maak account aan' : '✉ Stuur magic link';
+  btnEl.textContent = isSignup ? '✉ Create account' : '✉ Send magic link';
 }
 
 function selectLoginProfile(profile) {
