@@ -97,7 +97,7 @@ function updateUserBar(user) {
 }
 
 async function logoutUser() {
-  if (!confirm('Uitloggen?')) return;
+  if (!confirm('Sign out?')) return;
   await supabaseClient.auth.signOut();
 }
 
@@ -113,7 +113,7 @@ function showStep(stepId) {
 }
 
 function openSignup() {
-  document.getElementById('loginHeaderSub').textContent = 'Gratis account aanmaken';
+  document.getElementById('loginHeaderSub').textContent = 'Create a free account';
   showStep('loginStepSignup');
   document.getElementById('loginMsg').textContent = '';
   document.getElementById('loginOverlay').classList.add('open');
@@ -214,7 +214,7 @@ function selectProfileMain(profile) {
   const btn = document.getElementById('pmb-' + profile);
   if (btn) btn.classList.add('active');
 
-  // Reset waarden naar standaard voor dit profiel
+  // Reset waarden naar standaard voor dit profile
   const limits = PROFILE_LIMITS[profile] || PROFILE_LIMITS.standard;
   window.profileValues.tickets = limits.tickets[0] === limits.tickets[1] ? limits.tickets[0] : Math.min(window.profileValues.tickets, limits.tickets[1]);
   window.profileValues.nums = limits.nums[0];
@@ -345,7 +345,7 @@ async function getOrCreateUser(name, email, profile) {
     .from('users').select('*').eq('email', email).maybeSingle();
 
   if (existing) {
-    // Update profiel voorkeur
+    // Update profile voorkeur
     await supabaseClient.from('users').update({
       name,
       ticket_count: p.tickets,
@@ -374,7 +374,7 @@ async function getOrCreateUser(name, email, profile) {
 }
 
 async function saveTicketsToDb(userId, tickets, drawDate, drawNumber, machine, bal) {
-  // Verwijder eerst bestaande tickets voor deze gebruiker+datum (1x per trekking)
+  // Verwijder eerst bestaande tickets voor deze gebruiker+datum (1x per draw)
   await supabaseClient
     .from('tickets')
     .delete()
@@ -415,11 +415,11 @@ function openSaveProfile() {
 
   if (pendingTickets.length === 0) { alert('Kon tickets niet lezen — genereer opnieuw.'); return; }
 
-  // Haal actief profiel op van hoofdpagina
+  // Haal actief profile op of hoofdpagina
   const profile = getActiveProfile();
   const profileLabels = {standard:'Standaard',system:'Systeem',extended:'Uitgebreid',custom:'Eigen keuze'};
   const lbl = profileLabels[selectedProfile] || 'Standaard';
-  document.getElementById('profileSummaryLabel').textContent = lbl + ' profiel';
+  document.getElementById('profileSummaryLabel').textContent = lbl + ' profile';
   document.getElementById('profileSummaryDetail').textContent =
     `${pendingTickets.length} tickets · ${profile.nums} numbers + ${profile.stars} stars`;
 
@@ -456,12 +456,12 @@ async function saveUserTickets() {
   btn.disabled = true; btn.textContent = 'Processing…'; msg.textContent = '';
 
   try {
-    const nextDraw = document.getElementById('nextDraw').textContent || 'volgende trekking';
+    const nextDraw = document.getElementById('nextDraw').textContent || 'volgende draw';
     const lastDrawText = document.getElementById('lastDraw').textContent || '';
     const drawMatch = lastDrawText.match(/(\d{4})/);
     const drawNumber = drawMatch ? parseInt(drawMatch[1]) : 0;
 
-    // Maak/haal gebruiker op — sla profiel voorkeur op
+    // Maak/haal gebruiker op — sla profile voorkeur op
     const user = await getOrCreateUser(name, email, profile);
 
     currentUser = {
@@ -473,7 +473,7 @@ async function saveUserTickets() {
     };
     localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
 
-    // Gebruik de volgende trekkingsdatum als draw_date
+    // Gebruik de volgende drawsdatum als draw_date
     const nextDrawDateStr = getNextDrawDateISO();
     await saveTicketsToDb(user.id, pendingTickets, nextDrawDateStr, drawNumber, currentMachine, currentBal);
     await sendConfirmationEmail(name, email, pendingTickets, nextDraw, profile);
@@ -481,9 +481,9 @@ async function saveUserTickets() {
     document.getElementById('profileFormArea').style.display = 'none';
     document.getElementById('profileSuccessArea').style.display = 'block';
     document.getElementById('profileSuccessMsg').innerHTML =
-      `Hallo <strong>${name}</strong>! (${profile.label} profiel)<br><br>` +
+      `Hallo <strong>${name}</strong>! (${profile.label} profile)<br><br>` +
       `Je <strong>${pendingTickets.length} ticket${pendingTickets.length>1?'s':''}</strong> zijn opgeslagen.<br><br>` +
-      `Na de trekking ontvang je een persoonlijke analyse op <strong>${email}</strong>.`;
+      `Na de draw ontvang je een persoonlijke analyse op <strong>${email}</strong>.`;
 
   } catch(e) {
     msg.textContent = '⚠ Error: ' + e.message;
@@ -545,23 +545,23 @@ const DISC_TRANSLATIONS = {
   },
   nl: {
     'disc-age-title': 'Leeftijdsbeperking — Alleen voor volwassenen',
-    'disc-age-body': 'Dit hulpmiddel is uitsluitend bestemd voor personen van 18 jaar en ouder. Bent u jonger dan 18? Verlaat deze pagina onmiddellijk.',
+    'disc-age-body': 'Dit hulpmiddel is uitsluitend bestemd voor personen of 18 jaar en ouder. Bent u jonger dan 18? Verlaat deze pagina onmiddellijk.',
     'disc-countries-title': 'EuroMillions deelnemende landen',
     'disc-what-title': 'Wat dit hulpmiddel is',
-    'disc-what-body': 'EuroMillions Number Optimizer is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische trekkingsdata om frequentiepatronen, hete/koude numbers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
+    'disc-what-body': 'EuroMillions Number Optimizer is een <strong>gratis statistisch analyse- en nummergeneratietool</strong>. Het gebruikt historische drawsdata om frequentiepatronen, hete/koude numbers en statistische verdelingen te identificeren. Het <strong>verkoopt geen</strong> loten, accepteert geen weddenschappen en verwerkt geen geldtransacties. Het is uitsluitend een vermaaks- en informatiedienst.',
     'disc-nog-title': 'Geen garantie op winst',
     'disc-nog-body': '<strong>EuroMillions is een kansspel.</strong> Geen enkele statistische methode, algoritme of voorspellingsmodel kan loterijuitslagen voorspellen of beïnvloeden. Historische patronen garanderen geen toekomstige resultaten. Gegenereerde numbers hebben <strong>precies dezelfde winkans</strong> als elke andere combinatie.',
-    'disc-liab-title': 'Beperking van aansprakelijkheid',
-    'disc-liab-body': 'De exploitanten van EuroMillions Number Optimizer aanvaarden <strong>geen enkele verantwoordelijkheid of aansprakelijkheid</strong> voor financieel verlies, schade of nadeel voortvloeiend uit het gebruik van dit hulpmiddel of deelname aan EuroMillions of enige andere loterij. Gebruik is volledig op eigen risico. Dit is geen financieel, juridisch of beleggingsadvies.',
+    'disc-liab-title': 'Beperking of aansprakelijkheid',
+    'disc-liab-body': 'De exploitanten of EuroMillions Number Optimizer aanvaarden <strong>geen enkele verantwoordelijkheid of aansprakelijkheid</strong> voor financieel verlies, schade of nadeel voortvloeiend uit het gebruik of dit hulpmiddel of deelname aan EuroMillions of enige andere loterij. Gebruik is volledig op eigen risico. Dit is geen financieel, juridisch of beleggingsadvies.',
     'disc-resp-title': 'Verantwoord gokken',
     'disc-resp-body': 'Gokken kan verslavend en schadelijk zijn. <strong>Speel alleen met geld dat u kunt missen.</strong> Heeft u of iemand die u kent een gokprobleem? Zoek hulp:<br><br>🇳🇱 <strong>NL:</strong> <a href="https://www.agog.nl" target="_blank">agog.nl</a> · 0900-2178710<br>🇧🇪 <strong>BE:</strong> <a href="https://www.gamblinginfo.be" target="_blank">gamblinginfo.be</a><br>🇫🇷 <strong>FR:</strong> <a href="https://www.joueurs-info-service.fr" target="_blank">joueurs-info-service.fr</a><br>🇩🇪 <strong>DE:</strong> <a href="https://www.bzga.de" target="_blank">bzga.de</a><br>🇪🇸 <strong>ES:</strong> <a href="https://www.jugarbien.es" target="_blank">jugarbien.es</a><br>🇬🇧 <strong>UK:</strong> <a href="https://www.gamcare.org.uk" target="_blank">gamcare.org.uk</a>',
     'disc-gdpr-title': 'Privacy & AVG',
     'disc-gdpr-body': 'Dit hulpmiddel slaat uw instellingen lokaal op in uw browser (localStorage). Als u kiest voor ticketopslag en e-mailanalyse, wordt uw e-mailadres veilig bewaard en uitsluitend daarvoor gebruikt. U kunt op elk moment verwijdering aanvragen. Wij verkopen of delen geen persoonsgegevens. AVG-conform.',
     'disc-param-title': 'Aangepaste parameters',
-    'disc-param-body': 'U kunt statistische parameters aanpassen. Onze standaardinstellingen zijn gebaseerd op historische data-analyse. <strong>Elke wijziging is uw eigen keuze en verantwoordelijkheid.</strong> Wij zijn niet aansprakelijk voor uitkomsten op basis van aangepaste instellingen.',
+    'disc-param-body': 'U kunt statistische parameters aanpassen. Onze standaardinstellingen zijn gebaseerd op historische data-analyse. <strong>Elke wijziging is uw eigen keuze en verantwoordelijkheid.</strong> Wij zijn niet aansprakelijk voor uitkomsten op basis of aangepaste instellingen.',
     'disc-check1': 'Ik bevestig dat ik <strong>18 jaar of ouder</strong> ben en in mijn land wettelijk bevoegd ben deel te nemen aan loterijen.',
     'disc-check2': 'Ik begrijp dat <strong>EuroMillions een kansspel is</strong> en dat geen enkel hulpmiddel of systeem winnende numbers kan garanderen of voorspellen. Ik gebruik dit hulpmiddel uitsluitend voor entertainment.',
-    'disc-check3': 'Ik erken dat de exploitanten van dit hulpmiddel <strong>geen aansprakelijkheid</strong> aanvaarden voor financieel verlies of schade door gebruik van deze dienst, en ik accepteer de volledige disclaimer hierboven.',
+    'disc-check3': 'Ik erken dat de exploitanten of dit hulpmiddel <strong>geen aansprakelijkheid</strong> aanvaarden voor financieel verlies of schade door gebruik of deze dienst, en ik accepteer de volledige disclaimer hierboven.',
     'disc-legal-note': 'Door verder te gaan bevestigt u de volledige disclaimer te hebben gelezen en geaccepteerd. Laatste update: mei 2026.<br>Deze dienst is een informatietool en geen vergunde kansspeloperator.',
     'discAcceptLabel': '✓ Alles accepteren & Starten',
     'discAcceptLabelDisabled': '☐ Vink alle vakjes hierboven aan',
@@ -681,8 +681,8 @@ function discLang(lang) {
       sub: 'While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.'
     },
     nl: {
-      title: 'De enige tool die numbers optimaliseert op basis van de daadwerkelijk gebruikte trekkmachine en balset.',
-      sub: 'Terwijl anderen 20 jaar algemene trekkingen analyseren — filteren wij op de specifieke machine &amp; balset van vanavond.'
+      title: 'De enige tool die numbers optimaliseert op basis of de daadwerkelijk gebruikte trekkmachine en balset.',
+      sub: 'Terwijl anderen 20 jaar algemene draws analyseren — filteren wij op de specifieke machine &amp; balset of vanavond.'
     },
     fr: {
       title: 'Le seul outil qui optimise les numéros en fonction de la machine et du jeu de boules réellement utilisés.',
