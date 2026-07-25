@@ -97,8 +97,8 @@
           🔑 Sign in
         </button>
         <div class="login-note">
-          Geen wachtwoord nodig — je ontvangt een magic link per email.<br>
-          Geen spam. Zie onze <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacy policy</a>.
+          No password needed — you will receive a magic link by email.<br>
+          No spam. See our <a onclick="showDisclaimer()" style="color:#aaa;cursor:pointer;">privacy policy</a>.
         </div>
       </div>
 
@@ -127,11 +127,11 @@
           <div style="font-size:40px;margin-bottom:12px;">📬</div>
           <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check your email!</div>
           <div style="font-size:13px;color:#555;line-height:1.6;" id="loginSentMsg">
-            We hebben een magic link gestuurd.<br>
+            We sent you a magic link.<br>
             Klik op de link in de email om direct in te loggen.
           </div>
           <div style="font-size:11px;color:#aaa;margin-top:16px;">
-            Geen email? Check je spam map of
+            No email? Check your spam folder or
             <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
           </div>
         </div>
@@ -329,8 +329,8 @@
   <div style="display:flex;align-items:center;gap:8px;">
     <span style="font-size:16px;">📊</span>
     <div>
-      <div style="font-size:12px;font-weight:500;color:#2E7D32;">Optimizer prestatie <span id="perfMachine" style="font-weight:400;color:#555;"></span></div>
-      <div style="font-size:11px;color:#555;">Gem. <strong id="perfPct">—</strong> pool dekking · <span id="perfDraws">—</span> trekkingen geanalyseerd</div>
+      <div style="font-size:12px;font-weight:500;color:#2E7D32;">Optimizer performance <span id="perfMachine" style="font-weight:400;color:#555;"></span></div>
+      <div style="font-size:11px;color:#555;">Avg. <strong id="perfPct">—</strong> pool coverage · <span id="perfDraws">—</span> draws analysed</div>
     </div>
   </div>
   <div style="font-size:10px;color:#888;font-style:italic;" id="perfDetail"></div>
@@ -350,7 +350,7 @@
 
   <!-- Machine badge -->
   <div class="strategy-row">
-    <span class="sb sb-amber" id="machineTag">M—/B— · — trekkingen</span>
+    <span class="sb sb-amber" id="machineTag">M—/B— · — draws</span>
     <span class="sb sb-green">✓ 50% Regel</span>
     <span class="sb sb-blue">✓ 2D Filter</span>
     <span class="sb sb-green">✓ Som + Consecutive</span>
@@ -387,7 +387,7 @@
 
   <!-- Sterren strategie -->
   <div class="star-box">
-    <div class="star-title" id="starStratTitle">Sterren Strategie — hot/cold analyse M/B specifiek</div>
+    <div class="star-title" id="starStratTitle">Stars Strategy — hot/cold analysis M/B specific</div>
     <div style="font-size:12px;color:#bbb;margin-bottom:8px;line-height:1.8;" id="starSub">—</div>
   </div>
 
@@ -537,9 +537,9 @@
   <!-- Gegenereerde tickets -->
   <div class="tickets-grid" id="ticketsGrid"></div>
 
-  <!-- Inzet + volgende trekking -->
+  <!-- Inzet + volgende draw -->
   <div class="inzet-box" style="margin-top:0.75rem;">
-    <span>Volgende trekking: <strong id="nextDraw"></strong></span>
+    <span>Next draw: <strong id="nextDraw"></strong></span>
     <span id="inzetInfo">3 tickets · <strong>€7,50</strong></span>
   </div>
 
@@ -547,7 +547,7 @@
   <div id="saveTicketsArea" style="display:none;margin-top:0.75rem;">
     <div style="border-top:1px solid #f0efea;padding-top:1rem;display:flex;flex-direction:column;gap:8px;">
       <button class="btn btn-save" onclick="openSaveProfile()" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <span>📧</span> Sla tickets op & ontvang analyse na trekking
+        <span>📧</span> Save tickets & receive analysis after draw
       </button>
       <div style="font-size:11px;color:#aaa;text-align:center;">You will receive a personal analysis by email after every draw</div>
     </div>
@@ -626,7 +626,7 @@
 
       <div id="profileSuccessArea" style="display:none;text-align:center;padding:1rem 0;">
         <div style="font-size:32px;margin-bottom:12px;">✅</div>
-        <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Tickets opgeslagen!</div>
+        <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Tickets saved!</div>
         <div style="font-size:12px;color:#aaa;line-height:1.6;" id="profileSuccessMsg"></div>
         <button class="btn" style="margin-top:1rem;" onclick="closeProfile()">Sluiten</button>
       </div>
@@ -637,15 +637,15 @@
 <!-- RESULTAAT INVOEREN -->
 <div id="pane-result" class="pane">
   <div class="box">
-    <div class="box-title gray">Trekking resultaat invoeren</div>
+    <div class="box-title gray">Enter draw result</div>
 
     <div class="input-grid">
       <div class="input-group">
-        <label class="input-label">Datum</label>
+        <label class="input-label">Date</label>
         <input type="date" id="resDate" class="input-field">
       </div>
       <div class="input-group">
-        <label class="input-label">Machine / Balset</label>
+        <label class="input-label">Machine / Ball set</label>
         <div style="display:flex;gap:6px;">
           <input type="number" id="resMachine" placeholder="Machine" class="input-field" style="width:50%;" min="1" max="20">
           <input type="number" id="resBal" placeholder="Balset" class="input-field" style="width:50%;" min="1" max="30">
@@ -654,7 +654,7 @@
     </div>
 
     <div class="input-group" style="margin-bottom:10px;">
-      <label class="input-label">Getrokken nummers (5 nummers)</label>
+      <label class="input-label">Drawn numbers (5 numbers)</label>
       <div class="num-input-row">
         <input type="number" class="num-input res-num" placeholder="1" min="1" max="50">
         <input type="number" class="num-input res-num" placeholder="2" min="1" max="50">
@@ -665,7 +665,7 @@
     </div>
 
     <div class="input-group" style="margin-bottom:16px;">
-      <label class="input-label">Lucky Stars (2 sterren)</label>
+      <label class="input-label">Lucky Stars (2 stars)</label>
       <div class="num-input-row">
         <input type="number" class="num-input res-star" placeholder="★1" min="1" max="12">
         <input type="number" class="num-input res-star" placeholder="★2" min="1" max="12">
@@ -673,17 +673,17 @@
     </div>
 
     <div class="input-group" style="margin-bottom:16px;">
-      <label class="input-label">Gespeelde tickets (optioneel — voor rendement berekening)</label>
+      <label class="input-label">Played tickets (optional — for return calculation)</label>
       <div id="ticketInputs" style="display:flex;flex-direction:column;gap:8px;"></div>
       <button class="btn" style="margin-top:8px;margin-bottom:0;font-size:12px;padding:7px;" onclick="addTicketInput()">+ Ticket toevoegen</button>
     </div>
 
-    <button class="btn btn-save" onclick="saveResult()">Opslaan & dataset updaten</button>
+    <button class="btn btn-save" onclick="saveResult()">Save & update dataset</button>
     <div id="saveMsg" style="font-size:12px;color:#3B6D11;margin-top:8px;text-align:center;"></div>
   </div>
 
   <div id="machineAlert" style="display:none;" class="box" style="background:#fff4e6;border-color:#f0dfc0;">
-    <div style="font-size:13px;font-weight:500;color:#854F0B;margin-bottom:8px;">⚡ Machine/Balset gewijzigd!</div>
+    <div style="font-size:13px;font-weight:500;color:#854F0B;margin-bottom:8px;">⚡ Machine/Ballset gewijzigd!</div>
     <div id="machineAlertText" style="font-size:12px;color:#a07830;line-height:1.7;"></div>
   </div>
 </div>
@@ -708,10 +708,10 @@
   <div class="history-table">
     <table>
       <thead>
-        <tr><th>Datum</th><th>Trekking</th><th>Jouw ticket</th><th>Hits</th><th>Prijs</th></tr>
+        <tr><th>Date</th><th>Draw</th><th>Your ticket</th><th>Hits</th><th>Prize</th></tr>
       </thead>
       <tbody id="historyBody">
-        <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px;">Nog geen resultaten ingevoerd</td></tr>
+        <tr><td colspan="5" style="text-align:center;color:#bbb;padding:20px;">No results yet ingevoerd</td></tr>
       </tbody>
     </table>
   </div>
@@ -809,7 +809,7 @@
     <div id="adminPanel" style="display:none;">
       <button class="admin-close" onclick="closeAdmin()">✕</button>
       <h2>⚙️ Admin Panel</h2>
-      <p class="admin-sub">Privé dataset beheer · Niet zichtbaar voor eindgebruikers</p>
+      <p class="admin-sub">Private dataset management · Not visible to end users</p>
 
       <!-- STORAGE STATS -->
       <div class="storage-stats">
@@ -820,11 +820,11 @@
 
       <!-- AUTO FETCH -->
       <div class="admin-section">
-        <div class="admin-section-title">🌐 Trekking ophalen via BeatLottery</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Haalt nummers, sterren, <strong style="color:#854F0B;">machine én balset</strong> automatisch op van beatlottery.co.uk.</p>
+        <div class="admin-section-title">🌐 Draw ophalen via BeatLottery</div>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Fetches numbers, stars, <strong style="color:#854F0B;">machine én balset</strong> automatisch op van beatlottery.co.uk.</p>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
           <div class="admin-input-group" style="flex:1;">
-            <span class="admin-input-label">DATUM (di of vr)</span>
+            <span class="admin-input-label">DATE (tue or fri)</span>
             <input type="date" class="admin-input" id="fetchDate">
           </div>
           <div style="padding-top:16px;">
@@ -840,13 +840,13 @@
               <input type="number" class="admin-input" id="fetchMachine" placeholder="—" min="1" max="20">
             </div>
             <div class="admin-input-group">
-              <span class="admin-input-label">BALSET (auto)</span>
+              <span class="admin-input-label">BALL SET (auto)</span>
               <input type="number" class="admin-input" id="fetchBal" placeholder="—" min="1" max="30">
             </div>
           </div>
-          <div style="font-size:10px;color:#aaa;margin-top:4px;">Controleer en pas evt. aan vóór opslaan</div>
+          <div style="font-size:10px;color:#aaa;margin-top:4px;">Check and adjust if needed before saving</div>
           <div style="margin-top:10px;display:flex;gap:8px;">
-            <button class="btn-admin btn-admin-green" onclick="adminSaveFetched()" style="flex:1;">✓ Opslaan in dataset</button>
+            <button class="btn-admin btn-admin-green" onclick="adminSaveFetched()" style="flex:1;">✓ Spslaan in dataset</button>
             <button class="btn-admin" onclick="document.getElementById('fetchResult').style.display='none'">✕</button>
           </div>
         </div>
@@ -855,10 +855,10 @@
 
       <!-- HANDMATIG TOEVOEGEN -->
       <div class="admin-section">
-        <div class="admin-section-title">✏️ Handmatig trekking toevoegen</div>
+        <div class="admin-section-title">✏️ Add draw manually</div>
         <div class="admin-input-row">
           <div class="admin-input-group">
-            <span class="admin-input-label">DATUM</span>
+            <span class="admin-input-label">DATE</span>
             <input type="date" class="admin-input" id="manDate">
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
@@ -867,7 +867,7 @@
               <input type="number" class="admin-input" id="manMachine" placeholder="13" min="1" max="20" value="13">
             </div>
             <div class="admin-input-group">
-              <span class="admin-input-label">BALSET</span>
+              <span class="admin-input-label">BALL SET</span>
               <input type="number" class="admin-input" id="manBal" placeholder="21" min="1" max="30" value="21">
             </div>
           </div>
@@ -889,14 +889,14 @@
 
       <!-- DATASET BEHEREN -->
       <div class="admin-section">
-        <div class="admin-section-title">📋 Dataset (laatste 30 trekkingen)</div>
+        <div class="admin-section-title">📋 Dataset (last 30 draws)</div>
         <div class="admin-draw-list" id="adminDrawList"></div>
       </div>
 
       <!-- POOL DEKKING ANALYSE -->
       <div class="admin-section">
         <div class="admin-section-title">📊 Pool coverage analysis</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Hoeveel uitslag nummers vielen binnen de optimizer pool per trekking.</p>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">How many result numbers fell winnen de optimizer pool per draw.</p>
         <button class="btn-admin btn-admin-primary" onclick="adminLoadPoolAnalysis()" style="margin-bottom:10px;">↓ Load analysis</button>
         <div id="adminPoolAnalysis" style="font-size:12px;color:#aaa;"></div>
       </div>
@@ -912,17 +912,17 @@
       <div class="admin-section">
         <div class="admin-section-title">📧 Analysis emails sturen</div>
 
-        <!-- KIES TREKKING UIT DATASET -->
+        <!-- SELECT DRAW UIT DATASET -->
         <div class="admin-input-group" style="margin-bottom:10px;">
-          <span class="admin-input-label">KIES TREKKING</span>
+          <span class="admin-input-label">SELECT DRAW</span>
           <select class="admin-input" id="analysisDraw" onchange="adminSelectDraw()" style="width:100%;">
-            <option value="">— Selecteer trekking —</option>
+            <option value="">— Select draw —</option>
           </select>
         </div>
 
         <!-- UITSLAG PREVIEW -->
         <div id="analysisDrawPreview" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
-          <div style="font-size:11px;color:#aaa;margin-bottom:6px;">Uitslag:</div>
+          <div style="font-size:11px;color:#aaa;margin-bottom:6px;">Result:</div>
           <div id="analysisDrawBalls"></div>
         </div>
 
@@ -933,10 +933,10 @@
 
       <!-- ACTIEVE MACHINE/BAL -->
       <div class="admin-section">
-        <div class="admin-section-title">⚙️ Actieve machine/bal combinatie</div>
-        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">Dit bepaalt welke combinatie de generator gebruikt voor alle gebruikers.</p>
+        <div class="admin-section-title">⚙️ Active machine/ball set combination</div>
+        <p style="font-size:11px;color:#aaa;margin-bottom:10px;">This determines which combination the generator gebruikt voor alle gebruikers.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;" id="adminMbSelector"></div>
-        <div style="font-size:11px;color:#aaa;margin-top:8px;">Gewicht: <strong id="adminWeightDisplay">—</strong> · Trekkingen: <strong id="adminMbCount">—</strong></div>
+        <div style="font-size:11px;color:#aaa;margin-top:8px;">Weight: <strong id="adminWeightDisplay">—</strong> · Drawen: <strong id="adminMbCount">—</strong></div>
       </div>
 
       <!-- OPSLAG & INSTELLINGEN -->
@@ -949,10 +949,10 @@
         </div>
         <input type="file" id="importFile" accept=".json" style="display:none;" onchange="adminDoImport(event)">
         <div style="margin-top:14px;">
-          <div class="admin-section-title" style="margin-bottom:8px;">🔑 PIN wijzigen</div>
+          <div class="admin-section-title" style="margin-bottom:8px;">🔑 Change PIN</div>
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="password" class="admin-input" id="newPin" placeholder="Nieuwe 4-cijferige PIN" maxlength="4" style="flex:1;">
-            <button class="btn-admin btn-admin-primary" onclick="adminChangePin()">Wijzigen</button>
+            <button class="btn-admin btn-admin-primary" onclick="adminChangePin()">Change</button>
           </div>
           <div class="admin-msg" id="pinChangeMsg"></div>
         </div>
