@@ -396,5 +396,18 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <!-- Hidden discOverlay placeholder voor auth.js compatibility -->
 <div id="discOverlay" style="display:none;"></div>
+
+<script>
+// Redirect to login if not signed in
+document.addEventListener("DOMContentLoaded", function() {
+  if (typeof supabaseClient !== "undefined") {
+    supabaseClient.auth.getSession().then(function({ data: { session } }) {
+      if (!session) {
+        window.location.href = "register.html?mode=signin&redirect=generate.html";
+      }
+    });
+  }
+});
+</script>
 </body>
 </html>
