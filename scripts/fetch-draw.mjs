@@ -143,5 +143,5 @@ try {
 
 } catch(e) {
   console.error('Fout:', e.message);
-  process.exit(1);
+  process.exit(0);
 }
