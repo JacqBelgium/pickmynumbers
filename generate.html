@@ -14,7 +14,7 @@
 .optimizer-link a { color:#0C447C; text-decoration:none; font-weight:500; }
 </style>
 </head>
-<body>
+<body style="background:#f8f8f6;min-height:100vh;">
 
 <!-- ===================== LOGIN MODAL ===================== -->
 <div class="login-overlay" id="loginOverlay">
@@ -394,5 +394,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }, 150);
 });
 </script>
+<!-- Hidden discOverlay placeholder voor auth.js compatibility -->
+<div id="discOverlay" style="display:none;"></div>
 </body>
 </html>
