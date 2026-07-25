@@ -290,6 +290,7 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
 // =====================
 function renderMatrix(){
   const grid=document.getElementById('matrixGrid');
+  if(!grid) return; // Niet beschikbaar op generate.html
   let html='<div class="matrix-header"></div>';
   [1,2,3,4].forEach(l=>html+=`<div class="matrix-header">${l}L+${5-l}H</div>`);
   [1,2,3,4].forEach(o=>{
@@ -307,7 +308,8 @@ function renderMatrix(){
   const cov=Array.from(selectedMatrix).reduce((s,k)=>s+(MATRIX_DATA[k]?.count||0),0);
   setElText('matrixCoverage', `Coverage: ${(cov/104*100).toFixed(0)}%`);
   setElText('matrixDetail', `${selectedMatrix.size} patterns active · 104 draws 2025`);
-  document.getElementById('rule2D').textContent=selectedMatrix.size+' of 16';
+  const r2d = document.getElementById('rule2D');
+  if(r2d) r2d.textContent=selectedMatrix.size+' of 16';
 }
 function toggleMatrix(key){
   if(selectedMatrix.has(key)){if(selectedMatrix.size>1)selectedMatrix.delete(key);}
