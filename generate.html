@@ -392,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const nd = document.getElementById("nextDraw");
     if (nd && typeof nextDrawDate === "function") nd.textContent = nextDrawDate();
 
-    // Override generateAll wrapper om saveTicketsArea altijd te tonen
+    // Override generateAll wrapper
     const _orig = window.generateAll;
     window.generateAll = function() {
       if (_orig) _orig();
@@ -405,24 +405,30 @@ document.addEventListener("DOMContentLoaded", function() {
       }, 300);
     };
   }, 150);
-});
-</script>
-<!-- Hidden discOverlay placeholder voor auth.js compatibility -->
-<div id="discOverlay" style="display:none;"></div>
 
-<script>
-// Redirect to login if not signed in
-document.addEventListener("DOMContentLoaded", function() {
+  // Wacht op sessie dan enable generate knop
   if (typeof supabaseClient !== "undefined") {
     supabaseClient.auth.getSession().then(function({ data: { session } }) {
       if (!session) {
         window.location.href = "register.html?mode=signin&redirect=generate.html";
       } else {
         window._pmLoggedIn = true;
+        window.currentSession = session;
+        // Zorg dat genBtn zichtbaar en actief is
+        const btn = document.getElementById('genBtn');
+        if (btn) { btn.style.display = ''; btn.disabled = false; }
+        const lp = document.getElementById('loginPrompt');
+        if (lp) lp.style.display = 'none';
       }
     });
   }
 });
+</script>
+<!-- Hidden discOverlay placeholder voor auth.js compatibility -->
+<div id="discOverlay" style="display:none;"></div>
+
+<script>
+<!-- auth handled above -->
 </script>
 </body>
 </html>
