@@ -5,16 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generate Tickets — PickMyNumbers</title>
 <link rel="stylesheet" href="css/style.css">
-<style>
-.back-link { font-size:12px; color:#aaa; text-decoration:none; margin-bottom:12px; display:inline-block; }
-.back-link:hover { color:#555; }
-.gen-header { margin-bottom:1rem; }
-.gen-header h1 { font-size:20px; font-weight:700; margin-bottom:4px; }
-.optimizer-link { text-align:center; font-size:12px; color:#aaa; margin-top:16px; padding:12px; background:#fff; border-radius:8px; border:1px solid #e8e8e4; }
-.optimizer-link a { color:#0C447C; text-decoration:none; font-weight:500; }
-</style>
 </head>
-<body style="background:#f8f8f6;min-height:100vh;">
+<body>
 
 <!-- ===================== LOGIN MODAL ===================== -->
 <div class="login-overlay" id="loginOverlay">
@@ -111,7 +103,7 @@
       <!-- STAP 1B: INLOGGEN (terugkerende gebruiker) -->
       <div class="login-step" id="loginStepSignin">
         <div style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.6;">
-          Voer je emailadres in — je ontvangt een <strong>magic link</strong> om direct in te loggen.
+          Enter your email address — you will receive a <strong>magic link</strong> to sign in directly.
         </div>
         <div class="admin-input-group" style="margin-bottom:12px;">
           <span class="admin-input-label">EMAIL ADDRESS</span>
@@ -134,11 +126,11 @@
           <div style="font-size:16px;font-weight:500;margin-bottom:8px;">Check your email!</div>
           <div style="font-size:13px;color:#555;line-height:1.6;" id="loginSentMsg">
             We sent you a magic link.<br>
-            Klik op de link in de email om direct in te loggen.
+            Click the link in the email to sign in immediately.
           </div>
           <div style="font-size:11px;color:#aaa;margin-top:16px;">
             No email? Check your spam folder or
-            <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">probeer opnieuw</span>.
+            <span onclick="backToLogin()" style="color:#1a1a18;text-decoration:underline;cursor:pointer;">try again</span>.
           </div>
         </div>
       </div>
@@ -162,22 +154,45 @@
 
     
 
-<div class="container" style="max-width:600px;margin:0 auto;padding:1.5rem 1rem;">
+<div class="container">
 
-  <a href="index.html" class="back-link">← Back to home</a>
-
-  <div class="gen-header">
-    <h1>🎰 Generate your tickets <span class="machine-badge" id="machineBadge">M—/B—</span></h1>
-    <div style="font-size:11px;color:#aaa;" id="taglineSub">Optimized for the active machine &amp; ball set in use tonight.</div>
+  <div style="margin-bottom:8px;">
+    <a href="index.html" style="font-size:12px;color:#aaa;text-decoration:none;">← Back to home</a>
+    &nbsp;·&nbsp;
+    <a href="optimizer.html" style="font-size:12px;color:#0C447C;text-decoration:none;">Advanced optimizer →</a>
   </div>
 
+  <h1>EuroMillions Number Optimizer <span class="machine-badge" id="machineBadge">M—/B—</span></h1>
+
+  <!-- TAGLINE + AUTH -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:12px;font-weight:500;color:#1a1a18;margin-bottom:2px;" id="taglineTitle">The only tool that optimizes numbers based on actual use of draw machine and ball set.</div>
+      <div style="font-size:11px;color:#aaa;line-height:1.5;" id="taglineSub">While others analyse 20 years of general draws — we filter on the specific machine &amp; ball set in use tonight.</div>
+    </div>
+    <div id="authButtons" style="flex-shrink:0;">
+      <button onclick="openSignup()" id="signupBtn" style="font-size:11px;padding:5px 12px;border-radius:20px;border:none;background:#1a1a18;color:#fff;cursor:pointer;margin-right:6px;">✨ Register</button>
+      <button onclick="openSignin()" id="signinBtn2" style="font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555;">🔑 Sign in</button>
+    </div>
+  </div>
+
+  <!-- META -->
+  <div class="meta-bar">
+    <span><strong id="totalDraws"></strong> draws · Latest: <strong id="lastDraw">—</strong></span>
+    <span style="font-size:12px;font-weight:500;color:#1a1a18;margin-bottom:2px;"><span class="sb sb-amber" id="machineTag">M—/B— · — draws</span></span>
+  </div>
   <div class="box">
-    <div style="font-size:12px;color:#888;margin-bottom:4px;">
-      <span class="sb sb-amber" id="machineTag">M—/B— · — draws</span>
+    <div class="box-stat" style="margin-bottom:4px;">Avg <strong id="avgDisp"></strong>× pool coverage · <span id="machineLabel">M—/B—</span></div>
+    <div id="ruleMain" style="font-size:11px;color:#555;"></div>
+  </div>
+
+  <!-- USER BAR ingelogd info -->
+  <div id="userBar" class="user-bar" style="display:none;">
+    <div class="user-info">
+      <span class="user-name" id="userBarName">Welkom!</span>
+      <span class="user-email" id="userBarEmail"></span>
     </div>
-    <div class="box-stat" style="margin-bottom:8px;">
-      Avg pool coverage: <strong id="perfPct">—</strong>% &nbsp;·&nbsp; <span id="machineLabel">M—/B—</span>
-    </div>
+    <button class="user-logout" onclick="logoutUser()">Sign out</button>
   </div>
 
 <!-- DEEL 2: PLAY PROFILE -->
@@ -256,9 +271,7 @@
   </div>
   <div class="attempt-info" id="attemptInfo"></div>
 
-  
-
-<!-- Legenda -->
+  <!-- Legenda -->
   <div class="legend" style="margin-top:0.5rem;">
     <span class="lbl"><span class="ldot" style="background:#378ADD;"></span>Hot</span>
     <span class="lbl"><span class="ldot" style="background:#d4a840;"></span>Average</span>
@@ -317,11 +330,6 @@
 
 
 
-  <div class="optimizer-link">
-    Want to see hot/cold analysis, filters &amp; statistics?
-    <a href="optimizer.html">Open the advanced optimizer →</a>
-  </div>
-
 </div>
 
 <!-- GEBRUIKERSPROFIEL MODAL -->
@@ -376,6 +384,9 @@
 
 
 
+<!-- Disclaimer placeholder -->
+<div id="discOverlay" style="display:none;"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/data.js"></script>
@@ -383,52 +394,5 @@
 <script src="js/admin.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/email.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  setTimeout(function() {
-    if (typeof updateAll === "function") updateAll();
-    if (typeof selectTickets === "function") selectTickets(3);
-    if (typeof updateProfileDisplay === "function") updateProfileDisplay();
-    const nd = document.getElementById("nextDraw");
-    if (nd && typeof nextDrawDate === "function") nd.textContent = nextDrawDate();
-
-    // Override generateAll wrapper
-    const _orig = window.generateAll;
-    window.generateAll = function() {
-      if (_orig) _orig();
-      setTimeout(function() {
-        const grid = document.getElementById('ticketsGrid');
-        const area = document.getElementById('saveTicketsArea');
-        if (grid && grid.children.length > 0 && area) {
-          area.style.display = 'block';
-        }
-      }, 300);
-    };
-  }, 150);
-
-  // Wacht op sessie dan enable generate knop
-  if (typeof supabaseClient !== "undefined") {
-    supabaseClient.auth.getSession().then(function({ data: { session } }) {
-      if (!session) {
-        window.location.href = "register.html?mode=signin&redirect=generate.html";
-      } else {
-        window._pmLoggedIn = true;
-        window.currentSession = session;
-        // Zorg dat genBtn zichtbaar en actief is
-        const btn = document.getElementById('genBtn');
-        if (btn) { btn.style.display = ''; btn.disabled = false; }
-        const lp = document.getElementById('loginPrompt');
-        if (lp) lp.style.display = 'none';
-      }
-    });
-  }
-});
-</script>
-<!-- Hidden discOverlay placeholder voor auth.js compatibility -->
-<div id="discOverlay" style="display:none;"></div>
-
-<script>
-<!-- auth handled above -->
-</script>
 </body>
 </html>
