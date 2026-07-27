@@ -391,6 +391,19 @@ document.addEventListener("DOMContentLoaded", function() {
     if (typeof updateProfileDisplay === "function") updateProfileDisplay();
     const nd = document.getElementById("nextDraw");
     if (nd && typeof nextDrawDate === "function") nd.textContent = nextDrawDate();
+
+    // Override generateAll wrapper om saveTicketsArea altijd te tonen
+    const _orig = window.generateAll;
+    window.generateAll = function() {
+      if (_orig) _orig();
+      setTimeout(function() {
+        const grid = document.getElementById('ticketsGrid');
+        const area = document.getElementById('saveTicketsArea');
+        if (grid && grid.children.length > 0 && area) {
+          area.style.display = 'block';
+        }
+      }, 300);
+    };
   }, 150);
 });
 </script>
