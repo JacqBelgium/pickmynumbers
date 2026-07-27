@@ -417,6 +417,8 @@ document.addEventListener("DOMContentLoaded", function() {
     supabaseClient.auth.getSession().then(function({ data: { session } }) {
       if (!session) {
         window.location.href = "register.html?mode=signin&redirect=generate.html";
+      } else {
+        window._pmLoggedIn = true;
       }
     });
   }
