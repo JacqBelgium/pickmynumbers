@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (actions) {
       actions.innerHTML = `
         <span style="font-size:12px;color:rgba(255,255,255,0.7);padding:6px 10px;">${name}</span>
-        <a href="generate.html" class="btn-gold">Generate tickets</a>
+        <a href="optimizer.html" class="btn-gold">Generate tickets</a>
         <button onclick="supabaseClient.auth.signOut().then(()=>location.reload())" class="btn-ghost">Sign out</button>
       `;
     }
