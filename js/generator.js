@@ -537,10 +537,13 @@ function renderEmpty(n){
 }
 
 function generateAll(){
-  // Check of gebruiker ingelogd is
-  if (!currentSession && !currentUser) {
-    document.getElementById('genBtn').style.display = 'none';
-    document.getElementById('loginPrompt').style.display = 'block';
+  // Check of gebruiker ingelogd is via supabase sessie
+  const hasSession = currentSession || (typeof supabaseClient !== 'undefined' && window._pmLoggedIn);
+  if (!hasSession) {
+    const genBtn = document.getElementById('genBtn');
+    const loginPrompt = document.getElementById('loginPrompt');
+    if (genBtn) genBtn.style.display = 'none';
+    if (loginPrompt) loginPrompt.style.display = 'block';
     return;
   }
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
