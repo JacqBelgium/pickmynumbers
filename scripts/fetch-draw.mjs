@@ -93,11 +93,29 @@ function parse(html) {
   };
 }
 
+async function tryFetch(url, attempts = 3) {
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      console.log(`Poging ${i}: ${url}`);
+      const r = await fetchUrl(url);
+      return r;
+    } catch(e) {
+      console.log(`Poging ${i} mislukt: ${e.message}`);
+      if (i < attempts) {
+        console.log(`Wacht 30 seconden voor volgende poging...`);
+        await new Promise(r => setTimeout(r, 30000));
+      } else {
+        throw e;
+      }
+    }
+  }
+}
+
 try {
   const url = `https://www.euro-millions.com/results/${dateStr}`;
   console.log(`URL: ${url}`);
 
-  const r = await fetchUrl(url);
+  const r = await tryFetch(url);
   console.log(`Status: ${r.status}`);
 
   if (r.status !== 200) {
@@ -143,5 +161,5 @@ try {
 
 } catch(e) {
   console.error('Fout:', e.message);
-  process.exit(0);
+  process.exit(1);
 }
