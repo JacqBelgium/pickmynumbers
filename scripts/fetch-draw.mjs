@@ -93,35 +93,36 @@ function parse(html) {
   };
 }
 
-async function tryFetch(url, attempts = 3) {
-  for (let i = 1; i <= attempts; i++) {
-    try {
-      console.log(`Poging ${i}: ${url}`);
-      const r = await fetchUrl(url);
-      return r;
-    } catch(e) {
-      console.log(`Poging ${i} mislukt: ${e.message}`);
-      if (i < attempts) {
-        console.log(`Wacht 30 seconden voor volgende poging...`);
-        await new Promise(r => setTimeout(r, 30000));
-      } else {
-        throw e;
-      }
-    }
-  }
-}
-
 try {
-  const url = `https://www.euro-millions.com/results/${dateStr}`;
-  console.log(`URL: ${url}`);
+  // Probeer eerst euro-millions.com, dan national-lottery.com als fallback
+  const urls = [
+    `https://www.euro-millions.com/results/${dateStr}`,
+    `https://www.national-lottery.com/euromillions/results/${dateStr}`,
+  ];
 
-  const r = await tryFetch(url);
-  console.log(`Status: ${r.status}`);
+  let r = null;
+  for (const url of urls) {
+    console.log(`Probeer: ${url}`);
+    try {
+      const res = await fetchUrl(url);
+      if (res.status === 200) {
+        r = res;
+        console.log(`✓ Succes: ${url}`);
+        break;
+      }
+    } catch(e) {
+      console.log(`Mislukt: ${e.message}`);
+    }
+    // Wacht 5 seconden tussen pogingen
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
 
-  if (r.status !== 200) {
-    console.log('Pagina niet beschikbaar');
+  if (!r) {
+    console.log('Alle URLs mislukt — handmatig invoeren nodig');
     process.exit(0);
   }
+
+  console.log(`Status: ${r.status}`);
 
   const d = parse(r.body);
   console.log('Gevonden:', JSON.stringify(d));
