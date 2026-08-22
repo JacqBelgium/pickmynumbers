@@ -33,7 +33,7 @@ jobs:
           git config user.email 'bot@pickmynumbers.eu'
           git add js/data.js
           if git diff --staged --quiet; then
-            echo "Geen wijzigingen"
+            echo "Geen wijzigingen in data.js"
           else
             git commit -m "Auto: trekking toegevoegd $(date +'%d %b %Y')"
             git push origin main
@@ -41,15 +41,16 @@ jobs:
 
       - name: Send analysis emails
         run: |
-          if [ -f /tmp/new_draw.txt ] && [ -f /tmp/draw_info.json ]; then
+          # Stuur emails als draw_info.json bestaat (nieuw OF al bekend)
+          if [ -f /tmp/draw_info.json ]; then
             DRAW_INFO=$(cat /tmp/draw_info.json)
             echo "Emails sturen voor: $DRAW_INFO"
-            curl -s -X POST \
+            RESPONSE=$(curl -s -X POST \
               "https://bcdzusstvnsikkhdmjqn.supabase.co/functions/v1/rapid-processor" \
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
-              -d "$DRAW_INFO"
-            echo "Emails verstuurd"
+              -d "$DRAW_INFO")
+            echo "Response: $RESPONSE"
           else
-            echo "Geen nieuwe trekking"
+            echo "Geen draw_info.json — handmatig invoeren nodig"
           fi
