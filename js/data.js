@@ -6,6 +6,13 @@
 // =====================
 let ALL_DRAWS = [
   { date:'21 aug 2026', draw:1973, nums:[10,14,15,19,45], stars:[1,4], machine:13, bal:21 },
+  { date:'14 aug 2026', draw:1972, nums:[5,29,39,48,49], stars:[4,8], machine:13, bal:21 },
+  { date:'11 aug 2026', draw:1971, nums:[3,11,17,46,48], stars:[1,2], machine:13, bal:21 },
+  { date:'7 aug 2026', draw:1970, nums:[26,29,35,38,47], stars:[1,2], machine:13, bal:21 },
+  { date:'4 aug 2026', draw:1958, nums:[25,30,34,46,50], stars:[1,12], machine:13, bal:21 },
+  { date:'31 jul 2026', draw:1960, nums:[10,24,25,31,45], stars:[4,5], machine:14, bal:20 },
+  { date:'28 jul 2026', draw:1959, nums:[5,7,24,30,49], stars:[1,10], machine:14, bal:20 },
+  { date:'24 jul 2026', draw:1957, nums:[8,10,30,36,47], stars:[1,4], machine:14, bal:20 },
   { date:'21 jul 2026', draw:1965, nums:[2,3,8,28,39], stars:[2,11], machine:14, bal:20 },
   { date:'17 jul 2026', draw:1964, nums:[12,21,23,34,40], stars:[9,10], machine:14, bal:20 },
   { date:'14 jul 2026', draw:1963, nums:[10,19,37,42,47], stars:[9,12], machine:14, bal:20 },
@@ -168,7 +175,6 @@ let ALL_DRAWS = [
   { date:'10 jan 2025', draw:1806, nums:[12,27,36,37,42], stars:[6,7], machine:0, bal:0 },
   { date:'7 jan 2025', draw:1805, nums:[20,33,35,41,47], stars:[4,12], machine:0, bal:0 },
   { date:'3 jan 2025', draw:1804, nums:[3,19,29,35,37], stars:[1,9], machine:0, bal:0 },
-  // 2024
   { date:'31 dec 2024', draw:1803, nums:[19,24,26,28,33], stars:[8,12], machine:0, bal:0 },
   { date:'27 dec 2024', draw:1802, nums:[12,22,27,33,45], stars:[4,8], machine:0, bal:0 },
   { date:'24 dec 2024', draw:1801, nums:[6,10,16,23,24], stars:[11,12], machine:0, bal:0 },
@@ -274,7 +280,6 @@ let ALL_DRAWS = [
   { date:'9 jan 2024', draw:1701, nums:[2,9,12,39,40], stars:[1,3], machine:0, bal:0 },
   { date:'5 jan 2024', draw:1700, nums:[4,7,18,39,50], stars:[3,8], machine:0, bal:0 },
   { date:'2 jan 2024', draw:1699, nums:[7,15,18,46,49], stars:[10,12], machine:0, bal:0 },
-  // 2023
   { date:'29 dec 2023', draw:1698, nums:[2,3,19,36,37], stars:[6,9], machine:0, bal:0 },
   { date:'26 dec 2023', draw:1697, nums:[8,27,30,35,47], stars:[9,10], machine:0, bal:0 },
   { date:'22 dec 2023', draw:1696, nums:[6,14,34,44,49], stars:[4,12], machine:0, bal:0 },
