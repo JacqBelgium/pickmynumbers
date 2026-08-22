@@ -94,35 +94,16 @@ function parse(html) {
 }
 
 try {
-  // Probeer eerst euro-millions.com, dan national-lottery.com als fallback
-  const urls = [
-    `https://www.euro-millions.com/results/${dateStr}`,
-    `https://www.national-lottery.com/euromillions/results/${dateStr}`,
-  ];
+  const url = `https://www.euro-millions.com/results/${dateStr}`;
+  console.log(`URL: ${url}`);
 
-  let r = null;
-  for (const url of urls) {
-    console.log(`Probeer: ${url}`);
-    try {
-      const res = await fetchUrl(url);
-      if (res.status === 200) {
-        r = res;
-        console.log(`✓ Succes: ${url}`);
-        break;
-      }
-    } catch(e) {
-      console.log(`Mislukt: ${e.message}`);
-    }
-    // Wacht 5 seconden tussen pogingen
-    await new Promise(resolve => setTimeout(resolve, 5000));
-  }
+  const r = await fetchUrl(url);
+  console.log(`Status: ${r.status}`);
 
-  if (!r) {
-    console.log('Alle URLs mislukt — handmatig invoeren nodig');
+  if (r.status !== 200) {
+    console.log('Pagina niet beschikbaar');
     process.exit(0);
   }
-
-  console.log(`Status: ${r.status}`);
 
   const d = parse(r.body);
   console.log('Gevonden:', JSON.stringify(d));
@@ -139,7 +120,18 @@ try {
   let dataJs = fs.readFileSync('js/data.js', 'utf8');
 
   if (dataJs.includes(`'${nlDate}'`)) {
-    console.log(`${nlDate} al aanwezig`);
+    console.log(`${nlDate} al aanwezig — schrijf draw_info voor emails`);
+    // Schrijf draw_info zodat emails alsnog verstuurd worden
+    const info = JSON.stringify({
+      date: nlDate,
+      isoDate: `${year}-${month}-${day}`,
+      nums: d.nums,
+      stars: d.stars,
+      machine: d.machine,
+      bal: d.bal
+    });
+    fs.writeFileSync('/tmp/draw_info.json', info);
+    console.log(`draw_info.json: ${info}`);
     process.exit(0);
   }
 
