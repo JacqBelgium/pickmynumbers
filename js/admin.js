@@ -735,23 +735,25 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     return `
       <tr style="border-bottom:1px solid #e8e8e4;">
         <td style="padding:8px 12px;">
-          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:5px;">
             <tr>
               <td style="font-size:11px;font-weight:600;color:#555;">Ticket ${t.ticket_number}</td>
               <td align="right" style="font-size:11px;font-weight:700;color:${prize.color};">${prize.label}</td>
             </tr>
           </table>
-          <div style="font-size:12px;font-weight:600;letter-spacing:0.02em;margin-bottom:3px;">
-            ${t.nums.map(n => {
-              const hit = actualNums.includes(n);
-              return `<span style="color:${hit?'#0C447C':'#aaa'};font-weight:${hit?'900':'400'};">${n}</span>`;
-            }).join('<span style="color:#ddd;"> &nbsp; </span>')}
-            <span style="color:#ddd;margin:0 4px;">+</span>
-            ${t.stars.map(s => {
-              const hit = actualStars.includes(s);
-              return `<span style="color:${hit?'#8a4510':'#bbb'};font-weight:${hit?'900':'400'};">&#9733;${s}</span>`;
-            }).join('<span style="color:#ddd;"> &nbsp; </span>')}
-          </div>
+          <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:4px;">
+            <tr>
+              ${t.nums.map(n => {
+                const hit = actualNums.includes(n);
+                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#0C447C':'#E6F1FB'};color:${hit?'#fff':'#0C447C'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`;
+              }).join('')}
+              <td style="padding:0 3px;color:#ccc;font-size:12px;vertical-align:middle;">+</td>
+              ${t.stars.map(s => {
+                const hit = actualStars.includes(s);
+                return `<td style="padding:1px;"><div style="width:24px;height:24px;border-radius:12px;background:${hit?'#8a4510':'#fff4e6'};color:${hit?'#fff':'#8a4510'};font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`;
+              }).join('')}
+            </tr>
+          </table>
           <div style="font-size:10px;color:#aaa;">${numHits.length} matched &nbsp;·&nbsp; ${starHits.length} &#9733; matched</div>
         </td>
       </tr>`;
@@ -761,8 +763,21 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
   const bestPrize = getPrize(bestNumHits, bestStarHits);
 
   // Som analyse
-  const somMin = 90, somMax = 180; // standaard parameters
+  const somMin = 90, somMax = 180;
   const somOk = actualSum >= somMin && actualSum <= somMax;
+
+  // Pool dekking berekening
+  const mbDrawsForPool = ALL_DRAWS.filter(d => d.machine === draw.machine && d.bal === draw.bal);
+  const poolFreq = {};
+  for(let n=1;n<=50;n++) poolFreq[n]=0;
+  mbDrawsForPool.forEach(d => d.nums.forEach(n => poolFreq[n]++));
+  const poolTotal = mbDrawsForPool.length;
+  const poolAvg = (poolTotal * 5) / 50;
+  const poolThresh = Math.round(poolAvg * 0.67);
+  const pool = Object.keys(poolFreq).filter(n => poolFreq[n] >= poolThresh).map(Number);
+  const inPool = actualNums.filter(n => pool.includes(n));
+  const poolCoverage = Math.round((inPool.length / actualNums.length) * 100);
+  const outOfPool = actualNums.filter(n => !pool.includes(n));
 
   // Odd/even analyse
   const oddEvenAnalysis = actualOdd === 3 ? '3+2 (ideaal)' :
@@ -793,11 +808,13 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
 
         <div style="background:#f4f4f2;border-radius:8px;padding:12px;margin-bottom:12px;">
           <div style="font-size:10px;color:#aaa;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;">Official Results</div>
-          <div style="font-size:16px;font-weight:700;letter-spacing:0.05em;">
-            <span style="color:#1a1a18;">${actualNums.join('&nbsp;&nbsp;')}</span>
-            <span style="color:#ccc;margin:0 8px;">+</span>
-            <span style="color:#e8922a;">&#9733;${actualStars.join('&nbsp;&nbsp;&#9733;')}</span>
-          </div>
+          <table cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              ${actualNums.map(n => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#1a1a18;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">${n}</div></td>`).join('')}
+              <td style="padding:0 4px;color:#ccc;font-size:14px;vertical-align:middle;">+</td>
+              ${actualStars.map(s => `<td style="padding:2px;"><div style="width:24px;height:24px;border-radius:12px;background:#e8922a;color:#fff;font-size:9px;font-weight:700;text-align:center;line-height:24px;">&#9733;${s}</div></td>`).join('')}
+            </tr>
+          </table>
         </div>
 
         <div style="background:${bestNumHits>=2?'#f0f8ec':'#fff8ec'};border:1px solid ${bestNumHits>=2?'#c8e0b8':'#fde8b0'};border-radius:8px;padding:10px;margin-bottom:12px;text-align:center;">
@@ -832,6 +849,18 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
           </div>
         </div>
 
+        <div style="background:#f0f0f8;border:1px solid #c8c8e8;border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:10px;font-weight:700;color:#444;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">🎯 Optimizer Pool Coverage — M${draw.machine}/B${draw.bal}</div>
+          <div style="font-size:13px;font-weight:700;color:${poolCoverage>=80?'#2E7D32':poolCoverage>=60?'#E67E22':'#A32D2D'};margin-bottom:6px;">
+            ${inPool.length} of 5 winning numbers were in the pool (${poolCoverage}%)
+          </div>
+          <div style="font-size:11px;color:#555;line-height:1.8;">
+            <div>✓ In pool: <strong style="color:#2E7D32;">${inPool.length > 0 ? inPool.join('  ') : '—'}</strong></div>
+            <div>${outOfPool.length > 0 ? `✗ Outside pool: <strong style="color:#A32D2D;">${outOfPool.join('  ')}</strong>` : '✓ All numbers were in the optimizer pool!'}</div>
+            <div style="margin-top:4px;font-size:10px;color:#aaa;">Pool size: ${pool.length} numbers · Based on ${poolTotal} M${draw.machine}/B${draw.bal} draws</div>
+          </div>
+        </div>
+
         <div style="text-align:center;padding:12px;background:#f8f8f6;border-radius:8px;">
           <div style="font-size:13px;color:#333;margin-bottom:10px;">${motivation}</div>
           <a href="https://pickmynumbers.eu/optimizer.html" style="display:inline-block;background:#1a1a18;color:#fff;padding:10px 22px;border-radius:6px;font-size:13px;font-weight:600;text-decoration:none;">
@@ -840,13 +869,13 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
         </div>
 
 
-        <p style="font-size:11px;color:#888;text-align:center;margin-top:12px;padding:10px;background:#fff8e6;border-radius:8px;line-height:1.6;border:1px solid #fde8a0;">
-          ℹ️ <em>This analysis is based on your generated tickets. If you did not participate or only partially played, the analysis may differ from your actual result.</em>
+        <p style="font-size:11px;color:#888;text-align:center;margin-top:1.5rem;padding:12px;background:#fff8e6;border-radius:8px;line-height:1.6;border:1px solid #fde8a0;">
+          ℹ️ <em>Deze analyse is gebaseerd op je gegenereerde tickets. Indien je niet of gedeeltelijk hebt deelgenomen aan deze trekking, kan de analyse afwijken van je werkelijke resultaat.</em>
         </p>
-        <p style="font-size:10px;color:#bbb;text-align:center;margin-top:10px;line-height:1.6;">
-          EuroMillions is a game of chance. No method guarantees winnings. 18+ only.<br>
+        <p style="font-size:10px;color:#bbb;text-align:center;margin-top:1rem;line-height:1.6;">
+          EuroMillions is een kans- en gokspel. Geen enkele methode garandeert winst. 18+.<br>
           <a href="https://pickmynumbers.eu" style="color:#bbb;">pickmynumbers.eu</a> · 
-          Unsubscribe? Email noreply@pickmynumbers.eu
+          Uitschrijven? Stuur een email naar noreply@pickmynumbers.eu
         </p>
 
       </div>
@@ -861,7 +890,7 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
     },
     body: JSON.stringify({
       to: [email],
-      subject: `🎰 Your EuroMillions analysis — ${draw ? draw.date : new Date().toLocaleDateString('en-GB')}`,
+      subject: `🎰 Jouw EuroMillions analyse — ${draw ? draw.date : new Date().toLocaleDateString('nl-NL')}`,
       html
     })
   });
