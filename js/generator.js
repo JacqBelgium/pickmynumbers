@@ -723,9 +723,106 @@ function generateAll(){
       </div>`;
     g.appendChild(div);
   }
-  document.getElementById('attemptInfo').textContent=`${numTickets} ticket${numTickets>1?'s':''} gegenereerd met anti-overlap (max ${maxOverlap===99?'∞':maxOverlap})`;
+  document.getElementById('attemptInfo').textContent=`${numTickets} ticket${numTickets>1?'s':''} generated with anti-overlap (max ${maxOverlap===99?'∞':maxOverlap})`;
+
+  // Toon wheeling knop als pool dekking signaal actief is
+  const wheelingBtn = document.getElementById('wheelingBtn');
+  if (wheelingBtn) {
+    const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+    const last2 = mbDraws.slice(0, 2);
+    const showWheeling = last2.length >= 2 && last2.every(draw => {
+      const weighted = getWeightedDraws(draw.machine, draw.bal);
+      const freq = {};
+      for(let n=1;n<=50;n++) freq[n]=0;
+      weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+      const threshLow = Math.round((weighted.length*5/50) * 0.67);
+      const pool = Object.keys(freq).filter(n => freq[n] >= threshLow).map(Number);
+      return Math.round((draw.nums.filter(n => pool.includes(n)).length / draw.nums.length) * 100) >= 70;
+    });
+    wheelingBtn.style.display = showWheeling ? 'block' : 'none';
+  }
 
   // Vul gespeelde tickets in het resultaatformulier
+  buildTicketInputs();
+}
+
+// =====================
+// WHEELING — 3 EXTRA TICKETS
+// =====================
+function generateWheeling() {
+  const g = document.getElementById('ticketsGrid');
+  if (!g || playedTickets.length === 0) return;
+
+  // Verzamel alle unieke nummers uit de eerste 3 tickets
+  const allNums = [...new Set(playedTickets.flatMap(t => t.nums))].sort((a,b) => a-b);
+  const starCombis = playedTickets.map(t => t.stars);
+
+  // Genereer wheeling tickets — nieuwe combinaties van dezelfde nummers
+  // Doel: als 4 van de N nummers vallen, zit die combinatie in minstens 1 ticket
+  const wheelTickets = [];
+  const n = allNums.length; // typisch 13-15 unieke nummers
+
+  // Simpele wheeling: roteer nummers in groepen van 5
+  // Elke ticket pakt nummers op andere posities
+  const step = Math.ceil(n / 3);
+  for (let i = 0; i < 3; i++) {
+    // Kies 5 nummers met rotatie en overlap
+    const start = (i * 3) % n;
+    const picks = [];
+    // Neem 2 nummers van het begin, 2 van het midden, 1 van het einde
+    picks.push(allNums[start % n]);
+    picks.push(allNums[(start + 2) % n]);
+    picks.push(allNums[(start + 4) % n]);
+    picks.push(allNums[(start + 6) % n]);
+    picks.push(allNums[(start + 8) % n]);
+    const uniquePicks = [...new Set(picks)];
+    // Als er duplicaten zijn vul aan
+    for (let j = 0; uniquePicks.length < 5 && j < allNums.length; j++) {
+      if (!uniquePicks.includes(allNums[j])) uniquePicks.push(allNums[j]);
+    }
+    wheelTickets.push({
+      nums: uniquePicks.slice(0,5).sort((a,b)=>a-b),
+      stars: starCombis[i % starCombis.length]
+    });
+  }
+
+  const nd = nextDrawDate();
+  const currentCount = g.children.length;
+
+  // Voeg wheeling tickets toe aan grid
+  wheelTickets.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = 'ticket ticket-card';
+    div.style.borderLeft = '3px solid #8B6914';
+    div.innerHTML = `
+      <div class="ticket-header">
+        <span class="ticket-num">Ticket ${currentCount + i + 1} <span style="font-size:9px;background:#f5f0e0;color:#8B6914;padding:1px 5px;border-radius:3px;">WHEEL</span></span>
+        <span>${nd}</span>
+      </div>
+      <div class="balls">
+        ${t.nums.map(n => {
+          const inPrev = playedTickets.some(pt => pt.nums.includes(n));
+          return `<div class="ball ball-num ${inPrev ? 'ball-hot' : 'ball-avg'}">${n}</div>`;
+        }).join('')}
+        <span class="sep">+</span>
+        ${t.stars.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
+      </div>
+      <div class="ticket-tags">
+        <span class="ttag ttag-w">🎯 Wheeling ticket</span>
+        <span class="ttag ttag-b">Som: ${t.nums.reduce((a,b)=>a+b,0)}</span>
+        <span class="ttag ttag-o">★ ${t.stars.join('-')}</span>
+      </div>`;
+    g.appendChild(div);
+    playedTickets.push(t);
+  });
+
+  // Verberg de knop na generatie
+  const wb = document.getElementById('wheelingBtn');
+  if (wb) wb.style.display = 'none';
+
+  // Update opslaan sectie
+  const saveArea = document.getElementById('saveTicketsArea');
+  if (saveArea) saveArea.style.display = 'block';
   buildTicketInputs();
 }
 
