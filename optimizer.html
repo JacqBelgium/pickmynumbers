@@ -540,6 +540,20 @@
   <!-- Gegenereerde tickets -->
   <div class="tickets-grid" id="ticketsGrid"></div>
 
+  <!-- WHEELING KNOP — verschijnt alleen bij pool dekking signaal -->
+  <div id="wheelingBtn" style="display:none;margin-top:10px;">
+    <div style="background:#fff8e6;border:1px solid #f5d98a;border-radius:10px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:600;color:#8B6914;margin-bottom:4px;">🎯 Pool coverage signal active</div>
+      <div style="font-size:11px;color:#888;margin-bottom:10px;">Last 2 draws both >70% coverage — consider 3 extra wheeling tickets to maximize your chances.</div>
+      <button onclick="generateWheeling()" class="btn" style="background:#8B6914;color:#fff;font-size:12px;padding:8px 16px;">
+        ✨ Generate 3 wheeling tickets
+      </button>
+      <button onclick="document.getElementById('wheelingBtn').style.display=\'none\'" style="margin-left:8px;font-size:11px;color:#aaa;background:transparent;border:none;cursor:pointer;">
+        No thanks
+      </button>
+    </div>
+  </div>
+
   <!-- Inzet + volgende draw -->
   <div class="inzet-box" style="margin-top:0.75rem;">
     <span>Next draw: <strong id="nextDraw"></strong></span>
