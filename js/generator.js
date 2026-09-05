@@ -755,7 +755,48 @@ function generateWheeling() {
 
   // Verzamel alle unieke nummers uit de eerste 3 tickets
   const allNums = [...new Set(playedTickets.flatMap(t => t.nums))].sort((a,b) => a-b);
-  const starCombis = playedTickets.map(t => t.stars);
+  // Sterren voor wheeling — gebruik getStarStrategy voor verse combinaties
+  const starStrategy = getStarStrategy();
+  const hotStars = starStrategy.hotStars;
+  const avgStars = starStrategy.avgStars;
+
+  // Bouw ster combinaties die NIET al in de eerste 3 tickets zitten
+  const usedStarCombis = playedTickets.map(t => t.stars.slice().sort((a,b)=>a-b).join('-'));
+  const wheelStarCombis = [];
+
+  // Optie 1: beide hot sterren samen
+  if (hotStars.length >= 2) {
+    const c = [hotStars[0], hotStars[1]].sort((a,b)=>a-b);
+    if (!usedStarCombis.includes(c.join('-'))) wheelStarCombis.push(c);
+  }
+
+  // Optie 2: hot + nieuwe avg sterren
+  const shuffledAvg = [...avgStars].sort(() => Math.random() - 0.5);
+  for (const hot of hotStars) {
+    for (const avg of shuffledAvg) {
+      if (wheelStarCombis.length >= 3) break;
+      const c = [hot, avg].sort((a,b)=>a-b);
+      if (!usedStarCombis.includes(c.join('-')) && !wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
+        wheelStarCombis.push(c);
+      }
+    }
+    if (wheelStarCombis.length >= 3) break;
+  }
+
+  // Fallback: avg + avg combinaties
+  for (let i = 0; i < shuffledAvg.length && wheelStarCombis.length < 3; i++) {
+    for (let j = i+1; j < shuffledAvg.length && wheelStarCombis.length < 3; j++) {
+      const c = [shuffledAvg[i], shuffledAvg[j]].sort((a,b)=>a-b);
+      if (!usedStarCombis.includes(c.join('-')) && !wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
+        wheelStarCombis.push(c);
+      }
+    }
+  }
+
+  // Laatste fallback: gebruik rotatie van bestaande combis
+  while (wheelStarCombis.length < 3) {
+    wheelStarCombis.push(starCombis[wheelStarCombis.length % starCombis.length]);
+  }
 
   // Genereer wheeling tickets — nieuwe combinaties van dezelfde nummers
   // Doel: als 4 van de N nummers vallen, zit die combinatie in minstens 1 ticket
@@ -782,7 +823,7 @@ function generateWheeling() {
     }
     wheelTickets.push({
       nums: uniquePicks.slice(0,5).sort((a,b)=>a-b),
-      stars: starCombis[i % starCombis.length]
+      stars: wheelStarCombis[i] || starCombis[i % starCombis.length]
     });
   }
 
