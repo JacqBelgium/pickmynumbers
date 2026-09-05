@@ -527,25 +527,27 @@ function updatePerformanceBadge() {
   if (trendEl) {
     const bars = last10.map(r => {
       const color = r.pct >= 80 ? '#2E7D32' : r.pct >= 60 ? '#E67E22' : '#A32D2D';
-      const h = Math.round(r.pct * 0.4); // max 40px hoog
-      return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
-        <span style="font-size:9px;color:#888;">${r.pct}%</span>
-        <div style="width:20px;height:${h}px;background:${color};border-radius:2px 2px 0 0;"></div>
-        <span style="font-size:8px;color:#bbb;writing-mode:vertical-rl;transform:rotate(180deg);height:28px;overflow:hidden;">${r.date.split(' ').slice(0,2).join(' ')}</span>
+      const h = Math.max(8, Math.round(r.pct * 0.35));
+      const dateParts = r.date.split(' ');
+      const dateLabel = dateParts.length >= 2 ? `${dateParts[0]} ${dateParts[1]}` : r.date;
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;">
+        <span style="font-size:9px;color:#555;font-weight:600;">${r.pct}%</span>
+        <div style="width:100%;max-width:24px;height:${h}px;background:${color};border-radius:2px 2px 0 0;"></div>
+        <span style="font-size:8px;color:#aaa;text-align:center;line-height:1.2;">${dateLabel}</span>
       </div>`;
     }).join('');
 
     const signal = last2above70
       ? `<div style="background:#f0f8ec;border:1px solid #c8e0b8;border-radius:6px;padding:6px 10px;font-size:11px;color:#2E7D32;margin-top:8px;">
-          🎯 <strong>Signal: Consider 6 tickets!</strong> Last 2 draws both >70% pool coverage (${last10[1].pct}% + ${last10[0].pct}%)
+          🎯 <strong>Signal: Consider 6 tickets!</strong> Last 2 draws both >70% (${last10[1].pct}% + ${last10[0].pct}%)
         </div>`
-      : `<div style="font-size:10px;color:#aaa;margin-top:6px;">Signal for 6 tickets: 2 consecutive draws >70% coverage (last: ${last10[0]?.pct||'—'}%)</div>`;
+      : `<div style="font-size:10px;color:#aaa;margin-top:6px;">Signal for 6 tickets: need 2 consecutive draws >70% · Last: ${last10[0]?.pct||'—'}%</div>`;
 
     trendEl.innerHTML = `
       <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px;">
-        Pool coverage trend — last ${last10.length} draws · Avg: <span style="color:${last10avg>=70?'#2E7D32':'#E67E22'}">${last10avg}%</span>
+        Pool coverage — last ${last10.length} draws &nbsp;·&nbsp; Avg: <span style="color:${last10avg>=70?'#2E7D32':'#E67E22'}">${last10avg}%</span>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:4px;height:70px;">${bars}</div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:64px;border-bottom:1px solid #e8e8e4;padding-bottom:4px;">${bars}</div>
       ${signal}`;
   }
 }
