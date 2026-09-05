@@ -227,11 +227,53 @@ function check2D(nums){
   const odd=n5.filter(n=>n%2!==0).length,low=n5.filter(n=>n<=25).length;
   return selectedMatrix.has(odd+'_'+low);
 }
+// =====================
+// DYNAMISCHE PARAMETERS PER M/B COMBINATIE
+// =====================
+function getDynamicParams(machine, bal) {
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal);
+  if (mbDraws.length < 10) {
+    // Te weinig data — gebruik standaard parameters
+    return { somMin: 90, somMax: 180, idealOdd: [2,3], idealLow: [2,3] };
+  }
+
+  // Som statistieken
+  const sums = mbDraws.map(d => d.nums.reduce((a,b) => a+b, 0));
+  const avg = sums.reduce((a,b) => a+b, 0) / sums.length;
+  const std = Math.sqrt(sums.map(s => (s-avg)**2).reduce((a,b) => a+b, 0) / sums.length);
+  const somMin = Math.max(50, Math.round(avg - 1.5 * std));
+  const somMax = Math.min(220, Math.round(avg + 1.5 * std));
+
+  // Odd/Even — meest voorkomende verdelingen
+  const oddCounts = mbDraws.map(d => d.nums.filter(n => n%2!==0).length);
+  const oddFreq = {};
+  oddCounts.forEach(c => oddFreq[c] = (oddFreq[c]||0) + 1);
+  const topOdd = Object.entries(oddFreq)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,2)
+    .map(e => parseInt(e[0]));
+
+  // Low/High — meest voorkomende verdelingen (grens 25)
+  const lowCounts = mbDraws.map(d => d.nums.filter(n => n<=25).length);
+  const lowFreq = {};
+  lowCounts.forEach(c => lowFreq[c] = (lowFreq[c]||0) + 1);
+  const topLow = Object.entries(lowFreq)
+    .sort((a,b) => b[1]-a[1])
+    .slice(0,2)
+    .map(e => parseInt(e[0]));
+
+  return { somMin, somMax, idealOdd: topOdd, idealLow: topLow, avg: Math.round(avg), std: Math.round(std), count: mbDraws.length };
+}
+
 function checkSom(nums){
-  // Som of eerste 5 nummers
   const n5 = nums.slice(0,5);
-  const somMinEl=document.getElementById('somMin'),somMaxEl=document.getElementById('somMax'); const min=somMinEl?parseInt(somMinEl.value):90,max=somMaxEl?parseInt(somMaxEl.value):180;
-  const s=n5.reduce((a,b)=>a+b,0);return s>=min&&s<=max;
+  const s = n5.reduce((a,b)=>a+b,0);
+  // Gebruik dynamische parameters als beschikbaar
+  const params = getDynamicParams(currentMachine, currentBal);
+  const somMinEl=document.getElementById('somMin'),somMaxEl=document.getElementById('somMax');
+  const min = somMinEl ? parseInt(somMinEl.value) : params.somMin;
+  const max = somMaxEl ? parseInt(somMaxEl.value) : params.somMax;
+  return s>=min && s<=max;
 }
 function checkConsec(nums){
   // Check eerste 5 nummers op consecutive
@@ -455,12 +497,20 @@ function updatePerformanceBadge() {
     const pool = [];
     for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
     const inPool = draw.nums.filter(n => pool.includes(n));
-    return Math.round((inPool.length / draw.nums.length) * 100);
+    return { pct: Math.round((inPool.length / draw.nums.length) * 100), date: draw.date };
   });
 
-  const avgPct = Math.round(results.reduce((a,b) => a+b, 0) / results.length);
-  const good = results.filter(p => p >= 80).length;
-  const perfect = results.filter(p => p === 100).length;
+  const pcts = results.map(r => r.pct);
+  const avgPct = Math.round(pcts.reduce((a,b) => a+b, 0) / pcts.length);
+  const good = pcts.filter(p => p >= 80).length;
+  const perfect = pcts.filter(p => p === 100).length;
+
+  // Laatste 10 trekkingen voor trend
+  const last10 = results.slice(0, 10);
+  const last10avg = Math.round(last10.reduce((a,r) => a+r.pct, 0) / last10.length);
+
+  // Check of laatste 2 trekkingen beide >70% zijn → signaal voor 6 tickets
+  const last2above70 = last10.length >= 2 && last10[0].pct >= 70 && last10[1].pct >= 70;
 
   if (badge) badge.style.display = '';
   const perfPct = document.getElementById('perfPct');
@@ -471,13 +521,70 @@ function updatePerformanceBadge() {
   if (perfDraws) perfDraws.textContent = mbDraws.length;
   if (perfMachine) perfMachine.textContent = `M${currentMachine}/B${currentBal}`;
   if (perfDetail) perfDetail.textContent = `${good} of ${mbDraws.length} draws ≥80% · ${perfect}× fully matched`;
+
+  // Pool dekking trend — laatste 10 trekkingen
+  const trendEl = document.getElementById('poolCoverageTrend');
+  if (trendEl) {
+    const bars = last10.map(r => {
+      const color = r.pct >= 80 ? '#2E7D32' : r.pct >= 60 ? '#E67E22' : '#A32D2D';
+      const h = Math.round(r.pct * 0.4); // max 40px hoog
+      return `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+        <span style="font-size:9px;color:#888;">${r.pct}%</span>
+        <div style="width:20px;height:${h}px;background:${color};border-radius:2px 2px 0 0;"></div>
+        <span style="font-size:8px;color:#bbb;writing-mode:vertical-rl;transform:rotate(180deg);height:28px;overflow:hidden;">${r.date.split(' ').slice(0,2).join(' ')}</span>
+      </div>`;
+    }).join('');
+
+    const signal = last2above70
+      ? `<div style="background:#f0f8ec;border:1px solid #c8e0b8;border-radius:6px;padding:6px 10px;font-size:11px;color:#2E7D32;margin-top:8px;">
+          🎯 <strong>Signal: Consider 6 tickets!</strong> Last 2 draws both >70% pool coverage (${last10[1].pct}% + ${last10[0].pct}%)
+        </div>`
+      : `<div style="font-size:10px;color:#aaa;margin-top:6px;">Signal for 6 tickets: 2 consecutive draws >70% coverage (last: ${last10[0]?.pct||'—'}%)</div>`;
+
+    trendEl.innerHTML = `
+      <div style="font-size:11px;font-weight:600;color:#555;margin-bottom:8px;">
+        Pool coverage trend — last ${last10.length} draws · Avg: <span style="color:${last10avg>=70?'#2E7D32':'#E67E22'}">${last10avg}%</span>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:4px;height:70px;">${bars}</div>
+      ${signal}`;
+  }
 }
 
 function updateSom(){
-  let min=parseInt(document.getElementById('somMin').value),max=parseInt(document.getElementById('somMax').value);
-  if(min>max-20){min=max-20;document.getElementById('somMin').value=min;}
+  const params = getDynamicParams(currentMachine, currentBal);
+  const somMinEl = document.getElementById('somMin');
+  const somMaxEl = document.getElementById('somMax');
+  if(!somMinEl || !somMaxEl) return;
+
+  // Update slider min/max range based on dynamic params
+  somMinEl.min = Math.max(30, params.somMin - 30);
+  somMinEl.max = params.somMax - 20;
+  somMaxEl.min = params.somMin + 20;
+  somMaxEl.max = Math.min(250, params.somMax + 30);
+
+  let min=parseInt(somMinEl.value), max=parseInt(somMaxEl.value);
+
+  // Als waarden nog op standaard staan, gebruik dynamische waarden
+  if(min===90 && max===180) {
+    somMinEl.value = params.somMin;
+    somMaxEl.value = params.somMax;
+    min = params.somMin;
+    max = params.somMax;
+  }
+
+  if(min>max-20){min=max-20; somMinEl.value=min;}
   document.getElementById('somMinVal').textContent=min;
   document.getElementById('somMaxVal').textContent=max;
+
+  // Toon dynamische hint
+  const hint = document.getElementById('somDynamicHint');
+  if(hint && params.count >= 10) {
+    hint.textContent = `M${currentMachine}/B${currentBal}: avg ${params.avg} ± ${params.std} (${params.count} draws)`;
+    hint.style.display = 'block';
+  } else if(hint) {
+    hint.style.display = 'none';
+  }
+}
   document.getElementById('ruleSom').textContent=min+'–'+max;
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const fits=draws.filter(d=>{const s=d.nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;}).length;
