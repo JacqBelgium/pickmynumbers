@@ -84,12 +84,47 @@ function parse(html) {
   const drawM = html.match(/Draw Number[:\s<>\w\/]*?([0-9,]+)/i);
   const drawNum = drawM ? parseInt(drawM[1].replace(',','')) : 0;
 
+  // Prijzen per categorie — zoek prijsbedragen in de HTML
+  const prizes = {};
+  const prizePatterns = [
+    { key: '5+2', pattern: /5\s*\+\s*2[^€]*€\s*([\d,\.]+)/i },
+    { key: '5+1', pattern: /5\s*\+\s*1[^€]*€\s*([\d,\.]+)/i },
+    { key: '5+0', pattern: /5\s*\+\s*0[^€]*€\s*([\d,\.]+)/i },
+    { key: '4+2', pattern: /4\s*\+\s*2[^€]*€\s*([\d,\.]+)/i },
+    { key: '4+1', pattern: /4\s*\+\s*1[^€]*€\s*([\d,\.]+)/i },
+    { key: '3+2', pattern: /3\s*\+\s*2[^€]*€\s*([\d,\.]+)/i },
+    { key: '4+0', pattern: /4\s*\+\s*0[^€]*€\s*([\d,\.]+)/i },
+    { key: '2+2', pattern: /2\s*\+\s*2[^€]*€\s*([\d,\.]+)/i },
+    { key: '3+1', pattern: /3\s*\+\s*1[^€]*€\s*([\d,\.]+)/i },
+    { key: '3+0', pattern: /3\s*\+\s*0[^€]*€\s*([\d,\.]+)/i },
+    { key: '1+2', pattern: /1\s*\+\s*2[^€]*€\s*([\d,\.]+)/i },
+    { key: '2+1', pattern: /2\s*\+\s*1[^€]*€\s*([\d,\.]+)/i },
+    { key: '2+0', pattern: /2\s*\+\s*0[^€]*€\s*([\d,\.]+)/i },
+  ];
+
+  for (const { key, pattern } of prizePatterns) {
+    const m = html.match(pattern);
+    if (m) {
+      const amount = parseFloat(m[1].replace(/,/g, '').replace(/\./g, ''));
+      if (!isNaN(amount) && amount > 0) {
+        prizes[key] = amount;
+      }
+    }
+  }
+
+  if (Object.keys(prizes).length > 0) {
+    console.log('Prijzen gevonden:', JSON.stringify(prizes));
+  } else {
+    console.log('⚠ Geen prijzen gevonden in pagina');
+  }
+
   return {
     nums: nums.sort((a,b) => a-b),
     stars: stars.sort((a,b) => a-b),
     machine,
     bal,
-    drawNum
+    drawNum,
+    prizes
   };
 }
 
@@ -128,7 +163,8 @@ try {
       nums: d.nums,
       stars: d.stars,
       machine: d.machine,
-      bal: d.bal
+      bal: d.bal,
+      prizes: d.prizes || {}
     });
     fs.writeFileSync('/tmp/draw_info.json', info);
     console.log(`draw_info.json: ${info}`);
@@ -145,7 +181,8 @@ try {
     nums: d.nums,
     stars: d.stars,
     machine: d.machine,
-    bal: d.bal
+    bal: d.bal,
+    prizes: d.prizes || {}
   });
   fs.writeFileSync('/tmp/draw_info.json', info);
   fs.writeFileSync('/tmp/new_draw.txt', 'true');
