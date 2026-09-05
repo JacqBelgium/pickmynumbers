@@ -584,11 +584,12 @@ function updateSom(){
   } else if(hint) {
     hint.style.display = 'none';
   }
-}
-  document.getElementById('ruleSom').textContent=min+'–'+max;
+  const ruleSom = document.getElementById('ruleSom');
+  const somDetail = document.getElementById('somDetail');
+  if(ruleSom) ruleSom.textContent=min+'–'+max;
   const draws=ALL_DRAWS.filter(d=>d.machine===currentMachine&&d.bal===currentBal);
   const fits=draws.filter(d=>{const s=d.nums.reduce((a,b)=>a+b,0);return s>=min&&s<=max;}).length;
-  document.getElementById('somDetail').textContent=`${fits} of ${draws.length} draws in range (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
+  if(somDetail) somDetail.textContent=`${fits} of ${draws.length} draws in range (${draws.length>0?(fits/draws.length*100).toFixed(0):0}%)`;
 }
 
 function updateConsec(){
