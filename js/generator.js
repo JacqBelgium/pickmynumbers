@@ -731,18 +731,28 @@ function generateAll(){
   // Toon wheeling knop als pool dekking signaal actief is
   const wheelingBtn = document.getElementById('wheelingBtn');
   if (wheelingBtn) {
+    wheelingBtn.style.display = 'block';
+    // Aanbeveling op basis van pool dekking trend
     const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
     const last2 = mbDraws.slice(0, 2);
-    const showWheeling = last2.length >= 2 && last2.every(draw => {
-      const weighted = getWeightedDraws(draw.machine, draw.bal);
-      const freq = {};
-      for(let n=1;n<=50;n++) freq[n]=0;
-      weighted.forEach(d => d.nums.forEach(n => freq[n]++));
-      const threshLow = Math.round((weighted.length*5/50) * 0.80);
-      const pool = Object.keys(freq).filter(n => freq[n] >= threshLow).map(Number);
-      return Math.round((draw.nums.filter(n => pool.includes(n)).length / draw.nums.length) * 100) >= 60;
-    });
-    wheelingBtn.style.display = showWheeling ? 'block' : 'none';
+    const advice = document.getElementById('wheelingAdvice');
+    if (advice && last2.length >= 2) {
+      const last2pcts = last2.map(draw => {
+        const weighted = getWeightedDraws(draw.machine, draw.bal);
+        const freq = {};
+        for(let n=1;n<=50;n++) freq[n]=0;
+        weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+        const threshLow = Math.round((weighted.length*5/50) * 0.80);
+        const pool = [];
+        for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
+        return Math.round((draw.nums.filter(n => pool.includes(n)).length / draw.nums.length) * 100);
+      });
+      const bothHigh = last2pcts[0] >= 70 && last2pcts[1] >= 70;
+      advice.innerHTML = bothHigh
+        ? `🎯 <strong>Recommended!</strong> Last 2 draws both had >70% pool coverage (${last2pcts[1]}% + ${last2pcts[0]}%) — wheeling is statistically interesting now.`
+        : `Generate 3 extra tickets using the same pool numbers in different combinations — increases your chances of hitting a prize.`;
+      advice.style.color = bothHigh ? '#2E7D32' : '#888';
+    }
   }
 
   // Vul gespeelde tickets in het resultaatformulier
