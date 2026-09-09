@@ -46,8 +46,14 @@ async function loadUserProfile(authUser) {
         stars_per_ticket: data.stars_per_ticket || 2,
         blocked: data.blocked || false
       };
+
+      // Check of account geblokkeerd is
+      if (currentUser.blocked) {
+        showBlockedMessage(currentUser.name);
+        return;
+      }
     } else {
-      // Nieuwe gebruiker aanmaken
+      // Nieuwe gebruiker aanmaken — standaard geblokkeerd
       const p = PROFILES[pendingProf] || PROFILES.standard;
       const { data: newUser } = await supabaseClient.from('users').insert({
         auth_id: authUser.id,
@@ -56,9 +62,14 @@ async function loadUserProfile(authUser) {
         profile: pendingProf,
         ticket_count: p.tickets,
         nums_per_ticket: p.nums,
-        stars_per_ticket: p.stars
+        stars_per_ticket: p.stars,
+        blocked: true  // Standaard geblokkeerd — wacht op goedkeuring
       }).select().single();
-      currentUser = { ...newUser, email: authUser.email };
+      currentUser = { ...newUser, email: authUser.email, blocked: true };
+
+      // Toon wachtbericht
+      showBlockedMessage(pendingName || 'User');
+      return;
     }
 
     selectedProfile = currentUser.profile || 'standard';
@@ -71,6 +82,30 @@ async function loadUserProfile(authUser) {
     console.warn('Loading profile:', e);
     updateUserBar({ email: authUser.email });
   }
+}
+
+function showBlockedMessage(name) {
+  // Verberg alle optimizer content
+  const container = document.querySelector('.container');
+  if (container) {
+    container.innerHTML = `
+      <div style="max-width:480px;margin:3rem auto;text-align:center;padding:2rem;">
+        <div style="font-size:48px;margin-bottom:16px;">⏳</div>
+        <h2 style="font-size:20px;font-weight:700;color:#1a1a18;margin-bottom:8px;">Account pending approval</h2>
+        <p style="font-size:14px;color:#555;line-height:1.6;margin-bottom:16px;">
+          Thank you <strong>${name}</strong>! Your registration request has been received.<br>
+          You will receive an email once your account has been approved.
+        </p>
+        <p style="font-size:12px;color:#aaa;">This usually takes less than 24 hours.</p>
+        <button onclick="supabaseClient.auth.signOut().then(()=>window.location.href='index.html')" 
+          style="margin-top:24px;padding:10px 24px;background:#1a1a18;color:#fff;border:none;border-radius:6px;font-size:13px;cursor:pointer;">
+          Back to homepage
+        </button>
+      </div>`;
+  }
+  // Verberg login modal als die open is
+  const loginModal = document.getElementById('loginModal');
+  if (loginModal) loginModal.classList.remove('open');
 }
 
 function updateUserBar(user) {
