@@ -5,7 +5,7 @@
 // EMAIL — BEVESTIGING
 // =====================
 async function sendConfirmationEmail(name, email, tickets, nextDraw, profile) {
-  const profileLabel = profile ? profile.label : 'Standaard';
+  const profileLabel = profile ? profile.label : 'Standard';
   const ticketHtml = tickets.map((t, i) => `
     <tr>
       <td style="padding:8px 12px;font-size:13px;color:#888;">Ticket ${i+1}</td>
@@ -49,7 +49,7 @@ async function sendConfirmationEmail(name, email, tickets, nextDraw, profile) {
     body: JSON.stringify({
       from: 'PickMyNumbers <noreply@pickmynumbers.eu>',
       to: [email],
-      subject: `✅ Tickets opgeslagen voor ${nextDraw}`,
+      subject: `✅ Your tickets are saved — ${nextDraw}`,
       html
     })
   });
