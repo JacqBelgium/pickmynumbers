@@ -540,6 +540,20 @@
   <!-- Gegenereerde tickets -->
   <div class="tickets-grid" id="ticketsGrid"></div>
 
+  <!-- WHEELING KNOP -->
+  <div id="wheelingBtn" style="display:none;margin-top:10px;">
+    <div style="background:#fff8e6;border:1px solid #f5d98a;border-radius:10px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:600;color:#8B6914;margin-bottom:4px;">✨ Add 3 wheeling tickets</div>
+      <div id="wheelingAdvice" style="font-size:11px;color:#888;margin-bottom:10px;">Generate 3 extra tickets using the same pool numbers in different combinations — increases your chances of hitting a prize.</div>
+      <button onclick="generateWheeling()" class="btn" style="background:#8B6914;color:#fff;font-size:12px;padding:8px 16px;">
+        ✨ Generate 3 wheeling tickets
+      </button>
+      <button onclick="document.getElementById('wheelingBtn').style.display='none'" style="margin-left:8px;font-size:11px;color:#aaa;background:transparent;border:none;cursor:pointer;">
+        No thanks
+      </button>
+    </div>
+  </div>
+
   <!-- Inzet + volgende draw -->
   <div class="inzet-box" style="margin-top:0.75rem;">
     <span>Next draw: <strong id="nextDraw"></strong></span>
