@@ -769,21 +769,21 @@ function updatePoolOverlapBadge() {
   // Unieke nummers in tickets
   const ticketNums = [...new Set(playedTickets.flatMap(t => t.nums))];
   const inPool = ticketNums.filter(n => pool.includes(n));
-  const overlapPct = pool.length > 0 ? Math.round((inPool.length / pool.length) * 100) : 0;
+  const overlapPct = ticketNums.length > 0 ? Math.round((inPool.length / ticketNums.length) * 100) : 0;
 
-  const color = overlapPct >= 60 ? '#2E7D32' : overlapPct >= 40 ? '#E67E22' : '#A32D2D';
-  const status = overlapPct >= 60 ? '✓ Good coverage' : overlapPct >= 50 ? '⚠ Moderate — try regenerating' : '✗ Low — consider regenerating';
+  const color = overlapPct >= 80 ? '#2E7D32' : overlapPct >= 60 ? '#E67E22' : '#A32D2D';
+  const status = overlapPct >= 80 ? '✓ Excellent — all numbers are hot/avg' : overlapPct >= 60 ? '⚠ Good — most numbers are hot/avg' : '✗ Low — consider regenerating';
 
   el.style.display = 'block';
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
       <div>
-        <div style="font-size:11px;color:#555;font-weight:600;">🎯 Your tickets cover ${overlapPct}% of the optimizer pool</div>
-        <div style="font-size:10px;color:#aaa;margin-top:2px;">${inPool.length} of ${pool.length} pool numbers in your tickets · ${ticketNums.length} unique numbers played</div>
+        <div style="font-size:11px;color:#555;font-weight:600;">🎯 ${overlapPct}% of your ticket numbers are in the optimizer pool</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${inPool.length} of ${ticketNums.length} unique numbers are hot/avg · pool size: ${pool.length}</div>
       </div>
       <div style="font-size:12px;font-weight:700;color:${color};">${status}</div>
     </div>
-    ${overlapPct < 50 ? `<button onclick="generateAll()" style="margin-top:8px;font-size:11px;padding:5px 12px;background:#1a1a18;color:#fff;border:none;border-radius:4px;cursor:pointer;">↻ Regenerate tickets</button>` : ''}`;
+    ${overlapPct < 60 ? `<button onclick="generateAll()" style="margin-top:8px;font-size:11px;padding:5px 12px;background:#1a1a18;color:#fff;border:none;border-radius:4px;cursor:pointer;">↻ Regenerate tickets</button>` : ''}`;
 
   // Pool dekking trending — stijgend of dalend?
   updatePoolTrending(el, overlapPct);
