@@ -301,7 +301,7 @@
 </div>
 
 <div style="margin-bottom:8px;">
-  <a href="index.html" style="font-size:12px;color:#aaa;text-decoration:none;">← Back to home</a> 
+  <a href="index.html" style="font-size:12px;color:#aaa;text-decoration:none;">← Back to home</a> &nbsp;·&nbsp; <a href="generate.html" style="font-size:12px;color:#0C447C;text-decoration:none;font-weight:500;">🎰 Generate tickets →</a>
 </div>
 
 <h1>EuroMillions Number Optimizer <span class="machine-badge" id="machineBadge">M—/B—</span></h1>
@@ -325,8 +325,6 @@
 </div>
 
 <!-- OPTIMIZER PRESTATIE BADGE -->
-<div id="poolCoverageTrend" style="background:#fff;border:1px solid #e8e8e4;border-radius:10px;padding:12px 14px;margin-bottom:8px;"></div>
-
 <div id="performanceBadge" style="background:#f0f8ec;border:1px solid #c8e0b8;border-radius:8px;padding:8px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
   <div style="display:flex;align-items:center;gap:8px;">
     <span style="font-size:16px;">📊</span>
@@ -413,7 +411,6 @@
     <div class="box-title blue">
       <span>Sum filter + Consecutive</span>
       <span class="box-stat"><span id="somStatLabel"></span></span>
-      <div id="somDynamicHint" style="font-size:10px;color:#0C447C;background:#e8f0fb;border-radius:4px;padding:3px 8px;margin-top:4px;display:none;"></div>
     </div>
     <div class="som-row">
       <span class="som-label">Min sum</span>
@@ -530,6 +527,9 @@
   </div>
   <div class="attempt-info" id="attemptInfo"></div>
 
+  <!-- POOL OVERLAP BADGE -->
+  <div id="poolOverlapBadge" style="display:none;background:#f8f8f6;border:1px solid #e8e8e4;border-radius:8px;padding:10px 12px;margin-bottom:8px;"></div>
+
   <!-- Legenda -->
   <div class="legend" style="margin-top:0.5rem;">
     <span class="lbl"><span class="ldot" style="background:#378ADD;"></span>Hot</span>
@@ -539,20 +539,6 @@
 
   <!-- Gegenereerde tickets -->
   <div class="tickets-grid" id="ticketsGrid"></div>
-
-  <!-- WHEELING KNOP — verschijnt alleen bij pool dekking signaal -->
-  <div id="wheelingBtn" style="display:none;margin-top:10px;">
-    <div style="background:#fff8e6;border:1px solid #f5d98a;border-radius:10px;padding:12px 14px;">
-      <div style="font-size:12px;font-weight:600;color:#8B6914;margin-bottom:4px;">🎯 Pool coverage signal active</div>
-      <div style="font-size:11px;color:#888;margin-bottom:10px;">Last 2 draws both >70% coverage — consider 3 extra wheeling tickets to maximize your chances.</div>
-      <button onclick="generateWheeling()" class="btn" style="background:#8B6914;color:#fff;font-size:12px;padding:8px 16px;">
-        ✨ Generate 3 wheeling tickets
-      </button>
-      <button onclick="document.getElementById('wheelingBtn').style.display=\'none\'" style="margin-left:8px;font-size:11px;color:#aaa;background:transparent;border:none;cursor:pointer;">
-        No thanks
-      </button>
-    </div>
-  </div>
 
   <!-- Inzet + volgende draw -->
   <div class="inzet-box" style="margin-top:0.75rem;">
