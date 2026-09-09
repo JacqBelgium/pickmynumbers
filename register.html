@@ -263,7 +263,7 @@
       <!-- SUCCESS -->
       <div id="regSuccess" class="reg-success">
         <div class="reg-success-icon">📬</div>
-        <div class="reg-success-title">Check your email!</div>
+        <div class="reg-success-title">Registration received! ✓</div>
         <div class="reg-success-sub" id="regSuccessMsg">
           We sent a magic link to your email.<br>
           Click the link to sign in immediately.
@@ -337,18 +337,42 @@ async function doRegister() {
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: 'https://pickmynumbers.eu',
-        data: { name, profile: 'standard' }
+        emailRedirectTo: 'https://pickmynumbers.eu/register.html?pending=1',
+        data: { name, profile: 'standard', blocked: true }
       }
     });
 
     if (error) throw error;
 
+    // Notificatie naar Jacq
+    try {
+      await fetch(EDGE_EMAIL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({
+          to: ['jacqvandersteen@gmail.com'],
+          subject: `🆕 New registration request — ${name}`,
+          html: `<div style="font-family:Arial,sans-serif;padding:20px;max-width:480px;">
+            <h2 style="color:#1a1a18;">🎰 New PickMyNumbers registration</h2>
+            <table style="width:100%;border-collapse:collapse;">
+              <tr><td style="padding:6px 0;color:#555;font-size:13px;"><strong>Name:</strong></td><td style="font-size:13px;">${name}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;font-size:13px;"><strong>Email:</strong></td><td style="font-size:13px;">${email}</td></tr>
+              <tr><td style="padding:6px 0;color:#555;font-size:13px;"><strong>Time:</strong></td><td style="font-size:13px;">${new Date().toLocaleString('en-GB')}</td></tr>
+            </table>
+            <hr style="margin:16px 0;border:none;border-top:1px solid #e8e8e4;">
+            <p style="font-size:13px;color:#333;">To approve this user, go to the admin panel → Users → find <strong>${name}</strong> → click <strong>Unblock</strong>.</p>
+            <a href="https://pickmynumbers.eu/optimizer.html" style="display:inline-block;margin-top:12px;background:#1a1a18;color:#fff;padding:10px 20px;border-radius:6px;font-size:13px;text-decoration:none;">Open admin panel →</a>
+          </div>`
+        })
+      });
+    } catch(e) { console.warn('Admin notificatie mislukt:', e.message); }
+
     document.getElementById('regForm').style.display = 'none';
     document.getElementById('regSuccess').style.display = 'block';
     document.getElementById('regSuccessMsg').innerHTML =
-      `We sent a magic link to <strong>${email}</strong>.<br>
-       Click the link in the email to sign in immediately.`;
+      `Thank you <strong>${name}</strong>! Your registration request has been received.<br><br>
+       You will receive a confirmation email once your account has been approved.<br>
+       <span style="font-size:12px;color:#aaa;">This usually takes less than 24 hours.</span>`;
 
   } catch(e) {
     msg.textContent = '⚠ ' + (e.message || 'Error — please try again');
