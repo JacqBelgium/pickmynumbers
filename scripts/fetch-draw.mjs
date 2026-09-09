@@ -129,10 +129,23 @@ function parse(html) {
 }
 
 try {
-  const url = `https://www.euro-millions.com/results/${dateStr}`;
-  console.log(`URL: ${url}`);
+  // lottery.co.uk als primaire bron, euro-millions.com als fallback
+  const urls = [
+    `https://www.lottery.co.uk/euromillions/results-${day}-${month}-${year}`,
+    `https://www.euro-millions.com/results/${dateStr}`,
+  ];
 
-  const r = await fetchUrl(url);
+  let r = null;
+  for (const url of urls) {
+    console.log(`Probeer: ${url}`);
+    try {
+      const res = await fetchUrl(url);
+      if (res.status === 200) { r = res; console.log(`✓ Succes: ${url}`); break; }
+    } catch(e) { console.log(`Mislukt: ${e.message}`); }
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
+
+  if (!r) { console.log('Alle URLs mislukt'); process.exit(0); }
   console.log(`Status: ${r.status}`);
 
   if (r.status !== 200) {
