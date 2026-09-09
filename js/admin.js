@@ -167,7 +167,7 @@ async function saveDrawAnalysis(draw) {
 
     const total = weighted.length;
     const avgFreq = (total * 5) / 50;
-    const threshLow = Math.round(avgFreq * 0.67);
+    const threshLow = Math.round(avgFreq * 0.80);
     const threshHigh = Math.round(avgFreq * 1.33);
 
     // Pool = hot + avg nummers
@@ -488,7 +488,7 @@ function adminLoadPoolAnalysis() {
 
     const total = weighted.length;
     const avgFreq = (total * 5) / 50;
-    const threshLow = Math.round(avgFreq * 0.67);
+    const threshLow = Math.round(avgFreq * 0.80);
 
     // Pool = nummers boven of gelijk aan threshold
     const pool = [];
@@ -577,7 +577,7 @@ async function adminLoadUsers() {
           <span style="font-size:13px;font-weight:500;">${u.name || '—'}</span>
           <div style="display:flex;gap:6px;align-items:center;">
             ${u.blocked ? '<span style="font-size:10px;color:#A32D2D;background:#fdf0f0;padding:2px 6px;border-radius:4px;">Geblokkeerd</span>' : ''}
-            <button onclick="adminToggleBlock('${u.id}',${!u.blocked})" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;">${u.blocked?'Deblokkeren':'Blokkeren'}</button>
+            <button onclick="adminToggleBlock('${u.id}',${!u.blocked})" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid #ddd;background:${u.blocked?'#f0f8ec':'#fdf0f0'};cursor:pointer;color:${u.blocked?'#2E7D32':'#A32D2D'};">${u.blocked?'✓ Approve':'✗ Block'}</button>
           </div>
         </div>
         <span style="font-size:11px;color:#888;">${u.email}</span>
@@ -588,7 +588,57 @@ async function adminLoadUsers() {
   }
 }
 
-// adminToggleBlock — verplaatst naar Supabase script blok
+// adminToggleBlock — unlock of lock een gebruiker
+async function adminToggleBlock(userId, block) {
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .update({ blocked: block })
+      .eq('id', userId);
+    if (error) throw error;
+
+    // Als unblocked — stuur welkomst email
+    if (!block) {
+      const { data: user } = await supabaseClient
+        .from('users').select('name, email').eq('id', userId).single();
+      if (user) {
+        await fetch(EDGE_EMAIL_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
+          body: JSON.stringify({
+            to: [user.email],
+            subject: '🎰 Your PickMyNumbers account is approved!',
+            html: `<div style="font-family:Arial,sans-serif;padding:20px;max-width:480px;">
+              <div style="background:#1a1a18;border-radius:12px 12px 0 0;padding:20px;color:#fff;text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">🎰 PickMyNumbers</div>
+                <div style="font-size:14px;color:#aaa;">Account approved!</div>
+              </div>
+              <div style="background:#fff;border:1px solid #e8e8e4;border-top:none;border-radius:0 0 12px 12px;padding:20px;">
+                <p style="font-size:15px;">Hello <strong>${user.name}</strong>! 👋</p>
+                <p style="font-size:13px;color:#555;margin-top:12px;line-height:1.6;">
+                  Your PickMyNumbers account has been approved. You can now sign in and start generating optimized EuroMillions tickets.
+                </p>
+                <div style="text-align:center;margin-top:20px;">
+                  <a href="https://pickmynumbers.eu/optimizer.html" 
+                    style="background:#1a1a18;color:#fff;padding:12px 28px;border-radius:6px;font-size:14px;font-weight:600;text-decoration:none;">
+                    🎰 Open the optimizer →
+                  </a>
+                </div>
+                <p style="font-size:11px;color:#aaa;margin-top:20px;text-align:center;">
+                  EuroMillions is a game of chance. No method guarantees winnings. 18+ only.
+                </p>
+              </div>
+            </div>`
+          })
+        });
+      }
+    }
+
+    adminLoadUsers(); // Ververs de lijst
+  } catch(e) {
+    alert('Fout: ' + e.message);
+  }
+}
 
 
 // =====================
@@ -763,21 +813,8 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
   const bestPrize = getPrize(bestNumHits, bestStarHits);
 
   // Som analyse
-  const somMin = 90, somMax = 180;
+  const somMin = 90, somMax = 180; // standaard parameters
   const somOk = actualSum >= somMin && actualSum <= somMax;
-
-  // Pool dekking berekening
-  const mbDrawsForPool = ALL_DRAWS.filter(d => d.machine === draw.machine && d.bal === draw.bal);
-  const poolFreq = {};
-  for(let n=1;n<=50;n++) poolFreq[n]=0;
-  mbDrawsForPool.forEach(d => d.nums.forEach(n => poolFreq[n]++));
-  const poolTotal = mbDrawsForPool.length;
-  const poolAvg = (poolTotal * 5) / 50;
-  const poolThresh = Math.round(poolAvg * 0.67);
-  const pool = Object.keys(poolFreq).filter(n => poolFreq[n] >= poolThresh).map(Number);
-  const inPool = actualNums.filter(n => pool.includes(n));
-  const poolCoverage = Math.round((inPool.length / actualNums.length) * 100);
-  const outOfPool = actualNums.filter(n => !pool.includes(n));
 
   // Odd/even analyse
   const oddEvenAnalysis = actualOdd === 3 ? '3+2 (ideaal)' :
@@ -846,18 +883,6 @@ async function sendAnalysisEmail(name, email, tickets, actualNums, actualStars, 
                                  `❄️ both are avg/cold stars this round`;
               })()
             }</div>
-          </div>
-        </div>
-
-        <div style="background:#f0f0f8;border:1px solid #c8c8e8;border-radius:8px;padding:12px;margin-bottom:12px;">
-          <div style="font-size:10px;font-weight:700;color:#444;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">🎯 Optimizer Pool Coverage — M${draw.machine}/B${draw.bal}</div>
-          <div style="font-size:13px;font-weight:700;color:${poolCoverage>=80?'#2E7D32':poolCoverage>=60?'#E67E22':'#A32D2D'};margin-bottom:6px;">
-            ${inPool.length} of 5 winning numbers were in the pool (${poolCoverage}%)
-          </div>
-          <div style="font-size:11px;color:#555;line-height:1.8;">
-            <div>✓ In pool: <strong style="color:#2E7D32;">${inPool.length > 0 ? inPool.join('  ') : '—'}</strong></div>
-            <div>${outOfPool.length > 0 ? `✗ Outside pool: <strong style="color:#A32D2D;">${outOfPool.join('  ')}</strong>` : '✓ All numbers were in the optimizer pool!'}</div>
-            <div style="margin-top:4px;font-size:10px;color:#aaa;">Pool size: ${pool.length} numbers · Based on ${poolTotal} M${draw.machine}/B${draw.bal} draws</div>
           </div>
         </div>
 
