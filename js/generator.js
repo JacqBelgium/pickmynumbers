@@ -725,6 +725,9 @@ function generateAll(){
   }
   document.getElementById('attemptInfo').textContent=`${numTickets} ticket${numTickets>1?'s':''} generated with anti-overlap (max ${maxOverlap===99?'∞':maxOverlap})`;
 
+  // Pool overlap check — hoeveel % van de pool zit in de gegenereerde tickets?
+  updatePoolOverlapBadge();
+
   // Toon wheeling knop als pool dekking signaal actief is
   const wheelingBtn = document.getElementById('wheelingBtn');
   if (wheelingBtn) {
@@ -744,6 +747,76 @@ function generateAll(){
 
   // Vul gespeelde tickets in het resultaatformulier
   buildTicketInputs();
+}
+
+// =====================
+// POOL OVERLAP — hoeveel % van de pool zit in de tickets?
+// =====================
+function updatePoolOverlapBadge() {
+  const el = document.getElementById('poolOverlapBadge');
+  if (!el || playedTickets.length === 0) return;
+
+  // Bereken huidige pool
+  const weighted = getWeightedDraws(currentMachine, currentBal);
+  const freq = {};
+  for(let n=1;n<=50;n++) freq[n]=0;
+  weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+  const total = weighted.length;
+  const threshLow = Math.round((total*5/50) * 0.80);
+  const pool = [];
+  for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
+
+  // Unieke nummers in tickets
+  const ticketNums = [...new Set(playedTickets.flatMap(t => t.nums))];
+  const inPool = ticketNums.filter(n => pool.includes(n));
+  const overlapPct = pool.length > 0 ? Math.round((inPool.length / pool.length) * 100) : 0;
+
+  const color = overlapPct >= 60 ? '#2E7D32' : overlapPct >= 40 ? '#E67E22' : '#A32D2D';
+  const status = overlapPct >= 60 ? '✓ Good coverage' : overlapPct >= 40 ? '⚠ Moderate' : '✗ Low — consider regenerating';
+
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+      <div>
+        <div style="font-size:11px;color:#555;font-weight:600;">🎯 Your tickets cover ${overlapPct}% of the optimizer pool</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px;">${inPool.length} of ${pool.length} pool numbers in your tickets · ${ticketNums.length} unique numbers played</div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:${color};">${status}</div>
+    </div>
+    ${overlapPct < 60 ? `<button onclick="generateAll()" style="margin-top:8px;font-size:11px;padding:5px 12px;background:#1a1a18;color:#fff;border:none;border-radius:4px;cursor:pointer;">↻ Regenerate tickets</button>` : ''}`;
+
+  // Pool dekking trending — stijgend of dalend?
+  updatePoolTrending(el, overlapPct);
+}
+
+function updatePoolTrending(container, currentPct) {
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+  if (mbDraws.length < 3) return;
+
+  // Bereken pool dekking van laatste 5 trekkingen
+  const last5 = mbDraws.slice(0, 5).map(draw => {
+    const weighted = getWeightedDraws(draw.machine, draw.bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+    const threshLow = Math.round((weighted.length*5/50) * 0.80);
+    const pool = [];
+    for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
+    const inPool = draw.nums.filter(n => pool.includes(n));
+    return Math.round((inPool.length / draw.nums.length) * 100);
+  });
+
+  // Trend bepalen — vergelijk eerste 2 met laatste 2
+  const recent = last5.slice(0, 2).reduce((a,b) => a+b, 0) / 2;
+  const older = last5.slice(3, 5).reduce((a,b) => a+b, 0) / Math.max(last5.slice(3,5).length, 1);
+  const diff = recent - older;
+  const trend = diff > 5 ? '↑ Rising' : diff < -5 ? '↓ Falling' : '→ Stable';
+  const trendColor = diff > 5 ? '#2E7D32' : diff < -5 ? '#A32D2D' : '#888';
+
+  const trendEl = document.createElement('div');
+  trendEl.style.cssText = 'font-size:10px;color:#aaa;margin-top:6px;padding-top:6px;border-top:1px solid #e8e8e4;';
+  trendEl.innerHTML = `Pool coverage trend (last 5 draws): ${last5.map(p => `<strong style="color:${p>=80?'#2E7D32':p>=60?'#E67E22':'#A32D2D'}">${p}%</strong>`).join(' → ')} &nbsp; <span style="color:${trendColor};font-weight:600;">${trend}</span>`;
+  container.appendChild(trendEl);
 }
 
 // =====================
