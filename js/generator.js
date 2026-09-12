@@ -1141,15 +1141,112 @@ let currentAnalyseTab = 'hot';
 
 function showAnalyseTab(t) {
   currentAnalyseTab = t;
-  ['hot','avg','cold','star'].forEach(tab => {
+  ['hot','avg','cold','star','history'].forEach(tab => {
     const btn = document.getElementById('atab-' + tab);
     if (btn) btn.classList.toggle('active', tab === t);
   });
+
+  // Toon/verberg freq controls en chart
+  const freqControls = document.getElementById('freqControls');
+  const freqChart = document.getElementById('freqChart');
+  const freqLegend = document.getElementById('freqLegend');
+  const historyPane = document.getElementById('pane-history');
+
+  if (t === 'history') {
+    if (freqControls) freqControls.style.display = 'none';
+    if (freqChart) freqChart.style.display = 'none';
+    if (freqLegend) freqLegend.style.display = 'none';
+    if (historyPane) historyPane.style.display = 'block';
+    renderDrawHistory();
+    return;
+  }
+
+  if (freqControls) freqControls.style.display = '';
+  if (freqChart) freqChart.style.display = '';
+  if (freqLegend) freqLegend.style.display = '';
+  if (historyPane) historyPane.style.display = 'none';
+
   if (t === 'star') {
     renderFreqFiltered('stars', null);
   } else {
     renderFreqFiltered('nums', t);
   }
+}
+
+function renderDrawHistory() {
+  const el = document.getElementById('historyTable');
+  const label = document.getElementById('historyMbLabel');
+  if (!el) return;
+
+  if (label) label.textContent = `M${currentMachine}/B${currentBal}`;
+
+  const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
+  if (mbDraws.length === 0) {
+    el.innerHTML = '<div style="color:#bbb;font-size:12px;padding:1rem 0;">No draws found for this machine/ball combination.</div>';
+    return;
+  }
+
+  // Bereken pool voor elke trekking
+  const rows = mbDraws.map(draw => {
+    const weighted = getWeightedDraws(draw.machine, draw.bal);
+    const freq = {};
+    for(let n=1;n<=50;n++) freq[n]=0;
+    weighted.forEach(d => d.nums.forEach(n => freq[n]++));
+    const threshLow = Math.round((weighted.length*5/50) * 0.80);
+    const pool = [];
+    for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
+    const inPool = draw.nums.filter(n => pool.includes(n));
+    const poolPct = Math.round((inPool.length / draw.nums.length) * 100);
+    const outPool = draw.nums.filter(n => !pool.includes(n));
+    const odd = draw.nums.filter(n => n%2!==0).length;
+    const low = draw.nums.filter(n => n<=25).length;
+    const sum = draw.nums.reduce((a,b)=>a+b,0);
+    return { draw, inPool, outPool, poolPct, odd, low, sum };
+  });
+
+  const avgPct = Math.round(rows.reduce((a,r) => a+r.poolPct, 0) / rows.length);
+
+  el.innerHTML = `
+    <div style="font-size:11px;color:#555;margin-bottom:8px;">
+      ${mbDraws.length} draws · Avg pool coverage: <strong style="color:${avgPct>=70?'#2E7D32':'#E67E22'}">${avgPct}%</strong>
+    </div>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <thead>
+        <tr style="background:#f4f4f2;">
+          <th style="padding:6px 8px;text-align:left;color:#888;font-weight:600;">Date</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">Numbers</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">Sum</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">O/E</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">L/H</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">Pool%</th>
+          <th style="padding:6px 8px;text-align:center;color:#888;font-weight:600;">★</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((r, i) => {
+          const color = r.poolPct===100?'#2E7D32':r.poolPct>=80?'#3B6D11':r.poolPct>=60?'#E67E22':'#A32D2D';
+          const bg = i%2===0?'#fff':'#fafaf8';
+          return `<tr style="background:${bg};border-bottom:1px solid #f0f0ee;">
+            <td style="padding:5px 8px;color:#555;white-space:nowrap;">${r.draw.date}</td>
+            <td style="padding:5px 8px;text-align:center;">
+              ${r.draw.nums.map(n => {
+                const hit = r.inPool.includes(n);
+                return `<span style="color:${hit?'#0C447C':'#A32D2D'};font-weight:${hit?'700':'400'};">${n}</span>`;
+              }).join(' ')}
+              <span style="color:#ddd;">+</span>
+              <span style="color:#e8922a;">★${r.draw.stars.join('★')}</span>
+            </td>
+            <td style="padding:5px 8px;text-align:center;color:#555;">${r.sum}</td>
+            <td style="padding:5px 8px;text-align:center;color:#555;">${r.odd}+${5-r.odd}</td>
+            <td style="padding:5px 8px;text-align:center;color:#555;">${r.low}+${5-r.low}</td>
+            <td style="padding:5px 8px;text-align:center;font-weight:700;color:${color};">${r.poolPct}%</td>
+            <td style="padding:5px 8px;text-align:center;color:#aaa;font-size:10px;">${r.draw.machine>0?`M${r.draw.machine}/B${r.draw.bal}`:'-'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>`;
 }
 
 function renderFreqFiltered(field, tier) {
