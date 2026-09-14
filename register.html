@@ -219,7 +219,7 @@
   <div class="reg-card">
 
     <div class="reg-header">
-      <div class="reg-header-title">Create your free account</div>
+      <div class="reg-header-title">Request an account</div>
       <div class="reg-header-sub" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);">No password needed — magic link login</div>
     </div>
 
@@ -228,7 +228,7 @@
       <!-- FORM -->
       <div id="regForm">
         <p class="reg-desc">
-          Create a free account to save your tickets and receive a
+          Request an account to save your tickets and receive a
           <strong>personal analysis</strong> after every draw.
         </p>
 
@@ -243,7 +243,7 @@
         </div>
 
         <button class="reg-btn" onclick="doRegister()" id="regBtn">
-          ✉ Create account
+          ✉ Send request
         </button>
 
         <div class="reg-msg" id="regMsg"></div>
@@ -290,7 +290,7 @@
         <div class="reg-divider">No account yet?</div>
 
         <button class="reg-btn-ghost" onclick="showRegister()">
-          ✨ Create free account
+          ✨ Request an account
         </button>
       </div>
 
@@ -304,6 +304,14 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script>
+// Ensure supabaseClient is available
+if (typeof supabaseClient === 'undefined') {
+  const supabaseClient = supabase.createClient(
+    'https://bcdzusstvnsikkhdmjqn.supabase.co',
+    'sb_publishable_12OtIWelNKVROgLr6WULUQ_8PcTVPuN'
+  );
+  window.supabaseClient = supabaseClient;
+}
 
 function showRegister() {
   document.getElementById('regForm').style.display = 'block';
@@ -377,7 +385,7 @@ async function doRegister() {
   } catch(e) {
     msg.textContent = '⚠ ' + (e.message || 'Error — please try again');
     btn.disabled = false;
-    btn.textContent = '✉ Create account';
+    btn.textContent = '✉ Send request';
   }
 }
 
