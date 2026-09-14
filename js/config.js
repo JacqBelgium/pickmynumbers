@@ -15,7 +15,7 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // =====================
 const TOTAL_FN = () => ALL_DRAWS.length;
 const AVG_FN   = () => (TOTAL_FN()*5)/50;
-let threshLow  = () => Math.round(AVG_FN()*0.67);
+let threshLow  = () => Math.round(AVG_FN()*0.80);
 let threshHigh_v = 4;
 let threshLow_v  = 2;
 let numTickets = 3;
@@ -48,23 +48,21 @@ let selectedMatrix = new Set(['3_3','2_3','3_2','3_1','2_1','4_3','2_2','4_1','1
 
 
 // =====================
-// PRIJSTABEL
+// PRIZE TABLE
 // =====================
 function getPrize(numHits, starHits) {
   if (numHits===5 && starHits===2) return { label:'🏆 JACKPOT!', color:'#B8860B', amount:'Jackpot' };
-  if (numHits===5 && starHits===1) return { label:'🥇 2e prijs', color:'#B8860B', amount:500000 };
-  if (numHits===5 && starHits===0) return { label:'🥈 3e prijs', color:'#B8860B', amount:50000 };
-  if (numHits===4 && starHits===2) return { label:'🥉 4e prijs', color:'#2E7D32', amount:3500 };
-  if (numHits===4 && starHits===1) return { label:'✅ 5e prijs', color:'#2E7D32', amount:150 };
-  if (numHits===3 && starHits===2) return { label:'✅ 6e prijs', color:'#2E7D32', amount:60 };
-  if (numHits===4 && starHits===0) return { label:'✅ 7e prijs', color:'#2E7D32', amount:60 };
-  if (numHits===2 && starHits===2) return { label:'✅ 8e prijs', color:'#2E7D32', amount:12 };
-  if (numHits===3 && starHits===1) return { label:'✅ 9e prijs', color:'#2E7D32', amount:15 };
-  if (numHits===3 && starHits===0) return { label:'✅ 10e prijs', color:'#2E7D32', amount:12 };
-  if (numHits===1 && starHits===2) return { label:'✅ 11e prijs', color:'#2E7D32', amount:8 };
-  if (numHits===2 && starHits===1) return { label:'✅ 12e prijs', color:'#2E7D32', amount:8 };
-  if (numHits===2 && starHits===0) return { label:'✅ 13e prijs', color:'#2E7D32', amount:4 };
-  return { label:'Geen prijs', color:'#aaa', amount:0 };
+  if (numHits===5 && starHits===1) return { label:'🥇 2nd prize', color:'#B8860B', amount:500000 };
+  if (numHits===5 && starHits===0) return { label:'🥈 3rd prize', color:'#B8860B', amount:50000 };
+  if (numHits===4 && starHits===2) return { label:'🥉 4th prize', color:'#2E7D32', amount:3500 };
+  if (numHits===4 && starHits===1) return { label:'✅ 5th prize', color:'#2E7D32', amount:150 };
+  if (numHits===3 && starHits===2) return { label:'✅ 6th prize', color:'#2E7D32', amount:60 };
+  if (numHits===4 && starHits===0) return { label:'✅ 7th prize', color:'#2E7D32', amount:60 };
+  if (numHits===2 && starHits===2) return { label:'✅ 8th prize', color:'#2E7D32', amount:12 };
+  if (numHits===3 && starHits===1) return { label:'✅ 9th prize', color:'#2E7D32', amount:15 };
+  if (numHits===3 && starHits===0) return { label:'✅ 10th prize', color:'#2E7D32', amount:12 };
+  if (numHits===1 && starHits===2) return { label:'✅ 11th prize', color:'#2E7D32', amount:8 };
+  if (numHits===2 && starHits===1) return { label:'✅ 12th prize', color:'#2E7D32', amount:8 };
+  if (numHits===2 && starHits===0) return { label:'✅ 13th prize', color:'#2E7D32', amount:4 };
+  return { label:'No prize', color:'#aaa', amount:0 };
 }
-
-
