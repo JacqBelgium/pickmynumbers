@@ -134,7 +134,10 @@ function updateUserBar(user) {
 
   if (user && user.email) {
     bar.style.display = 'flex';
-    const unEl = document.getElementById('userBarName'); if(unEl) unEl.textContent = user.name || 'Welkom!';
+    const unEl = document.getElementById('userBarName'); if(unEl) unEl.textContent = user.name || 'Welcome!';
+    // Toon naam ook in header tagline
+    const tagTitle = document.getElementById('taglineTitle');
+    if (tagTitle && user.name) tagTitle.textContent = `Welcome ${user.name}! The only tool that optimizes based on actual draw machine & ball set.`;
     const ueEl = document.getElementById('userBarEmail'); if(ueEl) ueEl.textContent = user.email;
     if (authBtns) authBtns.style.display = 'none';
     // Toon genereer knop
@@ -166,7 +169,7 @@ function showStep(stepId) {
 }
 
 function openSignup() {
-  document.getElementById('loginHeaderSub').textContent = 'Create a free account';
+  document.getElementById('loginHeaderSub').textContent = 'Request an account';
   showStep('loginStepSignup');
   document.getElementById('loginMsg').textContent = '';
   document.getElementById('loginOverlay').classList.add('open');
@@ -214,7 +217,7 @@ async function sendMagicLink(mode) {
     const { error } = await supabaseClient.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: 'https://pickmynumbers.eu',
+        emailRedirectTo: 'https://pickmynumbers.eu/optimizer.html',
         data: isSignup ? { name, profile: loginSelectedProfile } : {}
       }
     });
