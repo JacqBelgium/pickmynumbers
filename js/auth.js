@@ -55,7 +55,7 @@ async function loadUserProfile(authUser) {
     } else {
       // Nieuwe gebruiker aanmaken — standaard geblokkeerd
       const p = PROFILES[pendingProf] || PROFILES.standard;
-      const { data: newUser } = await supabaseClient.from('users').insert({
+      const { data: newUser, error: insertError } = await supabaseClient.from('users').insert({
         auth_id: authUser.id,
         name: pendingName || 'User',
         email: authUser.email,
@@ -65,7 +65,25 @@ async function loadUserProfile(authUser) {
         stars_per_ticket: p.stars,
         blocked: true  // Standaard geblokkeerd — wacht op goedkeuring
       }).select().single();
-      currentUser = { ...newUser, email: authUser.email, blocked: true };
+
+      if (insertError) {
+        console.error('User insert fout:', insertError.message);
+        // Probeer opnieuw met upsert op auth_id
+        const { data: upsertUser, error: upsertError } = await supabaseClient.from('users').upsert({
+          auth_id: authUser.id,
+          name: pendingName || 'User',
+          email: authUser.email,
+          profile: pendingProf,
+          ticket_count: p.tickets,
+          nums_per_ticket: p.nums,
+          stars_per_ticket: p.stars,
+          blocked: true
+        }, { onConflict: 'auth_id' }).select().single();
+        if (upsertError) console.error('Upsert ook mislukt:', upsertError.message);
+        currentUser = { ...(upsertUser || {}), email: authUser.email, blocked: true };
+      } else {
+        currentUser = { ...newUser, email: authUser.email, blocked: true };
+      }
 
       // Toon wachtbericht
       showBlockedMessage(pendingName || 'User');
