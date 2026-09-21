@@ -285,9 +285,16 @@ function checkConsec(nums){
 }
 function checkOverlap(nums, prevTickets){
   if(maxOverlap>=99) return true;
+  // Check per ticket-paar
   for(const prev of prevTickets){
     const overlap=nums.filter(n=>prev.includes(n)).length;
     if(overlap>maxOverlap) return false;
+  }
+  // Check globaal — een nummer mag max (maxOverlap+1) keer voorkomen over alle tickets
+  const allPrevNums = prevTickets.flat();
+  for(const n of nums){
+    const count = allPrevNums.filter(p => p===n).length;
+    if(count > maxOverlap) return false;
   }
   return true;
 }
@@ -843,42 +850,38 @@ function generateWheeling() {
   const hotStars = starStrategy.hotStars;
   const avgStars = starStrategy.avgStars;
 
+  // Tel hoe vaak elke ster al gebruikt is in de eerste 3 tickets
+  const starUsageCount = {};
+  playedTickets.forEach(t => t.stars.forEach(s => starUsageCount[s] = (starUsageCount[s]||0) + 1));
+
   // Bouw ster combinaties die NIET al in de eerste 3 tickets zitten
   const usedStarCombis = playedTickets.map(t => t.stars.slice().sort((a,b)=>a-b).join('-'));
   const wheelStarCombis = [];
 
-  // Optie 1: beide hot sterren samen
-  if (hotStars.length >= 2) {
-    const c = [hotStars[0], hotStars[1]].sort((a,b)=>a-b);
-    if (!usedStarCombis.includes(c.join('-'))) wheelStarCombis.push(c);
-  }
+  // Alle beschikbare sterren gesorteerd op minste gebruik
+  const allStars = [...new Set([...hotStars, ...avgStars])];
+  const sortedByUsage = allStars.sort((a,b) => (starUsageCount[a]||0) - (starUsageCount[b]||0));
 
-  // Optie 2: hot + nieuwe avg sterren
-  const shuffledAvg = [...avgStars].sort(() => Math.random() - 0.5);
-  for (const hot of hotStars) {
-    for (const avg of shuffledAvg) {
-      if (wheelStarCombis.length >= 3) break;
-      const c = [hot, avg].sort((a,b)=>a-b);
-      if (!usedStarCombis.includes(c.join('-')) && !wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
-        wheelStarCombis.push(c);
-      }
-    }
-    if (wheelStarCombis.length >= 3) break;
-  }
-
-  // Fallback: avg + avg combinaties
-  for (let i = 0; i < shuffledAvg.length && wheelStarCombis.length < 3; i++) {
-    for (let j = i+1; j < shuffledAvg.length && wheelStarCombis.length < 3; j++) {
-      const c = [shuffledAvg[i], shuffledAvg[j]].sort((a,b)=>a-b);
+  // Genereer 3 unieke combinaties met minste hergebruik
+  for (let i = 0; i < sortedByUsage.length && wheelStarCombis.length < 3; i++) {
+    for (let j = i+1; j < sortedByUsage.length && wheelStarCombis.length < 3; j++) {
+      const c = [sortedByUsage[i], sortedByUsage[j]].sort((a,b)=>a-b);
       if (!usedStarCombis.includes(c.join('-')) && !wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
         wheelStarCombis.push(c);
       }
     }
   }
 
-  // Laatste fallback: gebruik rotatie van bestaande combis
-  while (wheelStarCombis.length < 3) {
-    wheelStarCombis.push(starCombis[wheelStarCombis.length % starCombis.length]);
+  // Fallback: gebruik minst gebruikte combinaties ook als ze al in tickets zitten
+  if (wheelStarCombis.length < 3) {
+    for (let i = 0; i < sortedByUsage.length && wheelStarCombis.length < 3; i++) {
+      for (let j = i+1; j < sortedByUsage.length && wheelStarCombis.length < 3; j++) {
+        const c = [sortedByUsage[i], sortedByUsage[j]].sort((a,b)=>a-b);
+        if (!wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
+          wheelStarCombis.push(c);
+        }
+      }
+    }
   }
 
   // Genereer wheeling tickets — nieuwe combinaties van dezelfde nummers
