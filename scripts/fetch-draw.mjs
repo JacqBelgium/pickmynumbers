@@ -2,33 +2,15 @@ import https from 'node:https';
 import fs from 'node:fs';
 
 // Workflow draait om 20:30 UTC = 22:30 CEST
-// Maar na zomertijd (eind oktober) = 21:30 CET — nog steeds zelfde dag
-// Gebruik CEST/CET tijdzone om correcte trekking datum te bepalen
+// Trek 1 dag af — trekking was gisteren (di/vr avond)
 const now = new Date();
-
-// Converteer naar Europese tijd (UTC+2 zomer / UTC+1 winter)
-const cetOffset = (() => {
-  // Bepaal of het zomertijd is (laatste zondag maart - laatste zondag oktober)
-  const jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
-  const jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
-  const isDST = Math.min(jan, jul) !== now.getTimezoneOffset();
-  return isDST ? 2 : 1;
-})();
-
-const cetNow = new Date(now.getTime() + cetOffset * 60 * 60 * 1000);
-
-// Als het na middernacht CET is maar de trekking was gisteren, gebruik gisteren
-// Trekking is altijd op di/vr avond — workflow draait 22:30 CEST
-// UTC 20:30 + 2u = 22:30 CEST = zelfde dag
-// Maar UTC berekening: als UTC uur >= 20, dan is het CET al de volgende dag?
-// Nee: 20:30 UTC + 2 = 22:30 CEST = nog steeds vrijdag/dinsdag avond ✓
-
-const day = String(cetNow.getDate()).padStart(2, '0');
-const month = String(cetNow.getMonth() + 1).padStart(2, '0');
-const year = cetNow.getFullYear();
+now.setDate(now.getDate() - 1);
+const day = String(now.getDate()).padStart(2, '0');
+const month = String(now.getMonth() + 1).padStart(2, '0');
+const year = now.getFullYear();
 const dateStr = `${day}-${month}-${year}`;
 const monthsNL = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-const nlDate = `${parseInt(day)} ${monthsNL[cetNow.getMonth()]} ${year}`;
+const nlDate = `${parseInt(day)} ${monthsNL[now.getMonth()]} ${year}`;
 
 console.log(`Ophalen trekking: ${dateStr} (${nlDate})`);
 
