@@ -116,9 +116,11 @@ function getStarStrategy(){
   for(let n=1;n<=12;n++){
     const f = starFreq[n] || 0;
     const lastSeen = starLastSeen[n] !== undefined ? starLastSeen[n] : total;
+    const expectedInterval = total / Math.max(f, 1);
     const freqScore = f / avgFreq;
-    const overdueScore = lastSeen / (total / Math.max(f,1));
-    const combinedScore = (freqScore * 0.6) + (overdueScore * 0.4);
+    const overdueScore = lastSeen / expectedInterval; // >1 = overdue, <1 = recent
+    // Nieuwe weging: 50% freq + 50% overdue — meer balans
+    const combinedScore = (freqScore * 0.5) + (overdueScore * 0.5);
     const tier = f >= hotThresh ? 'hot' : f <= coldThresh ? 'cold' : 'avg';
     starData.push({n, f, freqScore, overdueScore, combinedScore, tier, lastSeen});
   }
@@ -129,43 +131,46 @@ function getStarStrategy(){
   const avgStars = starData.filter(s => s.tier === 'avg').map(s => s.n);
   const coldStars = starData.filter(s => s.tier === 'cold').map(s => s.n);
 
-  // Top 5 voor combinaties — hot eerst, dan avg, nooit cold
+  // Top 5 voor combinaties — gesorteerd op combinedScore (freq + overdue)
   const top5 = [...hotStars, ...avgStars].slice(0, 5);
   const top3 = top5.slice(0, 3);
 
-  // 2-ster combinaties — elke hot ster krijgt eigen ticket met unieke avg ster
-  // Strategie:
-  // 3 hot sterren: hot1+avg_rand1, hot2+avg_rand2, hot3+avg_rand3, dan herhalen
-  // 2 hot sterren: hot1+hot2, hot1+avg_rand1, hot2+avg_rand2, hot1+avg_rand3...
-  // 1 hot ster:    hot1+avg_rand1, hot1+avg_rand2, hot1+avg_rand3...
-  // 0 hot sterren: top avg combinaties
-
   const combis2 = [];
   
-  // Shuffle avg sterren voor randomisatie
-  const shuffledAvg = [...avgStars].sort(() => Math.random() - 0.5);
+  // Avg sterren gesorteerd op combinedScore (niet random) — overdue krijgt hogere prioriteit
+  const sortedAvg = [...avgStars]; // al gesorteerd op combinedScore door starData.sort
   
   if (hotStars.length >= 3) {
-    // 3+ hot sterren — elke hot krijgt eigen combi met unieke avg
     for (let round = 0; combis2.length < 10; round++) {
       for (let h = 0; h < hotStars.length && combis2.length < 10; h++) {
-        const avgIdx = (round * hotStars.length + h) % shuffledAvg.length;
-        if (shuffledAvg.length > 0) {
-          combis2.push([hotStars[h], shuffledAvg[avgIdx]].sort((a,b)=>a-b));
+        const avgIdx = (round * hotStars.length + h) % sortedAvg.length;
+        if (sortedAvg.length > 0) {
+          combis2.push([hotStars[h], sortedAvg[avgIdx]].sort((a,b)=>a-b));
         }
       }
-      if (shuffledAvg.length === 0) break;
+      if (sortedAvg.length === 0) break;
     }
   } else if (hotStars.length === 2) {
-    // 2 hot sterren — combi 1 is beide hot samen, daarna elk met avg
     combis2.push([hotStars[0], hotStars[1]].sort((a,b)=>a-b));
-    for (let i = 0; i < shuffledAvg.length && combis2.length < 10; i++) {
-      combis2.push([hotStars[i % 2], shuffledAvg[i]].sort((a,b)=>a-b));
+    for (let i = 0; i < sortedAvg.length && combis2.length < 10; i++) {
+      combis2.push([hotStars[i % 2], sortedAvg[i]].sort((a,b)=>a-b));
     }
   } else if (hotStars.length === 1) {
-    // 1 hot ster — combineer met elke avg ster
-    for (let i = 0; i < shuffledAvg.length && combis2.length < 10; i++) {
-      combis2.push([hotStars[0], shuffledAvg[i]].sort((a,b)=>a-b));
+    // 1 hot ster — combineer met avg sterren op volgorde van combinedScore
+    // Eerste ticket: hot + hoogste overdue avg
+    // Tweede ticket: hot + tweede overdue avg
+    // Derde ticket: top2 overdue avg zonder hot (voor meer spreiding)
+    for (let i = 0; i < sortedAvg.length && combis2.length < 6; i++) {
+      combis2.push([hotStars[0], sortedAvg[i]].sort((a,b)=>a-b));
+    }
+    // Extra: avg+avg combinaties voor ticket 3+ (spreiding)
+    if (sortedAvg.length >= 2) {
+      for (let i = 0; i < sortedAvg.length && combis2.length < 10; i++) {
+        for (let j = i+1; j < sortedAvg.length && combis2.length < 10; j++) {
+          const c = [sortedAvg[i], sortedAvg[j]].sort((a,b)=>a-b);
+          if (!combis2.some(x => x[0]===c[0] && x[1]===c[1])) combis2.push(c);
+        }
+      }
     }
   }
 
