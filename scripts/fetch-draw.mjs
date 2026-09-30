@@ -4,7 +4,6 @@ import fs from 'node:fs';
 // Workflow draait om 20:30 UTC = 22:30 CEST
 // Trek 1 dag af — trekking was gisteren (di/vr avond)
 const now = new Date();
-now.setDate(now.getDate() - 1);
 const day = String(now.getDate()).padStart(2, '0');
 const month = String(now.getMonth() + 1).padStart(2, '0');
 const year = now.getFullYear();
