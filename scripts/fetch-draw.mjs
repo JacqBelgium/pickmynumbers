@@ -96,14 +96,25 @@ function parse(html) {
 }
 
 try {
-  const url = `https://www.euro-millions.com/results/${dateStr}`;
-  console.log(`URL: ${url}`);
+  const urls = [
+    `https://www.lottery.co.uk/euromillions/results-${day}-${month}-${year}`,
+    `https://www.euro-millions.com/results/${dateStr}`,
+    `https://www.beatlottery.co.uk/euromillions/results/${dateStr}`,
+  ];
 
-  const r = await fetchUrl(url);
-  console.log(`Status: ${r.status}`);
+  let r = null;
+  for (const url of urls) {
+    console.log(`Probeer: ${url}`);
+    try {
+      const res = await fetchUrl(url);
+      if (res.status === 200) { r = res; console.log(`✓ Succes: ${url}`); break; }
+      console.log(`Status ${res.status} — volgende proberen`);
+    } catch(e) { console.log(`Mislukt: ${e.message}`); }
+    await new Promise(resolve => setTimeout(resolve, 3000));
+  }
 
-  if (r.status !== 200) {
-    console.log('Pagina niet beschikbaar');
+  if (!r) {
+    console.log('Alle URLs mislukt — handmatig invoeren nodig');
     process.exit(0);
   }
 
