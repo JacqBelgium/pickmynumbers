@@ -5,6 +5,7 @@
 // DATASET
 // =====================
 let ALL_DRAWS = [
+  { date:'6 okt 2026', draw:1987, nums:[18,22,32,41,48], stars:[8,10], machine:14, bal:20 },
   { date:'2 okt 2026', draw:1986, nums:[7,8,10,22,35], stars:[2,10], machine:14, bal:20 },
   { date:'29 sep 2026', draw:1985, nums:[4,7,12,31,44], stars:[8,11], machine:15, bal:19 },
   { date:'25 sep 2026', draw:1984, nums:[11,12,15,38,49], stars:[10,12], machine:15, bal:19 },
@@ -46,9 +47,7 @@ let ALL_DRAWS = [
   { date:'22 mei 2026', draw:1948, nums:[6,22,26,31,37], stars:[5,8], machine:13, bal:21 },
   { date:'19 mei 2026', draw:1947, nums:[2,12,20,38,45], stars:[2,5], machine:13, bal:21 },
   { date:'16 mei 2026', draw:1946, nums:[3,10,38,41,43], stars:[2,9], machine:13, bal:21 },
-  { date:'15 mei 2026', draw:1946, nums:[3,10,38,41,43], stars:[2,9], machine:13, bal:21 },
   { date:'13 mei 2026', draw:1945, nums:[4,26,32,35,36], stars:[5,7], machine:13, bal:21 },
-  { date:'12 mei 2026', draw:1945, nums:[4,26,32,35,36], stars:[5,7], machine:13, bal:21 },
   { date:'8 mei 2026', draw:1944, nums:[2,17,19,34,37], stars:[8,11], machine:13, bal:21 },
   { date:'5 mei 2026', draw:1943, nums:[3,4,8,20,31], stars:[6,8], machine:13, bal:21 },
   { date:'1 mei 2026', draw:1942, nums:[3,9,42,46,47], stars:[1,11], machine:13, bal:21 },
