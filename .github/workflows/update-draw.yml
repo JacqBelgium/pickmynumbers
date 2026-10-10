@@ -2,7 +2,8 @@ name: Update EuroMillions Draw
 
 on:
   schedule:
-    - cron: '30 20 * * 2,5'
+    - cron: '30 20 * * 2,5'   # Eerste poging: 20:30 UTC (22:30 Brussel)
+    - cron: '30 21 * * 2,5'   # Tweede poging: 21:30 UTC (23:30 Brussel)
   workflow_dispatch:
 
 permissions:
