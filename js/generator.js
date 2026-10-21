@@ -5,32 +5,26 @@
 // GEWOGEN SCORING
 // =====================
 function getWeight(machine, bal) {
-  // Gewichtsfactor op basis of aantal M/B draws
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
   if (mbDraws > 80) return 10;
   if (mbDraws > 60) return 8;
   if (mbDraws > 40) return 6;
   if (mbDraws > 20) return 4;
   if (mbDraws >= 10) return 2;
-  return 1; // <10: factor 1, telt mee als gewone draw
+  return 1;
 }
 
 function getWeightedDraws(machine, bal) {
   const weight = getWeight(machine, bal);
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal).length;
-  
-  // Bepaal welke algemene data te gebruiken
-  // < 100 M/B draws: alleen 2025+ (recente data, minder dilutie)
-  // >= 100 M/B draws: alle jaren (2023-2026)
   const useAllYears = mbDraws >= 100;
-  const cutoffDraw = 1804; // draw 1761 = 3 jan 2025
+  const cutoffDraw = 1804;
 
   const weighted = [];
   ALL_DRAWS.forEach(d => {
     if (d.machine === machine && d.bal === bal) {
       for (let i = 0; i < weight; i++) weighted.push(d);
     } else if (d.machine === 0 || d.machine !== machine || d.bal !== bal) {
-      // Algemene data: alleen meenemen als useAllYears of draw is uit 2025+
       if (useAllYears || (d.draw && d.draw >= cutoffDraw)) {
         weighted.push(d);
       }
@@ -39,7 +33,11 @@ function getWeightedDraws(machine, bal) {
   return weighted;
 }
 
-// Beschikbare machine/bal combinaties
+// Modus A: alleen echte M/B draws, geen weging
+function getStrictDraws(machine, bal) {
+  return ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal);
+}
+
 function getAvailableMachineBal() {
   const combos = {};
   ALL_DRAWS.forEach(d => {
@@ -63,6 +61,19 @@ function getFreqData(field) {
   return{freq,lastSeen,maxN,total:draws.length};
 }
 
+function getFreqDataFromDraws(field, draws) {
+  const maxN = field === 'stars' ? 12 : 50;
+  const freq = new Array(maxN + 1).fill(0);
+  const lastSeen = new Array(maxN + 1).fill(undefined);
+  draws.forEach((d, i) => {
+    d[field].forEach(n => {
+      freq[n]++;
+      if (lastSeen[n] === undefined) lastSeen[n] = i;
+    });
+  });
+  return { freq, lastSeen, maxN, total: draws.length };
+}
+
 function getTier(f){
   const T=getWeightedDraws(currentMachine, currentBal).length;
   const avg=(T*5)/50;
@@ -82,15 +93,42 @@ function buildPool(field,tier){
   return pool;
 }
 
+function buildPoolFromDraws(field, draws) {
+  const { freq, lastSeen, maxN, total } = getFreqDataFromDraws(field, draws);
+  const avg = (total * 5) / 50;
+  const lo = Math.round(avg * 0.67);
+  const hi = Math.round(avg * 1.33);
+  const pool = [];
+  for (let n = 1; n <= maxN; n++) {
+    const f = freq[n] || 0;
+    const absent = lastSeen[n] !== undefined ? lastSeen[n] : total;
+    const score = f > 0 ? Math.max(0.01, absent / (total / f)) : 0.01;
+    const tier = f > hi ? 'hot' : f >= lo ? 'avg' : 'cold';
+    if (tier === 'hot' || tier === 'avg') {
+      pool.push({ num: n, score, freq: f });
+    }
+  }
+  return pool;
+}
+
 function getPickDist(){
   const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
   const active=hp.length+ap.length;
   return hp.length/active>0.5?{hot:3,avg:2,label:'3h+2a'}:{hot:2,avg:3,label:'2h+3a'};
 }
 
+function getPickDistFromDraws(draws) {
+  const pool = buildPoolFromDraws('nums', draws);
+  const { freq, total } = getFreqDataFromDraws('nums', draws);
+  const avg = (total * 5) / 50;
+  const hi = Math.round(avg * 1.33);
+  const hot = pool.filter(p => freq[p.num] > hi).length;
+  const av = pool.filter(p => freq[p.num] <= hi).length;
+  const active = hot + av;
+  return active > 0 && hot / active > 0.5 ? { hot: 3, avg: 2 } : { hot: 2, avg: 3 };
+}
+
 function getStarStrategy(){
-  // Gebruik alleen echte M/B draws voor sterren — niet weighted
-  // (weighted dataset is te groot en verhight de hot drempel kunstmatig)
   const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
   const weighted = mbDraws.length >= 10 ? mbDraws : getWeightedDraws(currentMachine, currentBal);
 
@@ -107,8 +145,6 @@ function getStarStrategy(){
 
   const total = weighted.length;
   const avgFreq = (total * 2) / 12;
-
-  // Hot drempel: 1.3× voor sterren
   const hotThresh = avgFreq * 1.3;
   const coldThresh = avgFreq * 0.7;
 
@@ -118,8 +154,7 @@ function getStarStrategy(){
     const lastSeen = starLastSeen[n] !== undefined ? starLastSeen[n] : total;
     const expectedInterval = total / Math.max(f, 1);
     const freqScore = f / avgFreq;
-    const overdueScore = lastSeen / expectedInterval; // >1 = overdue, <1 = recent
-    // Nieuwe weging: 50% freq + 50% overdue — meer balans
+    const overdueScore = lastSeen / expectedInterval;
     const combinedScore = (freqScore * 0.5) + (overdueScore * 0.5);
     const tier = f >= hotThresh ? 'hot' : f <= coldThresh ? 'cold' : 'avg';
     starData.push({n, f, freqScore, overdueScore, combinedScore, tier, lastSeen});
@@ -131,15 +166,12 @@ function getStarStrategy(){
   const avgStars = starData.filter(s => s.tier === 'avg').map(s => s.n);
   const coldStars = starData.filter(s => s.tier === 'cold').map(s => s.n);
 
-  // Top 5 voor combinaties — gesorteerd op combinedScore (freq + overdue)
   const top5 = [...hotStars, ...avgStars].slice(0, 5);
   const top3 = top5.slice(0, 3);
 
   const combis2 = [];
-  
-  // Avg sterren gesorteerd op combinedScore (niet random) — overdue krijgt hogere prioriteit
-  const sortedAvg = [...avgStars]; // al gesorteerd op combinedScore door starData.sort
-  
+  const sortedAvg = [...avgStars];
+
   if (hotStars.length >= 3) {
     for (let round = 0; combis2.length < 10; round++) {
       for (let h = 0; h < hotStars.length && combis2.length < 10; h++) {
@@ -156,14 +188,9 @@ function getStarStrategy(){
       combis2.push([hotStars[i % 2], sortedAvg[i]].sort((a,b)=>a-b));
     }
   } else if (hotStars.length === 1) {
-    // 1 hot ster — combineer met avg sterren op volgorde van combinedScore
-    // Eerste ticket: hot + hoogste overdue avg
-    // Tweede ticket: hot + tweede overdue avg
-    // Derde ticket: top2 overdue avg zonder hot (voor meer spreiding)
     for (let i = 0; i < sortedAvg.length && combis2.length < 6; i++) {
       combis2.push([hotStars[0], sortedAvg[i]].sort((a,b)=>a-b));
     }
-    // Extra: avg+avg combinaties voor ticket 3+ (spreiding)
     if (sortedAvg.length >= 2) {
       for (let i = 0; i < sortedAvg.length && combis2.length < 10; i++) {
         for (let j = i+1; j < sortedAvg.length && combis2.length < 10; j++) {
@@ -174,7 +201,6 @@ function getStarStrategy(){
     }
   }
 
-  // Fallback als niet genoeg combis
   if (combis2.length < 3) {
     const allCandidates = [...hotStars, ...avgStars];
     for(let i=0; i<allCandidates.length && combis2.length<3; i++){
@@ -185,7 +211,6 @@ function getStarStrategy(){
     }
   }
 
-  // 3-ster combinaties — altijd minstens 1 hot
   const combis3 = [];
   for(let i=0;i<top5.length;i++)
     for(let j=i+1;j<top5.length;j++)
@@ -195,7 +220,6 @@ function getStarStrategy(){
           combis3.push(combo.sort((a,b)=>a-b));
       }
 
-  // 4-ster combinaties — altijd minstens 1 hot
   const top6 = [...hotStars, ...avgStars].slice(0, 6);
   const combis4 = [];
   for(let i=0;i<top6.length;i++)
@@ -224,48 +248,198 @@ function weightedPick(pool,count){
 
 
 // =====================
+// MONTE CARLO CONSENSUS
+// =====================
+
+// Genereer N tickets op basis van een pool, tel nummerfrequentie over alle runs
+function monteCarloRuns(draws, runs) {
+  const pool = buildPoolFromDraws('nums', draws);
+  if (pool.length < 5) return null;
+
+  const dist = getPickDistFromDraws(draws);
+  const { freq: freqData, total } = getFreqDataFromDraws('nums', draws);
+  const avg = (total * 5) / 50;
+  const hi = Math.round(avg * 1.33);
+
+  const hotPool = pool.filter(p => freqData[p.num] > hi);
+  const avgPool = pool.filter(p => freqData[p.num] <= hi);
+
+  const numCount = {};
+  for (let n = 1; n <= 50; n++) numCount[n] = 0;
+
+  for (let r = 0; r < runs; r++) {
+    let hp = hotPool.length >= dist.hot ? hotPool : pool;
+    let ap = avgPool.length >= dist.avg ? avgPool : pool;
+    let hc = Math.min(dist.hot, hp.length);
+    let ac = Math.min(dist.avg, ap.length);
+
+    // Aanvullen als pools te klein
+    if (hc + ac < 5) {
+      hp = pool;
+      ap = pool;
+      hc = 2;
+      ac = 3;
+    }
+
+    const picked = weightedPick(hp, hc);
+    const pickedNums = picked.map(x => x.num);
+    // Vul aan tot 5 vanuit avgPool zonder overlap
+    const remaining = ap.filter(p => !pickedNums.includes(p.num));
+    const extra = weightedPick(remaining.length >= ac ? remaining : pool.filter(p => !pickedNums.includes(p.num)), ac);
+    const allNums = [...pickedNums, ...extra.map(x => x.num)];
+    const unique = [...new Set(allNums)].slice(0, 5);
+    unique.forEach(n => numCount[n]++);
+  }
+
+  // Rangschik op consensusfrequentie
+  const ranked = Object.entries(numCount)
+    .filter(([,c]) => c > 0)
+    .map(([n, c]) => ({ num: parseInt(n), count: c, poolScore: pool.find(p => p.num === parseInt(n))?.score || 0 }))
+    .sort((a, b) => b.count - a.count || b.poolScore - a.poolScore);
+
+  return { ranked, numCount, pool };
+}
+
+// Bouw optimaal ticket uit consensus ranking met filter-check
+function buildConsensusTicket(ranked, excludeNums = [], label = '') {
+  const params = getDynamicParams(currentMachine, currentBal);
+  const candidates = ranked.filter(r => !excludeNums.includes(r.num));
+
+  // Probeer combinaties: pak top kandidaten en valideer filters
+  for (let attempt = 0; attempt < 100; attempt++) {
+    // Shuffle licht op basis van attempt (top blijft zwaar gewogen)
+    const shuffled = attempt === 0
+      ? candidates.slice(0, 15)
+      : candidates.slice(0, Math.min(15 + attempt, candidates.length));
+
+    // Greedy selectie: voeg één voor één toe, check filters na elke stap
+    for (let startIdx = 0; startIdx <= Math.min(attempt, shuffled.length - 5); startIdx++) {
+      const selected = [];
+      const pool = [...shuffled];
+
+      // Altijd de beste kandidaat als start (tenzij we variëren)
+      if (attempt > 0 && startIdx < pool.length) {
+        // Wissel de startkandidaat voor variatie
+        const temp = pool[0];
+        pool[0] = pool[startIdx];
+        pool[startIdx] = temp;
+      }
+
+      for (const candidate of pool) {
+        if (selected.length >= 5) break;
+        selected.push(candidate.num);
+
+        // Check consecutive na elke toevoeging
+        if (selected.length >= 3) {
+          const sorted = [...selected].sort((a, b) => a - b);
+          let run = 1;
+          for (let i = 1; i < sorted.length; i++) {
+            if (sorted[i] === sorted[i-1] + 1) run++;
+            else run = 1;
+            if (run >= 3) { selected.pop(); break; }
+          }
+          if (selected.length < pool.indexOf(candidate) + 1) continue;
+        }
+      }
+
+      if (selected.length === 5) {
+        const sorted = selected.sort((a, b) => a - b);
+        const som = sorted.reduce((a, b) => a + b, 0);
+        const odd = sorted.filter(n => n % 2 !== 0).length;
+        const low = sorted.filter(n => n <= 25).length;
+
+        // Check som en 2D matrix
+        if (som >= params.somMin && som <= params.somMax && selectedMatrix.has(odd + '_' + low)) {
+          return { nums: sorted, label };
+        }
+      }
+    }
+  }
+
+  // Fallback: gewoon top 5
+  const fallback = candidates.slice(0, 5).map(r => r.num).sort((a, b) => a - b);
+  return { nums: fallback, label, fallback: true };
+}
+
+// Wheel ticket: pakt nummers die minst gebruikt zijn in T1+T2
+function buildWheelTicket(ranked, t1nums, t2nums) {
+  const usedNums = [...t1nums, ...t2nums];
+  const usageCount = {};
+  usedNums.forEach(n => usageCount[n] = (usageCount[n] || 0) + 1);
+
+  // Sorteer op: laagste gebruik in T1+T2 eerst, dan op consensus rank
+  const wheelCandidates = ranked
+    .map(r => ({ ...r, usage: usageCount[r.num] || 0 }))
+    .sort((a, b) => a.usage - b.usage || b.count - a.count);
+
+  return buildConsensusTicket(wheelCandidates, [], 'Wheel');
+}
+
+// Hoofd consensus generatie: 3 tickets
+function generateConsensusTickets() {
+  const RUNS = 15; // 15 runs voor betere statistiek
+
+  // Modus A: strict — alleen echte M/B draws
+  const strictDraws = getStrictDraws(currentMachine, currentBal);
+  // Modus B: weighted — M/B gewogen + context
+  const weightedDraws = getWeightedDraws(currentMachine, currentBal);
+
+  const mcA = monteCarloRuns(strictDraws.length >= 10 ? strictDraws : weightedDraws, RUNS);
+  const mcB = monteCarloRuns(weightedDraws, RUNS);
+
+  if (!mcA || !mcB) return null;
+
+  // Ticket 1: consensus Modus A (strict)
+  const t1 = buildConsensusTicket(mcA.ranked, [], 'Strict M/B');
+
+  // Ticket 2: consensus Modus B (weighted)
+  const t2 = buildConsensusTicket(mcB.ranked, [], 'Weighted');
+
+  // Ticket 3: wheel — gecombineerde ranking, nummers die weinig in T1+T2 zitten
+  // Combineer beide rankings voor wheel (gemiddelde consensus score)
+  const combinedCount = {};
+  mcA.ranked.forEach(r => combinedCount[r.num] = (combinedCount[r.num] || 0) + r.count);
+  mcB.ranked.forEach(r => combinedCount[r.num] = (combinedCount[r.num] || 0) + r.count);
+  const combinedRanked = Object.entries(combinedCount)
+    .map(([n, c]) => ({ num: parseInt(n), count: c }))
+    .sort((a, b) => b.count - a.count);
+
+  const t3 = buildWheelTicket(combinedRanked, t1.nums, t2.nums);
+
+  return { t1, t2, t3, mcA, mcB };
+}
+
+
+// =====================
 // FILTERS
 // =====================
 function check2D(nums){
-  // Gebruik altijd de eerste 5 nummers voor 2D check
   const n5 = nums.slice(0,5);
   const odd=n5.filter(n=>n%2!==0).length,low=n5.filter(n=>n<=25).length;
   return selectedMatrix.has(odd+'_'+low);
 }
-// =====================
-// DYNAMISCHE PARAMETERS PER M/B COMBINATIE
-// =====================
+
 function getDynamicParams(machine, bal) {
   const mbDraws = ALL_DRAWS.filter(d => d.machine === machine && d.bal === bal);
   if (mbDraws.length < 10) {
-    // Te weinig data — gebruik standaard parameters
     return { somMin: 90, somMax: 180, idealOdd: [2,3], idealLow: [2,3] };
   }
 
-  // Som statistieken
   const sums = mbDraws.map(d => d.nums.reduce((a,b) => a+b, 0));
   const avg = sums.reduce((a,b) => a+b, 0) / sums.length;
   const std = Math.sqrt(sums.map(s => (s-avg)**2).reduce((a,b) => a+b, 0) / sums.length);
   const somMin = Math.max(50, Math.round(avg - 1.5 * std));
   const somMax = Math.min(220, Math.round(avg + 1.5 * std));
 
-  // Odd/Even — meest voorkomende verdelingen
   const oddCounts = mbDraws.map(d => d.nums.filter(n => n%2!==0).length);
   const oddFreq = {};
   oddCounts.forEach(c => oddFreq[c] = (oddFreq[c]||0) + 1);
-  const topOdd = Object.entries(oddFreq)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0,2)
-    .map(e => parseInt(e[0]));
+  const topOdd = Object.entries(oddFreq).sort((a,b) => b[1]-a[1]).slice(0,2).map(e => parseInt(e[0]));
 
-  // Low/High — meest voorkomende verdelingen (grens 25)
   const lowCounts = mbDraws.map(d => d.nums.filter(n => n<=25).length);
   const lowFreq = {};
   lowCounts.forEach(c => lowFreq[c] = (lowFreq[c]||0) + 1);
-  const topLow = Object.entries(lowFreq)
-    .sort((a,b) => b[1]-a[1])
-    .slice(0,2)
-    .map(e => parseInt(e[0]));
+  const topLow = Object.entries(lowFreq).sort((a,b) => b[1]-a[1]).slice(0,2).map(e => parseInt(e[0]));
 
   return { somMin, somMax, idealOdd: topOdd, idealLow: topLow, avg: Math.round(avg), std: Math.round(std), count: mbDraws.length };
 }
@@ -273,7 +447,6 @@ function getDynamicParams(machine, bal) {
 function checkSom(nums){
   const n5 = nums.slice(0,5);
   const s = n5.reduce((a,b)=>a+b,0);
-  // Gebruik dynamische parameters als beschikbaar
   const params = getDynamicParams(currentMachine, currentBal);
   const somMinEl=document.getElementById('somMin'),somMaxEl=document.getElementById('somMax');
   const min = somMinEl ? parseInt(somMinEl.value) : params.somMin;
@@ -281,7 +454,6 @@ function checkSom(nums){
   return s>=min && s<=max;
 }
 function checkConsec(nums){
-  // Check eerste 5 nummers op consecutive
   const n5 = nums.slice(0,5);
   if(!document.getElementById('consecToggle').checked) return true;
   const s=[...n5].sort((a,b)=>a-b);let run=1;
@@ -290,12 +462,10 @@ function checkConsec(nums){
 }
 function checkOverlap(nums, prevTickets){
   if(maxOverlap>=99) return true;
-  // Check per ticket-paar
   for(const prev of prevTickets){
     const overlap=nums.filter(n=>prev.includes(n)).length;
     if(overlap>maxOverlap) return false;
   }
-  // Check globaal — een nummer mag max (maxOverlap+1) keer voorkomen over alle tickets
   const allPrevNums = prevTickets.flat();
   for(const n of nums){
     const count = allPrevNums.filter(p => p===n).length;
@@ -309,7 +479,6 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
     const h=weightedPick(hp,hc),av=weightedPick(ap,ac);
     let nums=[...h,...av].map(x=>x.num);
 
-    // Extra nummers voor system play (6+, 7+, 8+)
     if(extraNums>0){
       const allPool=[...hp,...ap].map(x=>x.num).filter(n=>!nums.includes(n));
       for(let e=0;e<extraNums&&allPool.length>0;e++){
@@ -344,7 +513,7 @@ function pickWithFilters(hp,ap,hc,ac,prevTickets,extraNums=0){
 // =====================
 function renderMatrix(){
   const grid=document.getElementById('matrixGrid');
-  if(!grid) return; // Niet beschikbaar op generate.html
+  if(!grid) return;
   let html='<div class="matrix-header"></div>';
   [1,2,3,4].forEach(l=>html+=`<div class="matrix-header">${l}L+${5-l}H</div>`);
   [1,2,3,4].forEach(o=>{
@@ -411,8 +580,6 @@ function selectMachineBal(machine, bal, btn) {
 // =====================
 // UPDATE UI
 // =====================
-
-// Helper voor veilige element updates
 function setEl(id, prop, val) {
   const el = document.getElementById(id);
   if (el) el[prop] = val;
@@ -429,7 +596,6 @@ function updateAll(){
   if(document.getElementById('valLow')) document.getElementById('valLow').textContent=threshLow_v;
   if(document.getElementById('valHigh')) document.getElementById('valHigh').textContent=threshHigh_v;
 
-  // Show warning if user has changed defaults
   if(typeof defaultThreshLow!=='undefined' && typeof defaultThreshHigh!=='undefined'){
     const changed=(threshLow_v!==defaultThreshLow||threshHigh_v!==defaultThreshHigh);
     const w=document.getElementById('paramWarnSlider');
@@ -447,7 +613,6 @@ function updateAll(){
   setElText('machineLabel', 'M'+currentMachine+'/B'+currentBal);
   setElText('machineBadge', 'M'+currentMachine+'/B'+currentBal);
   setElText('machineTag', 'M'+currentMachine+'/B'+currentBal+' · '+draws.length+' draws · ×'+weight);
-  // Dynamische stat label voor som/consecutive
   const somLabel = document.getElementById('somStatLabel');
   if(somLabel) somLabel.textContent = `${weighted.length} weighted draws · M${currentMachine}/B${currentBal} ×${weight}`;
   setElHTML('ruleMain', `<span style="color:#0C447C;">${dist.hot}</span>h+<span style="color:#7a5c1e;">${dist.avg}</span>a`);
@@ -464,7 +629,6 @@ function updateAll(){
   const starsInProfile = profile.stars || 2;
   const displayCombis = starsInProfile >= 4 ? combis4.slice(0,6) : starsInProfile >= 3 ? combis3.slice(0,6) : combis.slice(0,3);
 
-  // Update titel
   const starTitle = document.getElementById('starStratTitle');
   const starSub = document.getElementById('starSub');
   const ruleStarCount = document.getElementById('ruleStarCount');
@@ -517,11 +681,8 @@ function updatePerformanceBadge() {
   const good = pcts.filter(p => p >= 80).length;
   const perfect = pcts.filter(p => p === 100).length;
 
-  // Laatste 10 trekkingen voor trend
   const last10 = results.slice(0, 10);
   const last10avg = Math.round(last10.reduce((a,r) => a+r.pct, 0) / last10.length);
-
-  // Check of laatste 2 trekkingen beide >70% zijn → signaal voor 6 tickets
   const last2above70 = last10.length >= 2 && last10[0].pct >= 70 && last10[1].pct >= 70;
 
   if (badge) badge.style.display = '';
@@ -534,7 +695,6 @@ function updatePerformanceBadge() {
   if (perfMachine) perfMachine.textContent = `M${currentMachine}/B${currentBal}`;
   if (perfDetail) perfDetail.textContent = `${good} of ${mbDraws.length} draws ≥80% · ${perfect}× fully matched`;
 
-  // Pool dekking trend — laatste 10 trekkingen
   const trendEl = document.getElementById('poolCoverageTrend');
   if (trendEl) {
     const bars = last10.map(r => {
@@ -570,7 +730,6 @@ function updateSom(){
   const somMaxEl = document.getElementById('somMax');
   if(!somMinEl || !somMaxEl) return;
 
-  // Update slider min/max range based on dynamic params
   somMinEl.min = Math.max(30, params.somMin - 30);
   somMinEl.max = params.somMax - 20;
   somMaxEl.min = params.somMin + 20;
@@ -578,7 +737,6 @@ function updateSom(){
 
   let min=parseInt(somMinEl.value), max=parseInt(somMaxEl.value);
 
-  // Als waarden nog op standaard staan, gebruik dynamische waarden
   if(min===90 && max===180) {
     somMinEl.value = params.somMin;
     somMaxEl.value = params.somMax;
@@ -590,7 +748,6 @@ function updateSom(){
   document.getElementById('somMinVal').textContent=min;
   document.getElementById('somMaxVal').textContent=max;
 
-  // Toon dynamische hint
   const hint = document.getElementById('somDynamicHint');
   if(hint && params.count >= 10) {
     hint.textContent = `M${currentMachine}/B${currentBal}: avg ${params.avg} ± ${params.std} (${params.count} draws)`;
@@ -623,7 +780,6 @@ function nextDrawDate(){
 }
 
 function getNextDrawDateISO(){
-  // Geeft de volgende drawsdatum als YYYY-MM-DD
   const d=new Date();
   let nd=new Date(d);
   for(let i=0;i<=7;i++){
@@ -638,7 +794,6 @@ function selectTickets(n){
   numTickets=n;
   document.querySelectorAll('.sel-btn').forEach((b,i)=>b.classList.toggle('active',i===n-1));
   const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {nums:5,stars:2};
-  // Systeem spel kost meer: 6 nummers = €5, 7 nummers = €14, etc.
   const costs = {5:2.5, 6:5, 7:14, 8:35};
   const costPerTicket = costs[profile.nums] || 2.5;
   const total = (n * costPerTicket).toFixed(2).replace('.',',');
@@ -659,7 +814,6 @@ function renderEmpty(n){
 }
 
 function generateAll(){
-  // Check of gebruiker ingelogd is via supabase sessie
   const hasSession = currentSession || (typeof supabaseClient !== 'undefined' && window._pmLoggedIn);
   if (!hasSession) {
     const genBtn = document.getElementById('genBtn');
@@ -668,117 +822,161 @@ function generateAll(){
     if (loginPrompt) loginPrompt.style.display = 'block';
     return;
   }
-  const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
-  const dist=getPickDist();
-  const{combis,combis3,combis4}=getStarStrategy();
 
-  // Als hot pool te klein — gebruik combined pool zonder alert
-  let effectiveHp = hp;
-  let effectiveAp = ap;
-  let effectiveHot = dist.hot;
-  let effectiveAvg = dist.avg;
+  const nd = nextDrawDate();
+  const g = document.getElementById('ticketsGrid');
+  g.innerHTML = '';
+  playedTickets = [];
 
-  if(hp.length < dist.hot || ap.length < dist.avg) {
-    // Combineer hot + avg als één pool
-    const combined = [...hp, ...ap];
-    effectiveHp = combined.slice(0, Math.ceil(combined.length/2));
-    effectiveAp = combined.slice(Math.ceil(combined.length/2));
-    effectiveHot = Math.min(dist.hot, effectiveHp.length);
-    effectiveAvg = Math.min(dist.avg, effectiveAp.length);
-  }
+  const { combis } = getStarStrategy();
 
-  // Haal profiel op
-  const profile = typeof getActiveProfile === 'function' ? getActiveProfile() : {nums:5,stars:2,tickets:numTickets};
-  const numsCount = profile.nums || 5;
-  const starsCount = profile.stars || 2;
+  // Genereer consensus tickets (Monte Carlo)
+  const consensus = generateConsensusTickets();
 
-  // Kies juiste ster combinaties op basis of profiel
-  const starCombis = starsCount >= 4 ? combis4 : starsCount >= 3 ? combis3 : combis;
+  if (consensus) {
+    const { t1, t2, t3, mcA, mcB } = consensus;
+    const strictCount = getStrictDraws(currentMachine, currentBal).length;
 
-  const nd=nextDrawDate(),g=document.getElementById('ticketsGrid');
-  g.innerHTML='';
-  playedTickets=[];
-  const pickedNums=[];
+    // Ster combinaties: roteer door top combis
+    const starCombi1 = combis[0] || [1, 2];
+    const starCombi2 = combis[1] || combis[0] || [1, 2];
+    const starCombi3 = combis[2] || combis[0] || [1, 2];
 
-  for(let t=1;t<=numTickets;t++){
-    const extraNums = numsCount - 5;
-    const r=pickWithFilters(effectiveHp,effectiveAp,effectiveHot,effectiveAvg,pickedNums,extraNums);
-    const allNums=r.nums.sort((a,b)=>a-b),hotNums=r.h.map(x=>x.num);
+    playedTickets.push({ nums: t1.nums, stars: starCombi1 });
+    playedTickets.push({ nums: t2.nums, stars: starCombi2 });
+    playedTickets.push({ nums: t3.nums, stars: starCombi3 });
 
-    // Roteer door ster combinaties — elke ticket een andere
-    const sc = starCombis[(t-1) % starCombis.length];
-
-    pickedNums.push(allNums);
-    playedTickets.push({nums:allNums,stars:sc});
-
-    let overlapInfo='';
-    if(t>1){
-      const maxOv=pickedNums.slice(0,-1).map(prev=>allNums.filter(n=>prev.includes(n)).length);
-      const maxO=Math.max(...maxOv);
-      overlapInfo=maxO===0?'✓ No overlap':`~ Max ${maxO} overlap`;
+    // Helper: render consensus bar
+    function consensusBar(ranked, nums) {
+      const max = ranked[0]?.count || 1;
+      return nums.map(n => {
+        const r = ranked.find(x => x.num === n);
+        const pct = r ? Math.round((r.count / max) * 100) : 0;
+        return `<span style="font-size:9px;color:#555;">${n}<span style="display:inline-block;width:${Math.round(pct*0.3)}px;height:4px;background:#378ADD;margin-left:2px;vertical-align:middle;border-radius:2px;"></span></span>`;
+      }).join(' ');
     }
 
-    const div=document.createElement('div');div.className='ticket ticket-card';
-    div.innerHTML=`
-      <div class="ticket-header"><span class="ticket-num">Ticket ${t}</span><span>${nd} · ${dist.label}</span></div>
+    // Ticket 1 — Strict M/B
+    const div1 = document.createElement('div');
+    div1.className = 'ticket ticket-card';
+    div1.style.borderLeft = '3px solid #0C447C';
+    div1.innerHTML = `
+      <div class="ticket-header">
+        <span class="ticket-num">Ticket 1 <span style="font-size:9px;background:#e8f0fb;color:#0C447C;padding:1px 5px;border-radius:3px;">STRICT M${currentMachine}/B${currentBal}</span></span>
+        <span>${nd}</span>
+      </div>
       <div class="balls">
-        ${allNums.map(n=>`<div class="ball ball-num ${hotNums.includes(n)?'ball-hot':'ball-avg'}">${n}</div>`).join('')}
+        ${t1.nums.map(n => `<div class="ball ball-num ball-hot">${n}</div>`).join('')}
         <span class="sep">+</span>
-        ${sc.map(s=>`<div class="ball ball-star">${s}</div>`).join('')}
+        ${starCombi1.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
       </div>
       <div class="ticket-tags">
-        <span class="ttag ${r.ok?'ttag-g':'ttag-w'}">${r.ok?'✓':'~'} ${r.odd}o+${r.even}e · ${r.low}L+${r.high}H</span>
-        <span class="ttag ttag-b">Som: ${r.som}</span>
-        <span class="ttag ttag-o">★ ${sc.join('-')}</span>
-        ${overlapInfo?`<span class="ttag ${overlapInfo.startsWith('✓')?'ttag-g':'ttag-p'}">${overlapInfo}</span>`:''}
-        ${r.fallback?'<span class="ttag ttag-w">Fallback</span>':''}
+        <span class="ttag ${t1.fallback ? 'ttag-w' : 'ttag-g'}">${t1.fallback ? '~ Fallback' : '✓ Consensus'}</span>
+        <span class="ttag ttag-b">Som: ${t1.nums.reduce((a,b)=>a+b,0)}</span>
+        <span class="ttag ttag-o">★ ${starCombi1.join('-')}</span>
+        <span class="ttag" style="background:#e8f0fb;color:#0C447C;">${strictCount} M/B draws · 15 runs</span>
       </div>`;
-    g.appendChild(div);
-  }
-  document.getElementById('attemptInfo').textContent=`${numTickets} ticket${numTickets>1?'s':''} generated with anti-overlap (max ${maxOverlap===99?'∞':maxOverlap})`;
+    g.appendChild(div1);
 
-  // Pool overlap check — hoeveel % van de pool zit in de gegenereerde tickets?
-  updatePoolOverlapBadge();
+    // Ticket 2 — Weighted
+    const div2 = document.createElement('div');
+    div2.className = 'ticket ticket-card';
+    div2.style.borderLeft = '3px solid #3B6D11';
+    div2.innerHTML = `
+      <div class="ticket-header">
+        <span class="ticket-num">Ticket 2 <span style="font-size:9px;background:#f0f8ec;color:#3B6D11;padding:1px 5px;border-radius:3px;">WEIGHTED ×${getWeight(currentMachine, currentBal)}</span></span>
+        <span>${nd}</span>
+      </div>
+      <div class="balls">
+        ${t2.nums.map(n => `<div class="ball ball-num ball-avg">${n}</div>`).join('')}
+        <span class="sep">+</span>
+        ${starCombi2.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
+      </div>
+      <div class="ticket-tags">
+        <span class="ttag ${t2.fallback ? 'ttag-w' : 'ttag-g'}">${t2.fallback ? '~ Fallback' : '✓ Consensus'}</span>
+        <span class="ttag ttag-b">Som: ${t2.nums.reduce((a,b)=>a+b,0)}</span>
+        <span class="ttag ttag-o">★ ${starCombi2.join('-')}</span>
+        <span class="ttag" style="background:#f0f8ec;color:#3B6D11;">${getWeightedDraws(currentMachine, currentBal).length} weighted draws · 15 runs</span>
+      </div>`;
+    g.appendChild(div2);
 
-  // Toon wheeling knop als pool dekking signaal actief is
-  const wheelingBtn = document.getElementById('wheelingBtn');
-  if (wheelingBtn) {
-    wheelingBtn.style.display = 'block';
-    // Aanbeveling op basis van pool dekking trend
-    const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
-    const last2 = mbDraws.slice(0, 2);
-    const advice = document.getElementById('wheelingAdvice');
-    if (advice && last2.length >= 2) {
-      const last2pcts = last2.map(draw => {
-        const weighted = getWeightedDraws(draw.machine, draw.bal);
-        const freq = {};
-        for(let n=1;n<=50;n++) freq[n]=0;
-        weighted.forEach(d => d.nums.forEach(n => freq[n]++));
-        const threshLow = Math.round((weighted.length*5/50) * 0.80);
-        const pool = [];
-        for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
-        return Math.round((draw.nums.filter(n => pool.includes(n)).length / draw.nums.length) * 100);
-      });
-      const bothHigh = last2pcts[0] >= 70 && last2pcts[1] >= 70;
-      advice.innerHTML = bothHigh
-        ? `🎯 <strong>Recommended!</strong> Last 2 draws both had >70% pool coverage (${last2pcts[1]}% + ${last2pcts[0]}%) — wheeling is statistically interesting now.`
-        : `Generate 3 extra tickets using the same pool numbers in different combinations — increases your chances of hitting a prize.`;
-      advice.style.color = bothHigh ? '#2E7D32' : '#888';
+    // Ticket 3 — Wheel
+    const overlap12 = t1.nums.filter(n => t2.nums.includes(n));
+    const div3 = document.createElement('div');
+    div3.className = 'ticket ticket-card';
+    div3.style.borderLeft = '3px solid #8B6914';
+    div3.innerHTML = `
+      <div class="ticket-header">
+        <span class="ticket-num">Ticket 3 <span style="font-size:9px;background:#f5f0e0;color:#8B6914;padding:1px 5px;border-radius:3px;">WHEEL</span></span>
+        <span>${nd}</span>
+      </div>
+      <div class="balls">
+        ${t3.nums.map(n => {
+          const inT1 = t1.nums.includes(n);
+          const inT2 = t2.nums.includes(n);
+          const cls = inT1 || inT2 ? 'ball-avg' : 'ball-num';
+          return `<div class="ball ball-num ${cls}" style="${!inT1&&!inT2?'background:#8B6914;color:#fff;border-color:#8B6914;':''}">${n}</div>`;
+        }).join('')}
+        <span class="sep">+</span>
+        ${starCombi3.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
+      </div>
+      <div class="ticket-tags">
+        <span class="ttag ${t3.fallback ? 'ttag-w' : 'ttag-g'}">${t3.fallback ? '~ Fallback' : '✓ Consensus'}</span>
+        <span class="ttag ttag-b">Som: ${t3.nums.reduce((a,b)=>a+b,0)}</span>
+        <span class="ttag ttag-o">★ ${starCombi3.join('-')}</span>
+        <span class="ttag" style="background:#f5f0e0;color:#8B6914;">Overlap T1+T2: ${overlap12.length > 0 ? overlap12.join(',') : 'geen'}</span>
+      </div>`;
+    g.appendChild(div3);
+
+  } else {
+    // Fallback: klassieke generatie als consensus mislukt
+    const hp=buildPool('nums','hot'),ap=buildPool('nums','avg');
+    const dist=getPickDist();
+    let effectiveHp = hp, effectiveAp = ap;
+    let effectiveHot = dist.hot, effectiveAvg = dist.avg;
+    if(hp.length < dist.hot || ap.length < dist.avg) {
+      const combined = [...hp, ...ap];
+      effectiveHp = combined.slice(0, Math.ceil(combined.length/2));
+      effectiveAp = combined.slice(Math.ceil(combined.length/2));
+      effectiveHot = Math.min(dist.hot, effectiveHp.length);
+      effectiveAvg = Math.min(dist.avg, effectiveAp.length);
+    }
+    const pickedNums = [];
+    for(let t=1;t<=3;t++){
+      const r=pickWithFilters(effectiveHp,effectiveAp,effectiveHot,effectiveAvg,pickedNums);
+      const sc = combis[(t-1) % combis.length] || [1,2];
+      pickedNums.push(r.nums);
+      playedTickets.push({nums:r.nums,stars:sc});
+      const div=document.createElement('div');div.className='ticket ticket-card';
+      div.innerHTML=`
+        <div class="ticket-header"><span class="ticket-num">Ticket ${t}</span><span>${nd} · ${dist.label}</span></div>
+        <div class="balls">
+          ${r.nums.map(n=>`<div class="ball ball-num ${r.h.map(x=>x.num).includes(n)?'ball-hot':'ball-avg'}">${n}</div>`).join('')}
+          <span class="sep">+</span>
+          ${sc.map(s=>`<div class="ball ball-star">${s}</div>`).join('')}
+        </div>
+        <div class="ticket-tags">
+          <span class="ttag ${r.ok?'ttag-g':'ttag-w'}">${r.ok?'✓':'~'} ${r.odd}o+${r.even}e · ${r.low}L+${r.high}H</span>
+          <span class="ttag ttag-b">Som: ${r.som}</span>
+          <span class="ttag ttag-o">★ ${sc.join('-')}</span>
+        </div>`;
+      g.appendChild(div);
     }
   }
 
-  // Vul gespeelde tickets in het resultaatformulier
+  document.getElementById('attemptInfo').textContent = `3 consensus tickets · Monte Carlo 15 runs · M${currentMachine}/B${currentBal}`;
+  updatePoolOverlapBadge();
   buildTicketInputs();
 }
 
+
 // =====================
-// POOL OVERLAP — hoeveel % van de pool zit in de tickets?
+// POOL OVERLAP
 // =====================
 function updatePoolOverlapBadge() {
   const el = document.getElementById('poolOverlapBadge');
   if (!el || playedTickets.length === 0) return;
 
-  // Bereken huidige pool
   const weighted = getWeightedDraws(currentMachine, currentBal);
   const freq = {};
   for(let n=1;n<=50;n++) freq[n]=0;
@@ -788,13 +986,12 @@ function updatePoolOverlapBadge() {
   const pool = [];
   for(let n=1;n<=50;n++) if(freq[n] >= threshLow) pool.push(n);
 
-  // Unieke nummers in tickets
   const ticketNums = [...new Set(playedTickets.flatMap(t => t.nums))];
   const inPool = ticketNums.filter(n => pool.includes(n));
   const overlapPct = ticketNums.length > 0 ? Math.round((inPool.length / ticketNums.length) * 100) : 0;
 
   const color = overlapPct >= 80 ? '#2E7D32' : overlapPct >= 60 ? '#E67E22' : '#A32D2D';
-  const status = overlapPct >= 80 ? '✓ Excellent — all numbers are hot/avg' : overlapPct >= 60 ? '⚠ Good — most numbers are hot/avg' : '✗ Low — consider regenerating';
+  const status = overlapPct >= 80 ? '✓ Excellent' : overlapPct >= 60 ? '⚠ Good' : '✗ Low';
 
   el.style.display = 'block';
   el.innerHTML = `
@@ -807,7 +1004,6 @@ function updatePoolOverlapBadge() {
     </div>
     ${overlapPct < 60 ? `<button onclick="generateAll()" style="margin-top:8px;font-size:11px;padding:5px 12px;background:#1a1a18;color:#fff;border:none;border-radius:4px;cursor:pointer;">↻ Regenerate tickets</button>` : ''}`;
 
-  // Pool dekking trending — stijgend of dalend?
   updatePoolTrending(el, overlapPct);
 }
 
@@ -815,7 +1011,6 @@ function updatePoolTrending(container, currentPct) {
   const mbDraws = ALL_DRAWS.filter(d => d.machine === currentMachine && d.bal === currentBal);
   if (mbDraws.length < 3) return;
 
-  // Bereken pool dekking van laatste 5 trekkingen
   const last5 = mbDraws.slice(0, 5).map(draw => {
     const weighted = getWeightedDraws(draw.machine, draw.bal);
     const freq = {};
@@ -828,7 +1023,6 @@ function updatePoolTrending(container, currentPct) {
     return Math.round((inPool.length / draw.nums.length) * 100);
   });
 
-  // Trend bepalen — vergelijk eerste 2 met laatste 2
   const recent = last5.slice(0, 2).reduce((a,b) => a+b, 0) / 2;
   const older = last5.slice(3, 5).reduce((a,b) => a+b, 0) / Math.max(last5.slice(3,5).length, 1);
   const diff = recent - older;
@@ -839,123 +1033,6 @@ function updatePoolTrending(container, currentPct) {
   trendEl.style.cssText = 'font-size:10px;color:#aaa;margin-top:6px;padding-top:6px;border-top:1px solid #e8e8e4;';
   trendEl.innerHTML = `Pool coverage trend (last 5 draws): ${last5.map(p => `<strong style="color:${p>=80?'#2E7D32':p>=60?'#E67E22':'#A32D2D'}">${p}%</strong>`).join(' → ')} &nbsp; <span style="color:${trendColor};font-weight:600;">${trend}</span>`;
   container.appendChild(trendEl);
-}
-
-// =====================
-// WHEELING — 3 EXTRA TICKETS
-// =====================
-function generateWheeling() {
-  const g = document.getElementById('ticketsGrid');
-  if (!g || playedTickets.length === 0) return;
-
-  // Verzamel alle unieke nummers uit de eerste 3 tickets
-  const allNums = [...new Set(playedTickets.flatMap(t => t.nums))].sort((a,b) => a-b);
-  // Sterren voor wheeling — gebruik getStarStrategy voor verse combinaties
-  const starStrategy = getStarStrategy();
-  const hotStars = starStrategy.hotStars;
-  const avgStars = starStrategy.avgStars;
-
-  // Tel hoe vaak elke ster al gebruikt is in de eerste 3 tickets
-  const starUsageCount = {};
-  playedTickets.forEach(t => t.stars.forEach(s => starUsageCount[s] = (starUsageCount[s]||0) + 1));
-
-  // Bouw ster combinaties die NIET al in de eerste 3 tickets zitten
-  const usedStarCombis = playedTickets.map(t => t.stars.slice().sort((a,b)=>a-b).join('-'));
-  const wheelStarCombis = [];
-
-  // Alle beschikbare sterren gesorteerd op minste gebruik
-  const allStars = [...new Set([...hotStars, ...avgStars])];
-  const sortedByUsage = allStars.sort((a,b) => (starUsageCount[a]||0) - (starUsageCount[b]||0));
-
-  // Genereer 3 unieke combinaties met minste hergebruik
-  for (let i = 0; i < sortedByUsage.length && wheelStarCombis.length < 3; i++) {
-    for (let j = i+1; j < sortedByUsage.length && wheelStarCombis.length < 3; j++) {
-      const c = [sortedByUsage[i], sortedByUsage[j]].sort((a,b)=>a-b);
-      if (!usedStarCombis.includes(c.join('-')) && !wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
-        wheelStarCombis.push(c);
-      }
-    }
-  }
-
-  // Fallback: gebruik minst gebruikte combinaties ook als ze al in tickets zitten
-  if (wheelStarCombis.length < 3) {
-    for (let i = 0; i < sortedByUsage.length && wheelStarCombis.length < 3; i++) {
-      for (let j = i+1; j < sortedByUsage.length && wheelStarCombis.length < 3; j++) {
-        const c = [sortedByUsage[i], sortedByUsage[j]].sort((a,b)=>a-b);
-        if (!wheelStarCombis.some(x => x.join('-') === c.join('-'))) {
-          wheelStarCombis.push(c);
-        }
-      }
-    }
-  }
-
-  // Genereer wheeling tickets — nieuwe combinaties van dezelfde nummers
-  // Doel: als 4 van de N nummers vallen, zit die combinatie in minstens 1 ticket
-  const wheelTickets = [];
-  const n = allNums.length; // typisch 13-15 unieke nummers
-
-  // Simpele wheeling: roteer nummers in groepen van 5
-  // Elke ticket pakt nummers op andere posities
-  const step = Math.ceil(n / 3);
-  for (let i = 0; i < 3; i++) {
-    // Kies 5 nummers met rotatie en overlap
-    const start = (i * 3) % n;
-    const picks = [];
-    // Neem 2 nummers van het begin, 2 van het midden, 1 van het einde
-    picks.push(allNums[start % n]);
-    picks.push(allNums[(start + 2) % n]);
-    picks.push(allNums[(start + 4) % n]);
-    picks.push(allNums[(start + 6) % n]);
-    picks.push(allNums[(start + 8) % n]);
-    const uniquePicks = [...new Set(picks)];
-    // Als er duplicaten zijn vul aan
-    for (let j = 0; uniquePicks.length < 5 && j < allNums.length; j++) {
-      if (!uniquePicks.includes(allNums[j])) uniquePicks.push(allNums[j]);
-    }
-    wheelTickets.push({
-      nums: uniquePicks.slice(0,5).sort((a,b)=>a-b),
-      stars: wheelStarCombis[i] || starCombis[i % starCombis.length]
-    });
-  }
-
-  const nd = nextDrawDate();
-  const currentCount = g.children.length;
-
-  // Voeg wheeling tickets toe aan grid
-  wheelTickets.forEach((t, i) => {
-    const div = document.createElement('div');
-    div.className = 'ticket ticket-card';
-    div.style.borderLeft = '3px solid #8B6914';
-    div.innerHTML = `
-      <div class="ticket-header">
-        <span class="ticket-num">Ticket ${currentCount + i + 1} <span style="font-size:9px;background:#f5f0e0;color:#8B6914;padding:1px 5px;border-radius:3px;">WHEEL</span></span>
-        <span>${nd}</span>
-      </div>
-      <div class="balls">
-        ${t.nums.map(n => {
-          const inPrev = playedTickets.some(pt => pt.nums.includes(n));
-          return `<div class="ball ball-num ${inPrev ? 'ball-hot' : 'ball-avg'}">${n}</div>`;
-        }).join('')}
-        <span class="sep">+</span>
-        ${t.stars.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
-      </div>
-      <div class="ticket-tags">
-        <span class="ttag ttag-w">🎯 Wheeling ticket</span>
-        <span class="ttag ttag-b">Som: ${t.nums.reduce((a,b)=>a+b,0)}</span>
-        <span class="ttag ttag-o">★ ${t.stars.join('-')}</span>
-      </div>`;
-    g.appendChild(div);
-    playedTickets.push(t);
-  });
-
-  // Verberg de knop na generatie
-  const wb = document.getElementById('wheelingBtn');
-  if (wb) wb.style.display = 'none';
-
-  // Update opslaan sectie
-  const saveArea = document.getElementById('saveTicketsArea');
-  if (saveArea) saveArea.style.display = 'block';
-  buildTicketInputs();
 }
 
 
@@ -999,26 +1076,23 @@ function saveResult(){
   }
 
   const d=new Date(dateVal);
-  const days=['zo','ma','di','wo','do','vr','za'],months=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+  const months=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
   const dateStr=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 
-  // Check machine/balset wijziging
   const machineChanged=(machine!==currentMachine||bal!==currentBal);
   if(machineChanged){
     document.getElementById('machineAlert').style.display='block';
     document.getElementById('machineAlertText').innerHTML=
       `Machine/Balset gewijzigd of <strong>M${currentMachine}/B${currentBal}</strong> naar <strong>M${machine}/B${bal}</strong>.<br>
-      De generator is automatisch omgeschakeld. Pools en scores worden herberekend op basis of de nieuwe combinatie.`;
+      De generator is automatisch omgeschakeld.`;
     currentMachine=machine;
     currentBal=bal;
     updateAll();
   }
 
-  // Voeg toe aan dataset
   const newDraw={date:dateStr,nums:numInputs.sort((a,b)=>a-b),stars:starInputs.sort((a,b)=>a-b),machine,bal};
   ALL_DRAWS.unshift(newDraw);
 
-  // Verwerk gespeelde tickets voor rendement
   const tickets=playedTickets.length>0?playedTickets:[];
   let bestPrize=0, bestHits={nums:0,stars:0};
   tickets.forEach(t=>{
@@ -1047,8 +1121,6 @@ function saveResult(){
 
   updateAll();
   renderRendement();
-
-  // Reset
   setTimeout(()=>document.getElementById('saveMsg').textContent='',3000);
 }
 
@@ -1154,7 +1226,6 @@ function showAnalyseTab(t) {
     if (btn) btn.classList.toggle('active', tab === t);
   });
 
-  // Toon/verberg freq controls en chart
   const freqControls = document.getElementById('freqControls');
   const freqChart = document.getElementById('freqChart');
   const freqLegend = document.getElementById('freqLegend');
@@ -1194,7 +1265,6 @@ function renderDrawHistory() {
     return;
   }
 
-  // Bereken pool voor elke trekking
   const rows = mbDraws.map(draw => {
     const weighted = getWeightedDraws(draw.machine, draw.bal);
     const freq = {};
@@ -1261,36 +1331,27 @@ function renderFreqFiltered(field, tier) {
   const sort = document.getElementById('freqSort').value;
   const {freq, maxN, total} = getFreqData(field);
   const avg = field === 'stars' ? (total*2)/12 : (total*5)/50;
-  // Sterren gebruiken strengere 1.5× drempel (consistent met sterren strategie)
   const hotMult = field === 'stars' ? 1.5 : 1.33;
   const coldMult = field === 'stars' ? 0.7 : 0.67;
   const lo = Math.round(avg * coldMult);
   const hi = Math.round(avg * hotMult);
 
-  // Filter op tier
   let nums = Array.from({length: maxN}, (_, i) => i+1);
   if (tier === 'hot') nums = nums.filter(n => freq[n] > hi);
   else if (tier === 'avg') nums = nums.filter(n => freq[n] >= lo && freq[n] <= hi);
   else if (tier === 'cold') nums = nums.filter(n => freq[n] < lo);
-  // Voor sterren: toon alle 12 maar met hot/avg/cold kleuren
 
-  // Sortering
   if (sort === 'desc') nums.sort((a,b) => freq[b]-freq[a] || a-b);
   else if (sort === 'asc') nums.sort((a,b) => freq[a]-freq[b] || a-b);
-  // 'num' = op nummer, standaard volgorde
 
   const maxCount = nums.length > 0 ? Math.max(...nums.map(n => freq[n])) : 1;
   const linePos = maxCount > 0 ? (avg/maxCount*100).toFixed(1) : 0;
 
-  // Kleur per nummer
   function getColor(n) {
-    if (field === 'stars') {
-      return freq[n] > hi ? '#C0392B' : freq[n] >= lo ? '#E67E22' : '#bbb';
-    }
+    if (field === 'stars') return freq[n] > hi ? '#C0392B' : freq[n] >= lo ? '#E67E22' : '#bbb';
     return freq[n] > hi ? '#378ADD' : freq[n] >= lo ? '#d4a840' : '#e05555';
   }
 
-  // Legenda
   let legend = '';
   if (field === 'stars') {
     legend = `<span><span class="freq-dot" style="background:#C0392B;"></span>🔥 Hot (&gt;${hi}×)</span>
@@ -1339,7 +1400,6 @@ function showTab(t) {
 }
 
 
-
 // Update lastDraw dynamisch vanuit dataset
 (function updateLastDrawDisplay() {
   const last = ALL_DRAWS[0];
@@ -1350,10 +1410,9 @@ function showTab(t) {
 })();
 
 // =====================
-// INITIALISATIE bij opstarten
+// INITIALISATIE
 // =====================
 document.addEventListener('DOMContentLoaded', function() {
-  // Kleine delay zodat admin.js currentMachine/currentBal kan instellen
   setTimeout(function() {
     updateAll();
     renderMatrix();
