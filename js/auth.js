@@ -96,9 +96,102 @@ async function loadUserProfile(authUser) {
     localStorage.removeItem('em_pending_profile');
     applyProfileToGenerator(selectedProfile);
     updateUserBar(currentUser);
+
+    // Laad opgeslagen tickets voor de volgende draw
+    await loadSavedTickets(currentUser.id);
+
   } catch(e) {
     console.warn('Loading profile:', e);
     updateUserBar({ email: authUser.email });
+  }
+}
+
+// =====================
+// TICKETS LADEN
+// =====================
+async function loadSavedTickets(userId) {
+  try {
+    const nextDrawDate = getNextDrawDateISO();
+    const { data, error } = await supabaseClient
+      .from('tickets')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('draw_date', nextDrawDate)
+      .order('ticket_number', { ascending: true });
+
+    if (error || !data || data.length === 0) return;
+
+    // Herstel playedTickets globaal
+    playedTickets = data.map(t => ({ nums: t.nums, stars: t.stars }));
+
+    // Render de tickets in de grid
+    const g = document.getElementById('ticketsGrid');
+    if (!g) return;
+    g.innerHTML = '';
+
+    const nd = typeof nextDrawDate !== 'undefined'
+      ? (function() {
+          const d = new Date(nextDrawDate);
+          const days = ['zo','ma','di','wo','do','vr','za'];
+          const months = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+          return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+        })()
+      : '';
+
+    const labels = ['Strict M/B', 'Weighted', 'Wheel'];
+    const borderColors = ['#0C447C', '#3B6D11', '#8B6914'];
+    const tagColors = [
+      { bg: '#e8f0fb', color: '#0C447C' },
+      { bg: '#f0f8ec', color: '#3B6D11' },
+      { bg: '#f5f0e0', color: '#8B6914' }
+    ];
+
+    data.forEach((t, i) => {
+      const label = labels[i] || `Ticket ${i+1}`;
+      const border = borderColors[i] || '#555';
+      const tag = tagColors[i] || { bg: '#f4f4f2', color: '#555' };
+      const som = t.nums.reduce((a, b) => a + b, 0);
+
+      const div = document.createElement('div');
+      div.className = 'ticket ticket-card';
+      div.style.borderLeft = `3px solid ${border}`;
+      div.innerHTML = `
+        <div class="ticket-header">
+          <span class="ticket-num">Ticket ${i+1} <span style="font-size:9px;background:${tag.bg};color:${tag.color};padding:1px 5px;border-radius:3px;">${label}</span></span>
+          <span>${nd}</span>
+        </div>
+        <div class="balls">
+          ${t.nums.map(n => `<div class="ball ball-num ball-hot">${n}</div>`).join('')}
+          <span class="sep">+</span>
+          ${t.stars.map(s => `<div class="ball ball-star">${s}</div>`).join('')}
+        </div>
+        <div class="ticket-tags">
+          <span class="ttag ttag-g">✓ Opgeslagen</span>
+          <span class="ttag ttag-b">Som: ${som}</span>
+          <span class="ttag ttag-o">★ ${t.stars.join('-')}</span>
+          <span class="ttag" style="background:${tag.bg};color:${tag.color};">M${t.machine}/B${t.bal}</span>
+        </div>`;
+      g.appendChild(div);
+    });
+
+    // Update info tekst
+    const attemptInfo = document.getElementById('attemptInfo');
+    if (attemptInfo) attemptInfo.textContent = `${data.length} opgeslagen tickets geladen · draw ${nextDrawDate}`;
+
+    // Toon badge dat tickets al opgeslagen zijn
+    const savedBanner = document.getElementById('ticketsSavedBanner');
+    if (savedBanner) {
+      savedBanner.style.display = 'block';
+      savedBanner.innerHTML = `
+        <div style="background:#f0f8ec;border:1px solid #c8e0b8;border-radius:8px;padding:10px 14px;font-size:12px;color:#3B6D11;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <span>✓ <strong>${data.length} tickets opgeslagen</strong> voor draw ${nd} — zichtbaar op alle toestellen</span>
+          <button onclick="generateAll()" style="font-size:11px;padding:4px 10px;background:#3B6D11;color:#fff;border:none;border-radius:4px;cursor:pointer;">↻ Hergeneren</button>
+        </div>`;
+    }
+
+    console.log(`✓ ${data.length} tickets geladen voor draw ${nextDrawDate}`);
+  } catch(e) {
+    console.warn('loadSavedTickets fout:', e);
   }
 }
 
