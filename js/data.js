@@ -5,6 +5,7 @@
 // DATASET
 // =====================
 let ALL_DRAWS = [
+  { date:'20 okt 2026', draw:1991, nums:[9,15,16,37,43], stars:[7,10], machine:14, bal:20 },
   { date:'16 okt 2026', draw:1990, nums:[7,15,16,22,35], stars:[4,6], machine:14, bal:20 },
   { date:'13 okt 2026', draw:1989, nums:[21,23,39,44,49], stars:[4,11], machine:14, bal:20 },
   { date:'9 okt 2026', draw:1988, nums:[5,20,24,31,45], stars:[5,10], machine:14, bal:20 },
