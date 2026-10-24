@@ -379,25 +379,27 @@ function adminSaveFetched(){
 // =====================
 function adminAddManual(){
   const dateVal=document.getElementById('manDate').value;
+  const drawNum=parseInt(document.getElementById('manDraw').value);
   const machine=parseInt(document.getElementById('manMachine').value);
   const bal=parseInt(document.getElementById('manBal').value);
   const nums=[...document.querySelectorAll('.man-num')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=50);
   const stars=[...document.querySelectorAll('.man-star')].map(i=>parseInt(i.value)).filter(n=>!isNaN(n)&&n>=1&&n<=12);
   const msg=document.getElementById('manMsg');
   if(!dateVal||nums.length!==5||stars.length!==2||isNaN(machine)||isNaN(bal)){
-    msg.textContent='⚠ Vul alle velden in (datum, 5 nrs, 2 sterren, machine, balset)';
+    msg.textContent='⚠ Vul alle velden in (datum, draw nr, 5 nrs, 2 sterren, machine, balset)';
     msg.style.color='#A32D2D'; return;
   }
   const d=new Date(dateVal);
   const months=['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
   const dateStr=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  const newDraw = {date:dateStr,nums:nums.sort((a,b)=>a-b),stars:stars.sort((a,b)=>a-b),machine,bal};
+  const newDraw = {date:dateStr,draw:isNaN(drawNum)?0:drawNum,nums:nums.sort((a,b)=>a-b),stars:stars.sort((a,b)=>a-b),machine,bal};
   ALL_DRAWS.unshift(newDraw);
   adminSaveToStorage(); updateAll(); adminRefreshPanel();
   // Sla pool dekking analyse op
   saveDrawAnalysis(newDraw);
   document.querySelectorAll('.man-num,.man-star').forEach(i=>i.value='');
-  msg.textContent=`✓ ${dateStr} M${machine}/B${bal} toegevoegd`; msg.style.color='#3B6D11';
+  document.getElementById('manDraw').value='';
+  msg.textContent=`✓ Draw ${isNaN(drawNum)?'':drawNum+' · '}${dateStr} M${machine}/B${bal} toegevoegd`; msg.style.color='#3B6D11';
   setTimeout(()=>msg.textContent='',4000);
 }
 

@@ -822,18 +822,24 @@
       <div class="admin-section">
         <div class="admin-section-title">✏️ Add draw manually</div>
         <div class="admin-input-row">
-          <div class="admin-input-group">
-            <span class="admin-input-label">DATE</span>
-            <input type="date" class="admin-input" id="manDate">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div class="admin-input-group">
+              <span class="admin-input-label">DATE</span>
+              <input type="date" class="admin-input" id="manDate">
+            </div>
+            <div class="admin-input-group">
+              <span class="admin-input-label">DRAW NUMBER</span>
+              <input type="number" class="admin-input" id="manDraw" placeholder="1992" min="1">
+            </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
             <div class="admin-input-group">
               <span class="admin-input-label">MACHINE</span>
-              <input type="number" class="admin-input" id="manMachine" placeholder="13" min="1" max="20" value="13">
+              <input type="number" class="admin-input" id="manMachine" placeholder="13" min="1" max="20" value="14">
             </div>
             <div class="admin-input-group">
               <span class="admin-input-label">BALL SET</span>
-              <input type="number" class="admin-input" id="manBal" placeholder="21" min="1" max="30" value="21">
+              <input type="number" class="admin-input" id="manBal" placeholder="21" min="1" max="30" value="20">
             </div>
           </div>
         </div>
